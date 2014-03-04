@@ -1,0 +1,43 @@
+{
+  "name": "infopik",
+  "main": "index.js",
+  "version": "0.0.0",
+  "homepage": "https://github.com/heartyoh/infopik",
+  "authors": [
+    "heartyoh <heartyoh@gmail.com>"
+  ],
+  "description": "Infographic Painter & Presenter",
+  "keywords": [
+    "infographic",
+    "canvas",
+    "barcode"
+  ],
+  "dependencies": {
+    "dou": "git://github.com/heartyoh/dou",
+    "bwip": "git://github.com/heartyoh/bwip",
+    "KineticJS": "git://github.com/ericdrowell/KineticJS.git"
+  },
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "*.gemspec",
+    "*.gem",
+    "Gemfile",
+    "Gruntfile.js",
+    "package.json",
+    "Rakefile",
+    "node_modules",
+    "bower_components",
+    "vendor",
+    "lib",
+    "example",
+    "test",
+    "tests"
+  ],
+  "devDependencies": {
+    "es5-shim": ">=2.3.0",
+    "chai": ">=1.8.0",
+    "mocha": ">=1.14.0",
+    "requirejs": ">=2.1.11"
+  }
+}
