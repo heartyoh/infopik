@@ -44,7 +44,7 @@ module.exports = function (grunt) {
         stripBanners: true
       }, 
       build: {
-        src: ['build/js/**/*.js'],
+        src: ['src/**/*.js'],
         dest: 'infopik.js'
       }
     },

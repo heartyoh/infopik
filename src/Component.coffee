@@ -11,9 +11,8 @@ define [
     "use strict"
 
     class Component
-        constructor : ->
-
-        draw : (ctx) ->
+        constructor : (type) ->
+            @type = type
 
     dou.mixin Component, [
         dou.with.advice

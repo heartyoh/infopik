@@ -3,9 +3,9 @@
     "use strict";
     var Component;
     Component = (function() {
-      function Component() {}
-
-      Component.prototype.draw = function(ctx) {};
+      function Component(type) {
+        this.type = type;
+      }
 
       return Component;
 

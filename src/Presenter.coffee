@@ -11,16 +11,16 @@ define [
     "use strict"
 
     EDIT_MODE =
-    	SELECT: 1
-    	CREATE: 2
+        SELECT: 1
+        CREATE: 2
 
     class Presenter extends Container
         constructor : ->
 
         defaults :
-        	edit_mode: EDIT_MODE.SELECT
-        	width: 600
-        	height: 800
+            edit_mode: EDIT_MODE.SELECT
+            width: 600
+            height: 800
 
     Presenter.EDIT_MODE = EDIT_MODE
 

@@ -5,14 +5,14 @@
 # ==========================================
 
 define [
-	'./Renderer'
-	'KineticJS'
-], (Renderer, kin) ->
+], ->
     
     "use strict"
 
-    class RectRenderer extends Renderer
-        draw: (context) ->
-        	@provider.get('x')
+    class HandleRenderer
+    	constructor: (provider)->
+    		@provider = provider
 
-    RectRenderer
+        draw: (context) ->
+
+    HandleRenderer
