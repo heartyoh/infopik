@@ -8,7 +8,9 @@
     Container = (function(_super) {
       __extends(Container, _super);
 
-      function Container() {}
+      function Container(type) {
+        Container.__super__.constructor.call(this, type);
+      }
 
       return Container;
 

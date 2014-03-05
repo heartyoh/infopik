@@ -1,6 +1,6 @@
 "use strict";
 
-define(['src/Container'], function (Container) {
+define(['src/Component', 'src/Container'], function (Component, Container) {
 
   describe('Container', function () {
 
@@ -20,7 +20,7 @@ define(['src/Container'], function (Container) {
 
         inst.initialize();
 
-        inst.add('A');
+        inst.add(new Component());
 
         inst.select().length.should.equal(1);
 

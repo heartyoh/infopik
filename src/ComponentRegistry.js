@@ -11,6 +11,10 @@
         return this.componentSpecs[componentSpec.type] = componentSpec;
       };
 
+      ComponentRegistry.prototype.unregister = function(type) {
+        return this.componentSpecs;
+      };
+
       ComponentRegistry.prototype.list = function(filter) {
         return Object.keys(this.componentSpecs).map(function(key) {
           return this.componentSpecs[key];

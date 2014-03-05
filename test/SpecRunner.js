@@ -39,6 +39,7 @@ require(['require', 'chai', 'mocha'], function(require, chai){
     'spec/painter_spec.js',
     'spec/presenter_spec.js',
     'spec/spec_rect_spec.js',
+    'spec/spec_group_spec.js',
     // 'spec/test-emitter.js',
     // 'spec/test-propertyholder.js'
   ], function(require) {

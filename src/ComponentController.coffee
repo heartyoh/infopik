@@ -5,15 +5,15 @@
 # ==========================================
 
 define [
-    'dou'
-    './Component'
-    './Containable'
-], (dou, Component, Containable) ->
+], ->
     
     "use strict"
 
-    class Container extends Component
-        constructor : (type) ->
-        	super(type)
+    class ComponentController
+        constructor: (handler_map)->
+            @handler_map = handler_map
 
-    dou.mixin Container, Containable
+        getHandlerMap: ->
+            @handler_map
+
+    ComponentController

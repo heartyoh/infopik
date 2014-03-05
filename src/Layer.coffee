@@ -5,12 +5,19 @@
 # ==========================================
 
 define [
-], ->
+    'KineticJS'
+], (kin) ->
     
     "use strict"
 
     class Layer
-    	constructor: (container) ->
-    		@container = container
+        constructor: ->
+            @layer = new kin.Layer()
+            
+        setContainer: (container) ->
+            @container = container
+
+        getContainer: ->
+            @container
 
     Layer

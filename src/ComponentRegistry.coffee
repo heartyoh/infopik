@@ -17,6 +17,9 @@ define [
         register : (componentSpec) ->
             @componentSpecs[componentSpec.type] = componentSpec
 
+        unregister : (type) ->
+            @componentSpecs
+
         list : (filter) ->
             return Object.keys(@componentSpecs).map (key) ->
                 @componentSpecs[key]

@@ -10,12 +10,10 @@ define [
     
     "use strict"
 
-    class ComponentSpec
+    class LayerSpec
         constructor : (config) ->
             @urn = config.urn
             @name = config.name
             @description = config.description
             @defaults = config.defaults
-            @view_factory = config.view_factory
-            @handle_factory = config.handle_factory
-            @toolbox_image = config.toolbox_image
+            @layer_factory = config.layer_factory

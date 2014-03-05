@@ -1,15 +1,15 @@
 (function() {
   define(['KineticJS'], function(kin) {
     "use strict";
-    var RectHandleFactory, RectShapeFactory;
-    RectShapeFactory = (function() {
-      function RectShapeFactory() {}
+    var RectHandleFactory, RectViewFactory;
+    RectViewFactory = (function() {
+      function RectViewFactory() {}
 
-      RectShapeFactory.createShape = function(attributes) {
+      RectViewFactory.createView = function(attributes) {
         return new kin.Rect(attributes);
       };
 
-      return RectShapeFactory;
+      return RectViewFactory;
 
     })();
     RectHandleFactory = (function() {
@@ -25,6 +25,7 @@
     return {
       type: 'rectangle',
       name: 'rectangle',
+      containable: false,
       description: 'Rectangle Specification',
       defaults: {
         width: 100,
@@ -33,7 +34,7 @@
         stroke: 'black',
         strokeWidth: 4
       },
-      shape_factory: RectShapeFactory,
+      view_factory: RectViewFactory,
       handle_factory: RectHandleFactory,
       toolbox_image: 'images/toolbox_rectangle.png'
     };

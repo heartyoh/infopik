@@ -20,12 +20,12 @@ define(['dou', 'KineticJS', 'src/ComponentRegistry', 'src/ComponentFactory', 'sr
 
       if(!container) {
         container = document.createElement('div');
-        container.setAttribute('id', 'container');
+        container.setAttribute('id', 'container_rect');
         document.body.appendChild(container);
       }
 
       stage = new Kinetic.Stage({
-        container: 'container',
+        container: 'container_rect',
         width: 578,
         height: 200
       });
@@ -50,7 +50,7 @@ define(['dou', 'KineticJS', 'src/ComponentRegistry', 'src/ComponentFactory', 'sr
           height: 50
         });
 
-        var rect = componentFactory.createShape(component);
+        var rect = componentFactory.createView(component);
 
         layer.add(rect);
 

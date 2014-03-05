@@ -1,5 +1,5 @@
 (function() {
-  define(['dou', './Component'], function(dou, Component) {
+  define(['dou', './Component', './Container'], function(dou, Component, Container) {
     "use strict";
     var ComponentFactory;
     ComponentFactory = (function() {
@@ -13,14 +13,14 @@
         return this.componentRegistry;
       };
 
-      ComponentFactory.prototype.createShape = function(component) {
+      ComponentFactory.prototype.createView = function(component) {
         var spec, type;
         type = component.type;
         spec = this.componentRegistry.get(type);
         if (!spec) {
           throw new Error("Component Spec Not Found for type '" + type + "'");
         }
-        return spec.shape_factory.createShape(component.attrs);
+        return spec.view_factory.createView(component.attrs);
       };
 
       ComponentFactory.prototype.createComponent = function(type, attributes) {
@@ -29,8 +29,12 @@
         if (!spec) {
           throw new Error("Component Spec Not Found for type '" + type + "'");
         }
-        component = new Component(type);
-        return component.initialize(dou.util.merge(attributes, spec.defaults));
+        if (spec.containable) {
+          component = new Container(type);
+        } else {
+          component = new Component(type);
+        }
+        return component.initialize(dou.util.merge(spec.defaults, attributes));
       };
 
       return ComponentFactory;

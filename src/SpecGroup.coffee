@@ -10,19 +10,19 @@ define [
     
     "use strict"
 
-    class RectViewFactory
+    class GroupViewFactory
         @createView: (attributes) ->
-            return new kin.Rect(attributes)
+            return new kin.Group(attributes)
 
-    class RectHandleFactory
+    class GroupHandleFactory
         @createHandle: (attributes) ->
-            return new Kin.Rect(attributes)
+            return new Kin.Group(attributes)
 
     {
-        type: 'rectangle'
-        name: 'rectangle'
-        containable: false
-        description: 'Rectangle Specification'
+        type: 'group'
+        name: 'group'
+        containable: true
+        description: 'Group Specification'
         defaults: {
           width: 100
           height: 50
@@ -30,7 +30,7 @@ define [
           stroke: 'black'
           strokeWidth: 4
         }
-        view_factory: RectViewFactory
-        handle_factory: RectHandleFactory
-        toolbox_image: 'images/toolbox_rectangle.png'
+        view_factory: GroupViewFactory
+        handle_factory: GroupHandleFactory
+        toolbox_image: 'images/toolbox_group.png'
     }
