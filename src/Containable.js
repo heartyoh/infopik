@@ -3,7 +3,7 @@
     "use strict";
     var add, add_component, propagation_fn, remove, remove_component, select;
     propagation_fn = function() {
-      return this.trigger.apply(this, arguments);
+      return this.delegate.apply(this, arguments);
     };
     add_component = function(container, component) {
       var e, len;

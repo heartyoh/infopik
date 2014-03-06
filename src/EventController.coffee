@@ -40,7 +40,7 @@ define [
 
         despose: ->
             @stop()
-            clear()
+            @clear()
             @target = null
 
     dou.mixin EventController, dou.with.collection.withList
