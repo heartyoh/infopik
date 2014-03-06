@@ -19,7 +19,7 @@ define(['dou', 'src/Component', 'src/Containable'], function (dou, Component, Co
         var inst = new Container();
 
         inst.initialize({});
-        
+
         inst.add('a');
 
         inst.select().length.should.equal(1);
@@ -52,13 +52,17 @@ define(['dou', 'src/Component', 'src/Containable'], function (dou, Component, Co
         var delegated_added_event_occurred = 0;
 
         component.on('all', function(e) {
-          switch(e) {
+          var event = arguments[arguments.length - 1].name;
+
+          switch(event) {
             case 'added' :
               component_added_event_occurred++;
           }
         });
         container.on('all', function(e) {
-          switch(e) {
+          var event = arguments[arguments.length - 1].name;
+
+          switch(event) {
             case 'add' :
               container_add_event_occurred++;
               break;
@@ -102,7 +106,8 @@ define(['dou', 'src/Component', 'src/Containable'], function (dou, Component, Co
         var delegated_event_count = 0;
 
         component.on('all', function(e) {
-          switch(e) {
+          var event = arguments[arguments.length - 1].name;
+          switch(event) {
             case 'added' :
               component_event_count++;
               break;
@@ -112,7 +117,8 @@ define(['dou', 'src/Component', 'src/Containable'], function (dou, Component, Co
           }
         });
         container.on('all', function(e) {
-          switch(e) {
+          var event = arguments[arguments.length - 1].name;
+          switch(event) {
             case 'add' :
               container_event_count++;
               break;

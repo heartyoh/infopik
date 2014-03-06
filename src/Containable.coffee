@@ -12,7 +12,7 @@ define [
     "use strict"
 
     propagation_fn = ->
-        this.trigger.apply this, arguments
+        this.delegate.apply this, arguments
 
     add_component = (container, component) ->
         len = container.__components__.push component
