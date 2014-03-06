@@ -24,7 +24,6 @@ define(['src/Component', 'src/Container', 'src/EventController'], function (Comp
           'sample' : {
             'event1' : function() {
               invoked++;
-              console.log('a-event1', arguments);
             }
           }
         });

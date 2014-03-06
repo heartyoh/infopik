@@ -30,19 +30,20 @@ require(['require', 'chai', 'mocha'], function(require, chai){
   mocha.setup('bdd');
  
   require([
-    'spec/dou_spec.js',
-    'spec/command_manager_spec.js',
-    'spec/containable_spec.js',
-    'spec/container_spec.js',
-    'spec/component_spec.js',
-    'spec/event_tracker_spec.js',
-    'spec/painter_spec.js',
-    'spec/presenter_spec.js',
-    'spec/spec_rect_spec.js',
-    'spec/spec_group_spec.js',
-    // 'spec/test-emitter.js',
-    // 'spec/test-propertyholder.js'
-  ], function(require) {
+    'command_manager',
+    'component_registry',
+    'component',
+    'container',
+    'dou',
+    'event_controller',
+    'event_tracker',
+    'painter',
+    'presenter',
+    'spec_group',
+    'spec_rect',
+  ].map(function(test) {
+    return 'spec/' + test + '_spec.js';
+  }), function(require) {
     mocha.run();
   });
  

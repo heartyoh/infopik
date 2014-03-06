@@ -1,19 +1,16 @@
 (function() {
   var __hasProp = {}.hasOwnProperty;
 
-  define(['dou'], function(dou) {
+  define(['dou', './ComponentSelector'], function(dou, ComponentSelector) {
     "use strict";
-    var EventController, control, event_handler_fn, select;
-    select = function(selector, target) {
-      return selector === target.type;
-    };
+    var EventController, control, event_handler_fn;
     control = function(handler_map, event, args) {
       var event_map, event_name, handler, selector, _results;
       _results = [];
       for (selector in handler_map) {
         if (!__hasProp.call(handler_map, selector)) continue;
         event_map = handler_map[selector];
-        if (select(selector, event.target)) {
+        if (ComponentSelector.select(selector, event.target)) {
           _results.push((function() {
             var _results1;
             _results1 = [];

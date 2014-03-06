@@ -6,15 +6,13 @@
 
 define [
     'dou'
-], (dou) ->
+    './ComponentSelector'
+], (dou, ComponentSelector) ->
     
     "use strict"
 
-    select = (selector, target) ->
-        return selector is target.type
-
     control = (handler_map, event, args)->
-        for own selector, event_map of handler_map when select(selector, event.target)
+        for own selector, event_map of handler_map when ComponentSelector.select(selector, event.target)
             for own event_name, handler of event_map when event_name is event.name
                 (handler.apply null, args)
 
