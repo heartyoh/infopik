@@ -1,27 +1,13 @@
 (function() {
   define(['KineticJS'], function(kin) {
     "use strict";
-    var GroupHandleFactory, GroupViewFactory;
-    GroupViewFactory = (function() {
-      function GroupViewFactory() {}
-
-      GroupViewFactory.createView = function(attributes) {
-        return new kin.Group(attributes);
-      };
-
-      return GroupViewFactory;
-
-    })();
-    GroupHandleFactory = (function() {
-      function GroupHandleFactory() {}
-
-      GroupHandleFactory.createHandle = function(attributes) {
-        return new Kin.Group(attributes);
-      };
-
-      return GroupHandleFactory;
-
-    })();
+    var createHandle, createView;
+    createView = function(attributes) {
+      return new kin.Group(attributes);
+    };
+    createHandle = function(attributes) {
+      return new Kin.Group(attributes);
+    };
     return {
       type: 'group',
       name: 'group',
@@ -34,8 +20,8 @@
         stroke: 'black',
         strokeWidth: 4
       },
-      view_factory: GroupViewFactory,
-      handle_factory: GroupHandleFactory,
+      view_factory_fn: createView,
+      handle_factory_fn: createHandle,
       toolbox_image: 'images/toolbox_group.png'
     };
   });

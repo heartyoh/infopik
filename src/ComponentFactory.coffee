@@ -13,6 +13,12 @@ define [
     "use strict"
 
     class ComponentFactory
+        constructor: ->
+            @seed = 1
+
+        uniqueId: ->
+            "noid-#{@seed++}"
+
         setComponentRegistry : (componentRegistry) ->
             @componentRegistry = componentRegistry
 
@@ -23,7 +29,7 @@ define [
             type = component.type
             spec = @componentRegistry.get type
             throw new Error "Component Spec Not Found for type '#{type}'" if !spec
-            spec.view_factory.createView component.attrs
+            spec.view_factory_fn component.attrs
 
         createComponent : (type, attributes) ->
             spec = @componentRegistry.get type
@@ -35,5 +41,9 @@ define [
                 component = new Component(type)
 
             component.initialize(dou.util.merge(spec.defaults, attributes));
+
+            component.set('id', @uniqueId()) if not component.get('id')
+
+            component
 
     ComponentFactory

@@ -10,13 +10,11 @@ define [
     
     "use strict"
 
-    class GroupViewFactory
-        @createView: (attributes) ->
-            return new kin.Group(attributes)
+    createView = (attributes) ->
+        return new kin.Group(attributes)
 
-    class GroupHandleFactory
-        @createHandle: (attributes) ->
-            return new Kin.Group(attributes)
+    createHandle = (attributes) ->
+        return new Kin.Group(attributes)
 
     {
         type: 'group'
@@ -24,13 +22,13 @@ define [
         containable: true
         description: 'Group Specification'
         defaults: {
-          width: 100
-          height: 50
-          fill: 'green'
-          stroke: 'black'
-          strokeWidth: 4
+            width: 100
+            height: 50
+            fill: 'green'
+            stroke: 'black'
+            strokeWidth: 4
         }
-        view_factory: GroupViewFactory
-        handle_factory: GroupHandleFactory
+        view_factory_fn: createView
+        handle_factory_fn: createHandle
         toolbox_image: 'images/toolbox_group.png'
     }

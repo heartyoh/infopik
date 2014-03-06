@@ -10,13 +10,11 @@ define [
     
     "use strict"
 
-    class RectViewFactory
-        @createView: (attributes) ->
-            return new kin.Rect(attributes)
+    createView = (attributes) ->
+        new kin.Rect(attributes)
 
-    class RectHandleFactory
-        @createHandle: (attributes) ->
-            return new Kin.Rect(attributes)
+    createHandle = (attributes) ->
+        new Kin.Rect(attributes)
 
     {
         type: 'rectangle'
@@ -24,13 +22,13 @@ define [
         containable: false
         description: 'Rectangle Specification'
         defaults: {
-          width: 100
-          height: 50
-          fill: 'green'
-          stroke: 'black'
-          strokeWidth: 4
+            width: 100
+            height: 50
+            fill: 'green'
+            stroke: 'black'
+            strokeWidth: 4
         }
-        view_factory: RectViewFactory
-        handle_factory: RectHandleFactory
+        view_factory_fn: createView
+        handle_factory_fn: createHandle
         toolbox_image: 'images/toolbox_rectangle.png'
     }

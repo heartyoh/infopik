@@ -1,7 +1,7 @@
 "use strict";
 
-define(['dou', 'KineticJS', 'src/ComponentRegistry', 'src/ComponentFactory', 'src/Component', 'src/SpecGroup', 'src/SpecRect'], 
-  function (dou, kin, ComponentRegistry, ComponentFactory, Component, SpecGroup, SpecRect) {
+define(['dou', 'KineticJS', 'src/ComponentRegistry', 'src/ComponentFactory', 'src/SpecGroup', 'src/SpecRect'], 
+  function (dou, kin, ComponentRegistry, ComponentFactory, SpecGroup, SpecRect) {
 
   describe('SpecGroup', function () {
 

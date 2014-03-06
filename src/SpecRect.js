@@ -1,27 +1,13 @@
 (function() {
   define(['KineticJS'], function(kin) {
     "use strict";
-    var RectHandleFactory, RectViewFactory;
-    RectViewFactory = (function() {
-      function RectViewFactory() {}
-
-      RectViewFactory.createView = function(attributes) {
-        return new kin.Rect(attributes);
-      };
-
-      return RectViewFactory;
-
-    })();
-    RectHandleFactory = (function() {
-      function RectHandleFactory() {}
-
-      RectHandleFactory.createHandle = function(attributes) {
-        return new Kin.Rect(attributes);
-      };
-
-      return RectHandleFactory;
-
-    })();
+    var createHandle, createView;
+    createView = function(attributes) {
+      return new kin.Rect(attributes);
+    };
+    createHandle = function(attributes) {
+      return new Kin.Rect(attributes);
+    };
     return {
       type: 'rectangle',
       name: 'rectangle',
@@ -34,8 +20,8 @@
         stroke: 'black',
         strokeWidth: 4
       },
-      view_factory: RectViewFactory,
-      handle_factory: RectHandleFactory,
+      view_factory_fn: createView,
+      handle_factory_fn: createHandle,
       toolbox_image: 'images/toolbox_rectangle.png'
     };
   });

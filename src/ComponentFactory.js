@@ -3,7 +3,13 @@
     "use strict";
     var ComponentFactory;
     ComponentFactory = (function() {
-      function ComponentFactory() {}
+      function ComponentFactory() {
+        this.seed = 1;
+      }
+
+      ComponentFactory.prototype.uniqueId = function() {
+        return "noid-" + (this.seed++);
+      };
 
       ComponentFactory.prototype.setComponentRegistry = function(componentRegistry) {
         return this.componentRegistry = componentRegistry;
@@ -20,7 +26,7 @@
         if (!spec) {
           throw new Error("Component Spec Not Found for type '" + type + "'");
         }
-        return spec.view_factory.createView(component.attrs);
+        return spec.view_factory_fn(component.attrs);
       };
 
       ComponentFactory.prototype.createComponent = function(type, attributes) {
@@ -34,7 +40,11 @@
         } else {
           component = new Component(type);
         }
-        return component.initialize(dou.util.merge(spec.defaults, attributes));
+        component.initialize(dou.util.merge(spec.defaults, attributes));
+        if (!component.get('id')) {
+          component.set('id', this.uniqueId());
+        }
+        return component;
       };
 
       return ComponentFactory;
