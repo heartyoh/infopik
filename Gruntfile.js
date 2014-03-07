@@ -140,10 +140,10 @@ module.exports = function (grunt) {
     },
     exec: {
       build_gem: {
-        command: "gem build dou.gemspec"
+        command: "gem build infopik.gemspec"
       },
       push_gem: {
-        command: "gem push dou-rails-<%= pkg.version %>.gem"
+        command: "gem push infopik-rails-<%= pkg.version %>.gem"
       },
       publish_npm: {
         command: "npm publish"

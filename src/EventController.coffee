@@ -14,14 +14,15 @@ define [
     control = (handler_map, event, args)->
         for own selector, event_map of handler_map when ComponentSelector.select(selector, event.target)
             for own event_name, handler of event_map when event_name is event.name
-                (handler.apply null, args)
+                (handler.apply this, args)
 
     event_handler_fn = ->
         args = arguments
         e = args[args.length - 1]
 
-        @forEach (handler_map) ->
-            control handler_map, e, args
+        this.controllers.forEach (handler_map) ->
+            control.call this, handler_map, e, args
+        , this.context
 
     class EventController
         constructor: (target)->
@@ -30,8 +31,8 @@ define [
         setTarget: (target) ->
             @target = target
 
-        start: ->
-            @target.on 'all', event_handler_fn, this
+        start: (context) ->
+            @target.on 'all', event_handler_fn, {context:(context||null), controllers:this}
 
         stop: ->
             @target.off 'all', event_handler_fn

@@ -33,6 +33,7 @@ require(['require', 'chai', 'mocha'], function(require, chai){
     'command_manager',
     'component_factory',
     'component_registry',
+    'component_selector',
     'component',
     'container',
     'dou',

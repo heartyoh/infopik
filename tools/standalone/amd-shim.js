@@ -59,5 +59,5 @@
 
 {{ module }}
 
-  context.dou = require('build/js/infopik');
+  context.infopik = require('src/infopik');
 }(this));

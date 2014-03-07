@@ -5,15 +5,10 @@
 # ==========================================
 
 define [
-    'dou'
-    './Component'
-], (dou, Component) ->
-
+], () ->
+    
     "use strict"
 
-    select = (selector, component) ->
-        (selector is 'all') or (selector is component.type)
-
     {
-        select: select
+        
     }

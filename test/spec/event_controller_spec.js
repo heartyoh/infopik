@@ -13,7 +13,7 @@ define(['src/Component', 'src/Container', 'src/EventController'], function (Comp
 
     describe('start', function() {
 
-      it('should ...', function() {
+      it('should invoke handler matching with selector-event', function() {
 
         var comp = new Component('sample');
         target.add(comp);
