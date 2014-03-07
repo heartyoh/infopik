@@ -73,6 +73,10 @@ define [
 
         return clone
 
+    forEach = (fn, context) ->
+        return if not @__components__
+        @__components__.forEach fn, context
+
     class Container extends Component
         constructor : (type) ->
         	super(type)
@@ -80,5 +84,6 @@ define [
         add: add
         remove: remove
         select: select
+        forEach: forEach
 
     dou.mixin Container, [dou.with.advice, dou.with.lifecycle]

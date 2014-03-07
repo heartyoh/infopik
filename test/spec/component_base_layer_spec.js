@@ -28,6 +28,18 @@ define([
     var componentFactory;
 
   	beforeEach(function() {
+      if(!div) {
+        div = document.createElement('div');
+        div.setAttribute('id', 'component_base_layer');
+        document.body.appendChild(div);
+      }
+
+      var stage = new Kinetic.Stage({
+        container: 'component_base_layer',
+        width: 600,
+        height: 400
+      });
+
       var componentRegistry = new ComponentRegistry();
 
       componentRegistry.register(SpecGroup);
@@ -41,18 +53,6 @@ define([
       layer = new ComponentBaseLayer({
         commandManager: commandManager,
         componentFactory: componentFactory
-      });
-
-      if(!div) {
-        div = document.createElement('div');
-        div.setAttribute('id', 'component_base_layer');
-        document.body.appendChild(div);
-      }
-
-      var stage = new Kinetic.Stage({
-        container: 'component_base_layer',
-        width: 600,
-        height: 400
       });
 
       stage.add(layer.getView());

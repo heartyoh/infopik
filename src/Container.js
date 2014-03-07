@@ -4,7 +4,7 @@
 
   define(['dou', './Component'], function(dou, Component) {
     "use strict";
-    var Container, add, add_component, remove, remove_component, select;
+    var Container, add, add_component, forEach, remove, remove_component, select;
     add_component = function(container, component) {
       var e, len;
       len = container.__components__.push(component);
@@ -83,6 +83,12 @@
       }
       return clone;
     };
+    forEach = function(fn, context) {
+      if (!this.__components__) {
+        return;
+      }
+      return this.__components__.forEach(fn, context);
+    };
     Container = (function(_super) {
       __extends(Container, _super);
 
@@ -95,6 +101,8 @@
       Container.prototype.remove = remove;
 
       Container.prototype.select = select;
+
+      Container.prototype.forEach = forEach;
 
       return Container;
 

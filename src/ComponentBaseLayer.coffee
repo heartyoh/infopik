@@ -6,7 +6,7 @@
 # 4. View의 이벤트 핸들링
 # 5. Model의 변화를 View에 직접 반영 (생성, 삭제, 속성 변경) - 커맨드를 통해서
 # 6. View의 이벤트를 모델에 반영 - 커맨드를 통해서
-# 7. 커맨드 관리자를 주입받음
+# 7. 커맨드 관리자 처리
 
 # ==========================================
 # Copyright 2014 Hatio, Lab.
@@ -25,10 +25,15 @@ define [
     "use strict"
 
     onadd = (i, e) ->
-        vcontaier = this.getView().find("\##{i.container.get('id')}");
-        i.component
-        i.index
-        e.target
+        container = i.container
+        component = i.component
+
+        vcontainer = if container is @model then @view else @view.find("\##{container.get('id')}");
+        vcomponent = @componentFactory.createView(component);
+
+        vcontainer.add(vcomponent);
+
+        @view.draw()
 
     onremove = (i, e) ->
         i.container
@@ -46,8 +51,8 @@ define [
 
             attributes =
                 id: 'root'
-                width: 300
-                height:200
+                # width: 300
+                # height:200
 
             @model = new Container('root')
             @model.initialize attributes

@@ -171,6 +171,29 @@ define(['src/Component', 'src/Container'], function (Component, Container) {
       });
     });
 
+    describe('forEach', function() {
+
+      it('should execute function based on the specified context for all items', function () {
+
+        var inst = new Container();
+
+        inst.initialize({});
+
+        inst.add(['a', 'b', 'c', 'd', 'e']);
+
+        var context = {
+          join : ''
+        };
+
+        inst.forEach(function(i) {
+          this.join += i
+        }, context);
+
+        context.join.should.be.equal('abcde');
+      });
+
+    });
+
   });
 
 });

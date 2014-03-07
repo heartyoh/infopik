@@ -3,7 +3,7 @@
     "use strict";
     var select;
     select = function(selector, component) {
-      return selector === component.type;
+      return (selector === 'all') || (selector === component.type);
     };
     return {
       select: select

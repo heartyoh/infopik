@@ -18,11 +18,11 @@
               if (!__hasProp.call(event_map, event_name)) continue;
               handler = event_map[event_name];
               if (event_name === event.name) {
-                _results1.push(handler.apply(null, args));
+                _results1.push(handler.apply(this, args));
               }
             }
             return _results1;
-          })());
+          }).call(this));
         }
       }
       return _results;
@@ -31,9 +31,9 @@
       var args, e;
       args = arguments;
       e = args[args.length - 1];
-      return this.forEach(function(handler_map) {
-        return control(handler_map, e, args);
-      });
+      return this.controllers.forEach(function(handler_map) {
+        return control.call(this, handler_map, e, args);
+      }, this.context);
     };
     EventController = (function() {
       function EventController(target) {
@@ -44,8 +44,11 @@
         return this.target = target;
       };
 
-      EventController.prototype.start = function() {
-        return this.target.on('all', event_handler_fn, this);
+      EventController.prototype.start = function(context) {
+        return this.target.on('all', event_handler_fn, {
+          context: context || null,
+          controllers: this
+        });
       };
 
       EventController.prototype.stop = function() {

@@ -20,13 +20,19 @@
       };
 
       ComponentFactory.prototype.createView = function(component) {
-        var spec, type;
+        var spec, type, view;
         type = component.type;
         spec = this.componentRegistry.get(type);
         if (!spec) {
           throw new Error("Component Spec Not Found for type '" + type + "'");
         }
-        return spec.view_factory_fn(component.attrs);
+        view = spec.view_factory_fn(component.getAll());
+        if (component instanceof Container) {
+          component.forEach(function(child) {
+            return view.add(this.createView(child));
+          }, this);
+        }
+        return view;
       };
 
       ComponentFactory.prototype.createComponent = function(type, attributes) {

@@ -29,7 +29,14 @@ define [
             type = component.type
             spec = @componentRegistry.get type
             throw new Error "Component Spec Not Found for type '#{type}'" if !spec
-            spec.view_factory_fn component.attrs
+            view = spec.view_factory_fn component.getAll()
+
+            if component instanceof Container
+                component.forEach (child) ->
+                    view.add this.createView child
+                , this
+
+            view
 
         createComponent : (type, attributes) ->
             spec = @componentRegistry.get type

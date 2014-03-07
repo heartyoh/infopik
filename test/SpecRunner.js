@@ -31,6 +31,7 @@ require(['require', 'chai', 'mocha'], function(require, chai){
  
   require([
     'command_manager',
+    'component_base_layer',
     'component_factory',
     'component_registry',
     'component_selector',
