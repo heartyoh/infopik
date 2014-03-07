@@ -1,4 +1,6 @@
 (function() {
+  var __hasProp = {}.hasOwnProperty;
+
   define(['dou'], function(dou) {
     "use strict";
     var ComponentRegistry;
@@ -13,6 +15,18 @@
 
       ComponentRegistry.prototype.unregister = function(type) {
         return this.componentSpecs;
+      };
+
+      ComponentRegistry.prototype.forEach = function(fn, context) {
+        var name, spec, _ref, _results;
+        _ref = this.componentSpecs;
+        _results = [];
+        for (name in _ref) {
+          if (!__hasProp.call(_ref, name)) continue;
+          spec = _ref[name];
+          _results.push(fn.call(context, name, spec));
+        }
+        return _results;
       };
 
       ComponentRegistry.prototype.list = function(filter) {

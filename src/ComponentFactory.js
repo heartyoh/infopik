@@ -46,7 +46,7 @@
         } else {
           component = new Component(type);
         }
-        component.initialize(dou.util.merge(spec.defaults, attributes));
+        component.initialize(dou.util.shallow_merge(spec.defaults || {}, attributes || {}));
         if (!component.get('id')) {
           component.set('id', this.uniqueId());
         }

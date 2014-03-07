@@ -14,8 +14,39 @@ define [
         SELECT: 1
         CREATE: 2
 
+    # container_controller =
+    #     'all' :
+    #         'add' : onadd
+    #         'remove' : onremove
+
     class Presenter extends Container
-        constructor : ->
+        constructor : (options) ->
+            {@commandManager, @componentFactory} = options
+
+            attributes =
+                id: 'root'
+                # width: 300
+                # height:200
+
+            @model = new Container('root')
+            @model.initialize attributes
+
+            @view = new kin.Layer attributes
+
+            @controller = new EventController()
+
+            @controller.append container_controller
+            @controller.setTarget @model
+            @controller.start this
+
+        getView: ->
+            @view
+
+        getModel: ->
+            @model
+
+        getController: ->
+            @controller
 
         defaults :
             edit_mode: EDIT_MODE.SELECT

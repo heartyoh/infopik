@@ -6,22 +6,17 @@
     "use strict";
     var Container, add, add_component, forEach, remove, remove_component, select;
     add_component = function(container, component) {
-      var e, len;
-      len = container.__components__.push(component);
-      e = {
-        container: container,
-        component: component,
-        index: len - 1
-      };
-      container.trigger('add', e);
+      var index;
+      index = (container.__components__.push(component)) - 1;
+      container.trigger('add', container, component, index);
       if (!(component instanceof Component)) {
         return;
       }
       component.delegate_on(container);
-      return component.trigger('added', e);
+      return component.trigger('added', container, component, index);
     };
     remove_component = function(container, component) {
-      var e, idx;
+      var idx;
       idx = container.__components__.indexOf(component);
       if (idx === -1) {
         return;
@@ -29,15 +24,11 @@
       if (idx > -1) {
         container.__components__.splice(idx, 1);
       }
-      e = {
-        container: container,
-        component: component
-      };
-      container.trigger('remove', e);
+      container.trigger('remove', container, component);
       if (!(component instanceof Component)) {
         return;
       }
-      component.trigger('removed', e);
+      component.trigger('removed', container, component);
       return component.delegate_off(container);
     };
     add = function(comp) {

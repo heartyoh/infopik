@@ -19,7 +19,6 @@ define [
     {
         type: 'rectangle'
         name: 'rectangle'
-        containable: false
         description: 'Rectangle Specification'
         defaults: {
             width: 100

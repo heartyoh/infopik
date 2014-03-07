@@ -20,6 +20,7 @@ define [
         type: 'group'
         name: 'group'
         containable: true
+        container_type: 'container'
         description: 'Group Specification'
         defaults: {
             width: 100

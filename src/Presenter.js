@@ -12,7 +12,32 @@
     Presenter = (function(_super) {
       __extends(Presenter, _super);
 
-      function Presenter() {}
+      function Presenter(options) {
+        var attributes;
+        this.commandManager = options.commandManager, this.componentFactory = options.componentFactory;
+        attributes = {
+          id: 'root'
+        };
+        this.model = new Container('root');
+        this.model.initialize(attributes);
+        this.view = new kin.Layer(attributes);
+        this.controller = new EventController();
+        this.controller.append(container_controller);
+        this.controller.setTarget(this.model);
+        this.controller.start(this);
+      }
+
+      Presenter.prototype.getView = function() {
+        return this.view;
+      };
+
+      Presenter.prototype.getModel = function() {
+        return this.model;
+      };
+
+      Presenter.prototype.getController = function() {
+        return this.controller;
+      };
 
       Presenter.prototype.defaults = {
         edit_mode: EDIT_MODE.SELECT,

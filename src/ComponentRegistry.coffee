@@ -20,8 +20,12 @@ define [
         unregister : (type) ->
             @componentSpecs
 
+        forEach : (fn, context) ->
+            for own name, spec of @componentSpecs
+                fn.call context, name, spec
+
         list : (filter) ->
-            return Object.keys(@componentSpecs).map (key) ->
+            Object.keys(@componentSpecs).map (key) ->
                 @componentSpecs[key]
             , this
 

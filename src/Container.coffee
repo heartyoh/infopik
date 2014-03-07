@@ -12,20 +12,15 @@ define [
     "use strict"
 
     add_component = (container, component) ->
-        len = container.__components__.push component
-        e = {
-            container: container
-            component: component
-            index: len - 1
-        }
+        index = (container.__components__.push component) - 1
 
-        container.trigger 'add', e
+        container.trigger 'add', container, component, index
 
         return if not (component instanceof Component)
 
         component.delegate_on container
 
-        component.trigger 'added', e
+        component.trigger 'added', container, component, index
 
     remove_component = (container, component) ->
         idx = container.__components__.indexOf component
@@ -33,16 +28,11 @@ define [
 
         container.__components__.splice(idx, 1) if idx > -1
 
-        e = {
-            container: container
-            component: component
-        }
-
-        container.trigger 'remove', e
+        container.trigger 'remove', container, component
 
         return if not (component instanceof Component)
 
-        component.trigger 'removed', e
+        component.trigger 'removed', container, component
         
         component.delegate_off container
 
