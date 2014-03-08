@@ -14,6 +14,9 @@ define [
         constructor : (params) ->
             this.reset()
 
+        despose : ->
+            this.reset()
+
         execute: (command) ->
             return if not command instanceof Command
 

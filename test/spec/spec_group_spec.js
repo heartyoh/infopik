@@ -16,8 +16,7 @@ define(['dou', 'KineticJS', 'src/ComponentRegistry', 'src/ComponentFactory', 'sr
       componentRegistry.register(SpecGroup);
       componentRegistry.register(SpecRect);
 
-      componentFactory = new ComponentFactory();
-      componentFactory.setComponentRegistry(componentRegistry);
+      componentFactory = new ComponentFactory(componentRegistry);
 
       if(!container) {
         container = document.createElement('div');

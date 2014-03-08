@@ -6,7 +6,11 @@
 
 define [
     'dou'
-], (dou) ->
+    './EventController'
+], (
+    dou
+    EventController
+) ->
     
     "use strict"
 
@@ -14,11 +18,35 @@ define [
         constructor : ->
             @componentSpecs = {}
 
-        register : (componentSpec) ->
-            @componentSpecs[componentSpec.type] = componentSpec
+        despose : ->
+            keys = Object.keys(@componentSpecs)
+            @unregister(type) for type in keys
 
+        setRegisterCallback : (callback, context) ->
+            @callback_register = if typeof(callback) is 'function' then callback.bind(context) else undefined
+
+        setUnregisterCallback : (callback, context) ->
+            @callback_unregister = if typeof(callback) is 'function' then callback.bind(context) else undefined
+
+        # Register application dependent ComponentSpecs recursively
+        register : (componentSpec) ->
+            return if @componentSpecs[componentSpec.type]
+
+            if componentSpec.dependencies
+                (this.register depspec) for name, depspec of componentSpec.dependencies
+
+            @componentSpecs[componentSpec.type] = componentSpec
+            @callback_register(componentSpec) if @callback_register
+            
         unregister : (type) ->
-            @componentSpecs
+            # TODO consider dependencies
+            spec = @componentSpecs[type]
+            return if not spec
+
+            delete @componentSpecs[type]
+            @callback_unregister(spec) if @callback_unregister
+
+            spec
 
         forEach : (fn, context) ->
             for own name, spec of @componentSpecs

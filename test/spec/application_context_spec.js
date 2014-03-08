@@ -1,18 +1,18 @@
 "use strict";
 
 define([
-  'src/Application',
-  'test/spec/application/spec_application',
+  'src/ApplicationContext',
+  'test/spec/application_context/spec_application',
   'src/SpecGroup',
   'src/SpecRect'
 ], function (
-  Application,
+  ApplicationContext,
   SpecSampleApp,
   SpecGroup,
   SpecRect
 ) {
 
-  describe('Application', function () {
+  describe('ApplicationContext', function () {
 
     var html_container;
 
@@ -27,7 +27,7 @@ define([
     });
 
     it('should ...', function () {
-      var app = new Application({
+      var app = new ApplicationContext({
         application_spec: SpecSampleApp,
         html_container: 'application_spec'
       });

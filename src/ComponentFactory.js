@@ -1,25 +1,23 @@
 (function() {
-  define(['dou', './Component', './Container'], function(dou, Component, Container) {
+  define(['dou', './Component', './Container', './EventTracker'], function(dou, Component, Container, EventTracker) {
     "use strict";
     var ComponentFactory;
     ComponentFactory = (function() {
-      function ComponentFactory() {
+      function ComponentFactory(componentRegistry, eventTracker) {
+        this.componentRegistry = componentRegistry;
+        this.eventTracker = eventTracker;
         this.seed = 1;
       }
+
+      ComponentFactory.prototype.despose = function() {
+        return this.componentRegistry = null;
+      };
 
       ComponentFactory.prototype.uniqueId = function() {
         return "noid-" + (this.seed++);
       };
 
-      ComponentFactory.prototype.setComponentRegistry = function(componentRegistry) {
-        return this.componentRegistry = componentRegistry;
-      };
-
-      ComponentFactory.prototype.getComponentRegistry = function() {
-        return this.componentRegistry;
-      };
-
-      ComponentFactory.prototype.createView = function(component) {
+      ComponentFactory.prototype.createView = function(component, context) {
         var spec, type, view;
         type = component.type;
         spec = this.componentRegistry.get(type);
@@ -32,10 +30,13 @@
             return view.add(this.createView(child));
           }, this);
         }
+        if (spec.view_listener) {
+          this.eventTracker.on(view, spec.view_listener, context);
+        }
         return view;
       };
 
-      ComponentFactory.prototype.createComponent = function(type, attributes) {
+      ComponentFactory.prototype.createComponent = function(type, attributes, context) {
         var component, spec;
         spec = this.componentRegistry.get(type);
         if (!spec) {
@@ -49,6 +50,9 @@
         component.initialize(dou.util.shallow_merge(spec.defaults || {}, attributes || {}));
         if (!component.get('id')) {
           component.set('id', this.uniqueId());
+        }
+        if (spec.component_listener) {
+          this.eventTracker.on(component, spec.component_listener, context);
         }
         return component;
       };

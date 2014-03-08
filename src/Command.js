@@ -4,12 +4,12 @@
     var Command;
     Command = (function() {
       function Command(params) {
-        this.params = dou.util.clone(params);
+        this.params = params;
       }
 
-      Command.prototype.excute = function() {};
+      Command.prototype.execute = function() {};
 
-      Command.prototype.unexcute = function() {};
+      Command.prototype.unexecute = function() {};
 
       return Command;
 

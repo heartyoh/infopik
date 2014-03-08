@@ -12,9 +12,9 @@ define [
 
     class Command
         constructor : (params) ->
-            @params = dou.util.clone(params)
+            @params = params #dou.util.clone(params)
             
-        excute: ->
-        unexcute: ->
+        execute: ->
+        unexecute: ->
 
     Command

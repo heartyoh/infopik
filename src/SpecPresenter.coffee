@@ -5,26 +5,16 @@
 # ==========================================
 
 define [
-    'KineticJS'
-], (kin) ->
+    'KineticJS', './SpecContentLayer', './SpecGroup', './SpecRect'
+], (kin, SpecContentLayer, SpecGroup, SpecRect) ->
     
     "use strict"
 
     createView = (attributes) ->
         return new kin.Stage(attributes)
 
-    onadd = (container, component) ->
-        vcontainer = @view.find("\##{container.get('id')}")
-        vcomponent = @componentFactory.createView(component)
-
-        vcontainer.add(vcomponent);
-
-    onremove = (container, component) ->
-
     controller =
-        'presenter-app':
-            'add' : onadd
-            'remove' : onremove
+        # 'presenter-app':
 
     {
         type: 'presenter-app'
@@ -36,5 +26,13 @@ define [
         }
         controller: controller
         view_factory_fn: createView
+        dependencies: {
+          'content-layer' : SpecContentLayer
+          'group' : SpecGroup
+          'rect' : SpecRect
+        }
+        layers : {
+          'content-layer' : {}
+        }
         toolbox_image: 'images/toolbox_presenter_app.png'
     }

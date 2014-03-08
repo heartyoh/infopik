@@ -1,24 +1,11 @@
 (function() {
-  define(['KineticJS'], function(kin) {
+  define(['KineticJS', './SpecContentLayer', './SpecGroup', './SpecRect'], function(kin, SpecContentLayer, SpecGroup, SpecRect) {
     "use strict";
-    var controller, createView, onadd, onremove;
+    var controller, createView;
     createView = function(attributes) {
       return new kin.Stage(attributes);
     };
-    onadd = function(container, component) {
-      var vcomponent, vcontainer;
-      vcontainer = this.view.find("\#" + (container.get('id')));
-      vcomponent = this.componentFactory.createView(component);
-      return vcontainer.add(vcomponent);
-    };
-    onremove = function(container, component) {};
-    controller = {
-      'presenter-app': {
-        'add': onadd,
-        'remove': onremove
-      }
-    };
-    return {
+    return controller = {
       type: 'presenter-app',
       name: 'presenter-app',
       containable: true,
@@ -27,6 +14,14 @@
       defaults: {},
       controller: controller,
       view_factory_fn: createView,
+      dependencies: {
+        'content-layer': SpecContentLayer,
+        'group': SpecGroup,
+        'rect': SpecRect
+      },
+      layers: {
+        'content-layer': {}
+      },
       toolbox_image: 'images/toolbox_presenter_app.png'
     };
   });

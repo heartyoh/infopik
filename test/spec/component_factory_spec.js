@@ -6,8 +6,8 @@ define(['src/ComponentFactory', 'src/ComponentRegistry'], function (ComponentFac
     var factory;
 
     beforeEach(function() {
-      factory = new ComponentFactory();
       var registry = new ComponentRegistry();
+      factory = new ComponentFactory(registry);
 
       registry.register({
         type: 'rectangle',
@@ -26,7 +26,6 @@ define(['src/ComponentFactory', 'src/ComponentRegistry'], function (ComponentFac
         toolbox_image: 'images/toolbox_rectangle.png'
       });
 
-      factory.setComponentRegistry(registry);
     });
 
     describe('createComponent', function() {

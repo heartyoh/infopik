@@ -7,6 +7,10 @@
         this.reset();
       }
 
+      CommandManager.prototype.despose = function() {
+        return this.reset();
+      };
+
       CommandManager.prototype.execute = function(command) {
         if (!command instanceof Command) {
           return;
