@@ -5,10 +5,12 @@
 # ==========================================
 
 define [
-], () ->
+    './ApplicationContext'
+], (ApplicationContext) ->
     
     "use strict"
 
     {
-        
+        app: (options) ->
+        	new ApplicationContext(options)
     }

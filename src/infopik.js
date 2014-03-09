@@ -1,7 +1,11 @@
 (function() {
-  define([], function() {
+  define(['./ApplicationContext'], function(ApplicationContext) {
     "use strict";
-    return {};
+    return {
+      app: function(options) {
+        return new ApplicationContext(options);
+      }
+    };
   });
 
 }).call(this);
