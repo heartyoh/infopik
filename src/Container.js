@@ -4,7 +4,7 @@
 
   define(['dou', './Component'], function(dou, Component) {
     "use strict";
-    var Container, add, add_component, forEach, remove, remove_component, select;
+    var Container, add, add_component, forEach, getAt, indexOf, remove, remove_component, size;
     add_component = function(container, component) {
       var index;
       index = (container.__components__.push(component)) - 1;
@@ -59,26 +59,22 @@
       }
       return this;
     };
-    select = function(selector) {
-      var clone, i, _i, _len, _ref;
-      if (!this.__components__) {
-        return;
+    getAt = function(index) {
+      if (this.__components__) {
+        return this.__components__[index];
       }
-      clone = [];
-      if (selector === void 0) {
-        _ref = this.__components__;
-        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-          i = _ref[_i];
-          clone.push(i);
-        }
-      }
-      return clone;
     };
     forEach = function(fn, context) {
       if (!this.__components__) {
         return;
       }
       return this.__components__.forEach(fn, context);
+    };
+    indexOf = function(item) {
+      return (this.__components__ || []).indexOf(item);
+    };
+    size = function() {
+      return (this.__components__ || []).length;
     };
     Container = (function(_super) {
       __extends(Container, _super);
@@ -91,7 +87,11 @@
 
       Container.prototype.remove = remove;
 
-      Container.prototype.select = select;
+      Container.prototype.size = size;
+
+      Container.prototype.getAt = getAt;
+
+      Container.prototype.indexOf = indexOf;
 
       Container.prototype.forEach = forEach;
 
