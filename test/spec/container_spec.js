@@ -1,6 +1,6 @@
 "use strict";
 
-define(['src/Component', 'src/Container'], function (Component, Container) {
+define(['src/Component', 'src/Container', 'src/ComponentSelector'], function (Component, Container, ComponentSelector) {
 
   describe('Container', function () {
 
@@ -20,7 +20,7 @@ define(['src/Component', 'src/Container'], function (Component, Container) {
 
         inst.add(new Component());
 
-        inst.select().length.should.equal(1);
+        inst.size().should.equal(1);
 
       });
 
@@ -34,7 +34,7 @@ define(['src/Component', 'src/Container'], function (Component, Container) {
 
         inst.add('a');
 
-        inst.select().length.should.equal(1);
+        inst.size().should.equal(1);
       });
     });
 
@@ -47,8 +47,8 @@ define(['src/Component', 'src/Container'], function (Component, Container) {
         inst.add('a');
         inst.add(['b', 'c', 'd']);
 
-        inst.select().length.should.equal(4);
-        inst.select()[3].should.equal('d');
+        inst.size().should.equal(4);
+        inst.getAt(3).should.equal('d');
       });
 
       it('should make container to be a event delegator for component', function () {
@@ -99,8 +99,8 @@ define(['src/Component', 'src/Container'], function (Component, Container) {
         inst.add(['a', 'b', 'c', 'd', 'e']);
         inst.remove(['b', 'c', 'd']);
 
-        inst.select().length.should.equal(2);
-        inst.select()[1].should.equal('e');
+        inst.size().should.equal(2);
+        inst.getAt(1).should.equal('e');
       });
 
       it('should remove event delegation relation', function () {

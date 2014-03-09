@@ -7,7 +7,10 @@
 define [
     'dou'
     './Component'
-], (dou, Component) ->
+], (
+    dou
+    Component
+) ->
     
     "use strict"
 
@@ -54,26 +57,28 @@ define [
 
         this
 
-    select = (selector) ->
-        return if not @__components__
-
-        clone = [];
-
-        (clone.push i) for i in @__components__ if selector is undefined
-
-        return clone
-
+    getAt = (index) ->
+        return @__components__[index] if @__components__
+        
     forEach = (fn, context) ->
         return if not @__components__
-        @__components__.forEach fn, context
+        @__components__.forEach(fn, context)
+
+    indexOf = (item) ->
+        (@__components__ || []).indexOf(item)
+
+    size = ->
+        (@__components__ || []).length
 
     class Container extends Component
         constructor : (type) ->
-        	super(type)
+            super(type)
 
         add: add
         remove: remove
-        select: select
+        size: size
+        getAt: getAt
+        indexOf: indexOf
         forEach: forEach
 
     dou.mixin Container, [dou.with.advice, dou.with.lifecycle]

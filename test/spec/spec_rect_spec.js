@@ -25,7 +25,7 @@ define(['dou', 'KineticJS', 'src/ComponentRegistry', 'src/ComponentFactory', 'sr
 
       stage = new Kinetic.Stage({
         container: 'container_rect',
-        width: 578,
+        width: 600,
         height: 200
       });
 

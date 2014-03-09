@@ -31,10 +31,13 @@ define [
 
     class ApplicationContext
         constructor : (options) ->
-            {@application_spec, @html_container} = options
+            {@application_spec, container} = options
 
-            if typeof(@html_container) isnt 'string'
-                throw new Error('html_container should be a string.')
+            # container option : html container of this application
+            if typeof container isnt 'string'
+                throw new Error('container is a mandatory string type option.')
+            if not @application_spec
+                throw new Error('application_spec is a mandatory option')
 
             @commandManager = new CommandManager()
 
@@ -59,11 +62,11 @@ define [
             # model - Root Container (Application)
             # view - Stage of KineticJS
 
-            attributes =
+            attributes = 
                 id: 'application'
-                container: @html_container
-                width: 578 # TODO should be passed as options
-                height: 200
+                container: options.container
+                width: options.width
+                height: options.height
 
             @application = @componentFactory.createComponent(@application_spec.type, attributes, this)
             @view = @componentFactory.createView(@application, this)

@@ -11,7 +11,7 @@ define [
     "use strict"
 
     createView = (attributes) ->
-        return new kin.Group(attributes)
+        new kin.Group(attributes)
 
     createHandle = (attributes) ->
         return new Kin.Group(attributes)

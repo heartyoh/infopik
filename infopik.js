@@ -657,10 +657,13 @@
         var ApplicationContext;
         ApplicationContext = function () {
             function ApplicationContext(options) {
-                var attributes, attrs, layer, _ref;
-                this.application_spec = options.application_spec, this.html_container = options.html_container;
-                if (typeof this.html_container !== 'string') {
-                    throw new Error('html_container should be a string.');
+                var attributes, attrs, container, layer, _ref;
+                this.application_spec = options.application_spec, container = options.container;
+                if (typeof container !== 'string') {
+                    throw new Error('container is a mandatory string type option.');
+                }
+                if (!this.application_spec) {
+                    throw new Error('application_spec is a mandatory option');
                 }
                 this.commandManager = new CommandManager();
                 this.eventTracker = new EventTracker();
@@ -680,9 +683,9 @@
                 this.componentRegistry.register(this.application_spec);
                 attributes = {
                     id: 'application',
-                    container: this.html_container,
-                    width: 578,
-                    height: 200
+                    container: options.container,
+                    width: options.width,
+                    height: options.height
                 };
                 this.application = this.componentFactory.createComponent(this.application_spec.type, attributes, this);
                 this.view = this.componentFactory.createView(this.application, this);

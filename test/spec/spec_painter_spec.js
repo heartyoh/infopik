@@ -2,12 +2,12 @@
 
 define([
   'src/ApplicationContext',
-  'src/SpecPresenter',
+  'src/SpecPainter',
   'src/SpecGroup',
   'src/SpecRect'
 ], function (
   ApplicationContext,
-  SpecPresenter,
+  SpecPainter,
   SpecGroup,
   SpecRect
 ) {
@@ -28,7 +28,7 @@ define([
 
     it('should ...', function () {
       var app = new ApplicationContext({
-        application_spec: SpecPresenter,
+        application_spec: SpecPainter,
         container: 'presenter_spec',
         width: 1000,
         height: 400

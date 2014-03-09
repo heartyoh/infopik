@@ -29,7 +29,9 @@ define([
     it('should ...', function () {
       var app = new ApplicationContext({
         application_spec: SpecSampleApp,
-        html_container: 'application_spec'
+        container: 'application_spec',
+        width: 600,
+        height: 400
       });
 
       var group = app.createComponent(SpecGroup.type, {
