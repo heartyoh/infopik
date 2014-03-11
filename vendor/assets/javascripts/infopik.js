@@ -451,7 +451,7 @@
                 view = spec.view_factory_fn(component.getAll());
                 if (component instanceof Container) {
                     component.forEach(function (child) {
-                        return view.add(this.createView(child));
+                        return view.add(this.createView(child, context));
                     }, this);
                 }
                 if (spec.view_listener) {
@@ -459,18 +459,25 @@
                 }
                 return view;
             };
-            ComponentFactory.prototype.createComponent = function (type, attributes, context) {
-                var component, spec;
-                spec = this.componentRegistry.get(type);
+            ComponentFactory.prototype.createComponent = function (obj, context) {
+                var child, component, spec, _i, _len, _ref;
+                spec = this.componentRegistry.get(obj.type);
                 if (!spec) {
-                    throw new Error('Component Spec Not Found for type \'' + type + '\'');
+                    throw new Error('Component Spec Not Found for type \'' + obj.type + '\'');
                 }
                 if (spec.containable) {
-                    component = new Container(type);
+                    component = new Container(obj.type);
+                    if (obj.components) {
+                        _ref = obj.components;
+                        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+                            child = _ref[_i];
+                            component.add(this.createComponent(child, context));
+                        }
+                    }
                 } else {
-                    component = new Component(type);
+                    component = new Component(obj.type);
                 }
-                component.initialize(dou.util.shallow_merge(spec.defaults || {}, attributes || {}));
+                component.initialize(dou.util.shallow_merge(spec.defaults || {}, obj.attrs || {}));
                 if (!component.get('id')) {
                     component.set('id', this.uniqueId());
                 }
@@ -639,6 +646,119 @@
     });
 }.call(this));
 (function () {
+    define('src/SelectionManager', ['dou'], function (dou) {
+        'use strict';
+        var SelectionManager;
+        return SelectionManager = function () {
+            function SelectionManager(config) {
+                this.onselectionchange = config.onselectionchange;
+                this.context = config.context;
+                this.selections = [];
+            }
+            SelectionManager.prototype.focus = function (target) {
+                var idx, old_sels;
+                if (!target) {
+                    return this.selections[0];
+                }
+                idx = this.selections.indexOf(target);
+                if (idx > -1) {
+                    old_sels = dou.util.clone(this.selections);
+                    this.selections.splice(idx, 1);
+                    this.selections.unshift(target);
+                    if (this.onselectionchange) {
+                        return this.onselectionchange.call(this.context, {
+                            added: [],
+                            removed: [],
+                            before: old_sels,
+                            after: this.selections
+                        });
+                    }
+                } else {
+                    return this.toggle(target);
+                }
+            };
+            SelectionManager.prototype.get = function () {
+                return dou.util.clone(this.selections);
+            };
+            SelectionManager.prototype.toggle = function (target) {
+                var added, idx, old_sels, removed;
+                if (!target) {
+                    return;
+                }
+                old_sels = dou.util.clone(this.selections);
+                idx = this.selections.indexOf(target);
+                if (idx > -1) {
+                    removed = this.selections.splice(idx, 1);
+                } else {
+                    added = [target];
+                    this.selections.unshift(target);
+                }
+                if (this.onselectionchange) {
+                    return this.onselectionchange.call(this.context, {
+                        added: added || [],
+                        removed: removed || [],
+                        before: old_sels,
+                        after: this.selections
+                    });
+                }
+            };
+            SelectionManager.prototype.select = function (target) {
+                var added, item, old_sels, removed;
+                old_sels = dou.util.clone(this.selections);
+                if (!(target instanceof Array)) {
+                    target = !target ? [] : [target];
+                }
+                this.selections = target;
+                added = function () {
+                    var _i, _len, _ref, _results;
+                    _ref = this.selections;
+                    _results = [];
+                    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+                        item = _ref[_i];
+                        if (old_sels.indexOf(item) === -1) {
+                            _results.push(item);
+                        }
+                    }
+                    return _results;
+                }.call(this);
+                removed = function () {
+                    var _i, _len, _results;
+                    _results = [];
+                    for (_i = 0, _len = old_sels.length; _i < _len; _i++) {
+                        item = old_sels[_i];
+                        if (this.selections.indexOf(item) === -1) {
+                            _results.push(item);
+                        }
+                    }
+                    return _results;
+                }.call(this);
+                if (this.onselectionchange) {
+                    return this.onselectionchange.call(this.context, {
+                        added: added,
+                        removed: removed,
+                        before: old_sels,
+                        after: this.selections
+                    });
+                }
+            };
+            SelectionManager.prototype.reset = function () {
+                var old_sels;
+                old_sels = this.selections;
+                this.selections = [];
+                if (old_sels.length > 0 && this.onselectionchange) {
+                    return this.onselectionchange.call(this.context, {
+                        added: [],
+                        removed: old_sels,
+                        before: old_sels,
+                        after: this.selections
+                    });
+                }
+            };
+            return SelectionManager;
+        }();
+    });
+}.call(this));
+(function () {
     define('src/ApplicationContext', [
         'dou',
         'KineticJS',
@@ -649,13 +769,14 @@
         './ComponentFactory',
         './CommandManager',
         './ComponentRegistry',
-        './ComponentSelector'
-    ], function (dou, kin, Component, Container, EventController, EventTracker, ComponentFactory, CommandManager, ComponentRegistry, ComponentSelector) {
+        './ComponentSelector',
+        './SelectionManager'
+    ], function (dou, kin, Component, Container, EventController, EventTracker, ComponentFactory, CommandManager, ComponentRegistry, ComponentSelector, SelectionManager) {
         'use strict';
         var ApplicationContext;
         ApplicationContext = function () {
             function ApplicationContext(options) {
-                var attributes, attrs, container, layer, _ref;
+                var attributes, container;
                 this.application_spec = options.application_spec, container = options.container;
                 if (typeof container !== 'string') {
                     throw new Error('container is a mandatory string type option.');
@@ -664,6 +785,10 @@
                     throw new Error('application_spec is a mandatory option');
                 }
                 this.commandManager = new CommandManager();
+                this.selectionManager = new SelectionManager({
+                    onselectionchange: this.onselectionchange,
+                    context: this
+                });
                 this.eventTracker = new EventTracker();
                 this.eventController = new EventController();
                 this.componentRegistry = new ComponentRegistry();
@@ -685,19 +810,16 @@
                     width: options.width,
                     height: options.height
                 };
-                this.application = this.componentFactory.createComponent(this.application_spec.type, attributes, this);
+                this.application = this.componentFactory.createComponent({
+                    type: this.application_spec.type,
+                    attrs: attributes,
+                    components: this.application_spec.components
+                }, this);
                 this.view = this.componentFactory.createView(this.application, this);
                 this.eventController.setTarget(this.application);
                 this.eventController.start(this);
                 this.application.on('add', this.onadd, this);
                 this.application.on('remove', this.onremove, this);
-                if (this.application_spec.layers) {
-                    _ref = this.application_spec.layers;
-                    for (layer in _ref) {
-                        attrs = _ref[layer];
-                        this.application.add(this.componentFactory.createComponent(layer, attrs, this));
-                    }
-                }
             }
             ApplicationContext.prototype.despose = function () {
                 this.eventTracker.despose();
@@ -738,8 +860,8 @@
             ApplicationContext.prototype.createView = function (component) {
                 return this.componentFactory.createView(component, this);
             };
-            ApplicationContext.prototype.createComponent = function (type, attrs) {
-                return this.componentFactory.createComponent(type, attrs, this);
+            ApplicationContext.prototype.createComponent = function (obj) {
+                return this.componentFactory.createComponent(obj, this);
             };
             ApplicationContext.prototype.drawView = function () {
                 return this.view.draw();
@@ -760,6 +882,9 @@
                 vcomponent = this.findViewByComponent(component);
                 vcontainer.remove(vcomponent);
                 return this.drawView();
+            };
+            ApplicationContext.prototype.onselectionchange = function (changes) {
+                return this.application.trigger('change-selections', changes.after, changes.before, changes.added, changes.removed);
             };
             return ApplicationContext;
         }();

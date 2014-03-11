@@ -1,10 +1,10 @@
 (function() {
-  define(['dou', 'KineticJS', './Component', './Container', './EventController', './EventTracker', './ComponentFactory', './CommandManager', './ComponentRegistry', './ComponentSelector'], function(dou, kin, Component, Container, EventController, EventTracker, ComponentFactory, CommandManager, ComponentRegistry, ComponentSelector) {
+  define(['dou', 'KineticJS', './Component', './Container', './EventController', './EventTracker', './ComponentFactory', './CommandManager', './ComponentRegistry', './ComponentSelector', './SelectionManager'], function(dou, kin, Component, Container, EventController, EventTracker, ComponentFactory, CommandManager, ComponentRegistry, ComponentSelector, SelectionManager) {
     "use strict";
     var ApplicationContext;
     ApplicationContext = (function() {
       function ApplicationContext(options) {
-        var attributes, attrs, container, layer, _ref;
+        var attributes, container;
         this.application_spec = options.application_spec, container = options.container;
         if (typeof container !== 'string') {
           throw new Error('container is a mandatory string type option.');
@@ -13,6 +13,10 @@
           throw new Error('application_spec is a mandatory option');
         }
         this.commandManager = new CommandManager();
+        this.selectionManager = new SelectionManager({
+          onselectionchange: this.onselectionchange,
+          context: this
+        });
         this.eventTracker = new EventTracker();
         this.eventController = new EventController();
         this.componentRegistry = new ComponentRegistry();
@@ -34,19 +38,16 @@
           width: options.width,
           height: options.height
         };
-        this.application = this.componentFactory.createComponent(this.application_spec.type, attributes, this);
+        this.application = this.componentFactory.createComponent({
+          type: this.application_spec.type,
+          attrs: attributes,
+          components: this.application_spec.components
+        }, this);
         this.view = this.componentFactory.createView(this.application, this);
         this.eventController.setTarget(this.application);
         this.eventController.start(this);
         this.application.on('add', this.onadd, this);
         this.application.on('remove', this.onremove, this);
-        if (this.application_spec.layers) {
-          _ref = this.application_spec.layers;
-          for (layer in _ref) {
-            attrs = _ref[layer];
-            this.application.add(this.componentFactory.createComponent(layer, attrs, this));
-          }
-        }
       }
 
       ApplicationContext.prototype.despose = function() {
@@ -99,8 +100,8 @@
         return this.componentFactory.createView(component, this);
       };
 
-      ApplicationContext.prototype.createComponent = function(type, attrs) {
-        return this.componentFactory.createComponent(type, attrs, this);
+      ApplicationContext.prototype.createComponent = function(obj) {
+        return this.componentFactory.createComponent(obj, this);
       };
 
       ApplicationContext.prototype.drawView = function() {
@@ -125,6 +126,10 @@
         vcomponent = this.findViewByComponent(component);
         vcontainer.remove(vcomponent);
         return this.drawView();
+      };
+
+      ApplicationContext.prototype.onselectionchange = function(changes) {
+        return this.application.trigger('change-selections', changes.after, changes.before, changes.added, changes.removed);
       };
 
       return ApplicationContext;

@@ -27,7 +27,7 @@
         view = spec.view_factory_fn(component.getAll());
         if (component instanceof Container) {
           component.forEach(function(child) {
-            return view.add(this.createView(child));
+            return view.add(this.createView(child, context));
           }, this);
         }
         if (spec.view_listener) {
@@ -36,18 +36,25 @@
         return view;
       };
 
-      ComponentFactory.prototype.createComponent = function(type, attributes, context) {
-        var component, spec;
-        spec = this.componentRegistry.get(type);
+      ComponentFactory.prototype.createComponent = function(obj, context) {
+        var child, component, spec, _i, _len, _ref;
+        spec = this.componentRegistry.get(obj.type);
         if (!spec) {
-          throw new Error("Component Spec Not Found for type '" + type + "'");
+          throw new Error("Component Spec Not Found for type '" + obj.type + "'");
         }
         if (spec.containable) {
-          component = new Container(type);
+          component = new Container(obj.type);
+          if (obj.components) {
+            _ref = obj.components;
+            for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+              child = _ref[_i];
+              component.add(this.createComponent(child, context));
+            }
+          }
         } else {
-          component = new Component(type);
+          component = new Component(obj.type);
         }
-        component.initialize(dou.util.shallow_merge(spec.defaults || {}, attributes || {}));
+        component.initialize(dou.util.shallow_merge(spec.defaults || {}, obj.attrs || {}));
         if (!component.get('id')) {
           component.set('id', this.uniqueId());
         }

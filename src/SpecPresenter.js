@@ -1,5 +1,5 @@
 (function() {
-  define(['KineticJS', './SpecContentLayer', './SpecGroup', './SpecRect'], function(kin, SpecContentLayer, SpecGroup, SpecRect) {
+  define(['KineticJS', './SpecInfographic', './SpecContentViewLayer', './SpecGroup', './SpecRect'], function(kin, SpecInfographic, SpecContentViewLayer, SpecGroup, SpecRect) {
     "use strict";
     var controller, createView;
     createView = function(attributes) {
@@ -15,13 +15,17 @@
       controller: controller,
       view_factory_fn: createView,
       dependencies: {
-        'content-layer': SpecContentLayer,
+        'infographic': SpecInfographic,
+        'content-view-layer': SpecContentViewLayer,
         'group': SpecGroup,
         'rect': SpecRect
       },
-      layers: {
-        'content-layer': {}
-      },
+      components: [
+        {
+          type: 'content-view-layer',
+          attrs: {}
+        }
+      ],
       toolbox_image: 'images/toolbox_presenter_app.png'
     };
   });

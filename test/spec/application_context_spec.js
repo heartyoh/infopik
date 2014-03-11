@@ -34,27 +34,36 @@ define([
         height: 400
       });
 
-      var group = app.createComponent(SpecGroup.type, {
-        x: 150,
-        y: 30,
-        width: 200,
-        height: 100
+      var group = app.createComponent({
+        type: SpecGroup.type, 
+        attrs: {
+          x: 150,
+          y: 30,
+          width: 200,
+          height: 100
+        }
       });
 
-      var rect1 = app.createComponent(SpecRect.type, {
-        x: 10,
-        y: 10,
-        fill: 'red',
-        stroke: 'darkgray',
-        width: 100,
-        height: 50
+      var rect1 = app.createComponent({
+        type: SpecRect.type, 
+        attrs: {
+          x: 10,
+          y: 10,
+          fill: 'red',
+          stroke: 'darkgray',
+          width: 100,
+          height: 50
+        }
       });
 
-      var rect2 = app.createComponent(SpecRect.type, {
-        x: 110,
-        y: 110,
-        width: 100,
-        height: 50
+      var rect2 = app.createComponent({
+        type: SpecRect.type, 
+        attrs: {
+          x: 110,
+          y: 110,
+          width: 100,
+          height: 50
+        }
       });
 
       group.add(rect1);

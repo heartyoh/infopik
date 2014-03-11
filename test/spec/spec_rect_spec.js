@@ -42,11 +42,14 @@ define(['dou', 'KineticJS', 'src/ComponentRegistry', 'src/ComponentFactory', 'sr
 
       it('should draw a rectangle on the canvas', function () {
         
-        var component = componentFactory.createComponent(SpecRect.type, {
-          x: 239,
-          y: 75,
-          width: 100,
-          height: 50
+        var component = componentFactory.createComponent({
+          type: SpecRect.type, 
+          attrs: {
+            x: 239,
+            y: 75,
+            width: 100,
+            height: 50
+          }
         });
 
         var rect = componentFactory.createView(component);

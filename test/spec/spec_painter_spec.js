@@ -1,68 +1,48 @@
 "use strict";
 
 define([
-  'src/ApplicationContext',
+  'src/infopik',
   'src/SpecPainter',
   'src/SpecGroup',
-  'src/SpecRect'
+  'src/SpecRect',
+  // 'src/ModelFactory',
+  'test/spec/infographic/sample_01'
 ], function (
-  ApplicationContext,
+  infopik,
   SpecPainter,
   SpecGroup,
-  SpecRect
+  SpecRect,
+  // ModelFactory,
+  sample_01
 ) {
 
-  describe('Presenter', function () {
+  describe('Painter', function () {
 
     var html_container;
+    var app;
+    var infographic;
 
     beforeEach(function() {
 
       if(!html_container) {
         html_container = document.createElement('div');
-        html_container.setAttribute('id', 'presenter_spec');
+        html_container.setAttribute('id', 'painter_spec');
         document.body.appendChild(html_container);
       }
 
-    });
-
-    it('should ...', function () {
-      var app = new ApplicationContext({
+      app = infopik.app({
         application_spec: SpecPainter,
-        container: 'presenter_spec',
+        container: 'painter_spec',
         width: 1000,
         height: 400
       });
 
-      var group = app.createComponent(SpecGroup.type, {
-        x: 150,
-        y: 30,
-        width: 200,
-        height: 100
-      });
+      infographic = app.createComponent(sample_01);
+    });
 
-      var rect1 = app.createComponent(SpecRect.type, {
-        x: 10,
-        y: 10,
-        fill: 'red',
-        stroke: 'darkgray',
-        width: 100,
-        height: 50,
-        draggable: true
-      });
+    it('should ...', function () {
 
-      var rect2 = app.createComponent(SpecRect.type, {
-        x: 110,
-        y: 110,
-        width: 100,
-        height: 50,
-        draggable: true
-      });
-
-      group.add(rect1);
-      group.add(rect2);
-
-      app.setModel(group);
+      app.setModel(infographic);
     });
 
   });

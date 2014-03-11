@@ -33,7 +33,7 @@ define [
 
             if component instanceof Container
                 component.forEach (child) ->
-                    view.add this.createView child
+                    view.add this.createView child, context
                 , this
 
             # EventTracker off 시점을 고민해야한다. 혹은 .. StandAlone을 사용하는 것 고려.
@@ -41,16 +41,19 @@ define [
                 
             view
 
-        createComponent : (type, attributes, context) ->
-            spec = @componentRegistry.get type
-            throw new Error "Component Spec Not Found for type '#{type}'" if !spec
+        createComponent : (obj, context) ->
+            spec = @componentRegistry.get obj.type
+            throw new Error "Component Spec Not Found for type '#{obj.type}'" if !spec
             
             if spec.containable
-                component = new Container(type)
-            else
-                component = new Component(type)
+                component = new Container(obj.type)
 
-            component.initialize(dou.util.shallow_merge(spec.defaults || {}, attributes || {}));
+                if obj.components
+                    component.add(@createComponent(child, context)) for child in obj.components
+            else
+                component = new Component(obj.type)
+
+            component.initialize(dou.util.shallow_merge(spec.defaults || {}, obj.attrs || {}));
 
             component.set('id', @uniqueId()) if not component.get('id')
 

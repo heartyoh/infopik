@@ -30,6 +30,7 @@ require(['require', 'chai', 'mocha'], function(require, chai){
   mocha.setup('bdd');
  
   require([
+    'infographic/sample_01.js',
     // 'application_context_spec.js',
     // 'application_context/spec_application.js',
     // 'command_manager_spec.js',
@@ -42,6 +43,7 @@ require(['require', 'chai', 'mocha'], function(require, chai){
     // 'event_controller_spec.js',
     // 'event_tracker_spec.js',
     // 'event_tracker_standalone_spec.js',
+    // 'selection_manager_spec.js',
     // 'spec_group_spec.js',
     'spec_painter_spec.js',
     // 'spec_presenter_spec.js',

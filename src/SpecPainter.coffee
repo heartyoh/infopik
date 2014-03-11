@@ -5,8 +5,8 @@
 # ==========================================
 
 define [
-    'KineticJS', './SpecContentLayer', './SpecGroup', './SpecRect'
-], (kin, SpecContentLayer, SpecGroup, SpecRect) ->
+    'KineticJS', './SpecInfographic', './SpecContentEditLayer', './SpecGroup', './SpecRect'
+], (kin, SpecInfographic, SpecContentEditLayer, SpecGroup, SpecRect) ->
     
     "use strict"
 
@@ -21,18 +21,21 @@ define [
         name: 'painter-app'
         containable: true
         container_type: 'application'
-        description: 'Presenter Application Specification'
+        description: 'Painter Application Specification'
         defaults: {
+            # draggable: true
         }
         controller: controller
         view_factory_fn: createView
         dependencies: {
-          'content-layer' : SpecContentLayer
-          'group' : SpecGroup
-          'rect' : SpecRect
+            'infographic' : SpecInfographic
+            'content-edit-layer' : SpecContentEditLayer
+            'group' : SpecGroup
+            'rect' : SpecRect
         }
-        layers : {
-          'content-layer' : {}
-        }
+        components : [{
+            type: 'content-edit-layer'
+            attrs: {}
+        }]
         toolbox_image: 'images/toolbox_painter_app.png'
     }

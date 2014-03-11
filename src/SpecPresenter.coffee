@@ -5,8 +5,8 @@
 # ==========================================
 
 define [
-    'KineticJS', './SpecContentLayer', './SpecGroup', './SpecRect'
-], (kin, SpecContentLayer, SpecGroup, SpecRect) ->
+    'KineticJS', './SpecInfographic', './SpecContentViewLayer', './SpecGroup', './SpecRect'
+], (kin, SpecInfographic, SpecContentViewLayer, SpecGroup, SpecRect) ->
     
     "use strict"
 
@@ -27,12 +27,14 @@ define [
         controller: controller
         view_factory_fn: createView
         dependencies: {
-          'content-layer' : SpecContentLayer
+          'infographic' : SpecInfographic
+          'content-view-layer' : SpecContentViewLayer
           'group' : SpecGroup
           'rect' : SpecRect
         }
-        layers : {
-          'content-layer' : {}
-        }
+        components : [{
+            type: 'content-view-layer'
+            attrs: {}
+        }]
         toolbox_image: 'images/toolbox_presenter_app.png'
     }

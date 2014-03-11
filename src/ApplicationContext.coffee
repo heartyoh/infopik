@@ -15,6 +15,7 @@ define [
     './CommandManager'
     './ComponentRegistry'
     './ComponentSelector'
+    './SelectionManager'
 ], (dou
     kin
     Component
@@ -25,6 +26,7 @@ define [
     CommandManager
     ComponentRegistry
     ComponentSelector
+    SelectionManager
 ) ->
     
     "use strict"
@@ -40,6 +42,11 @@ define [
                 throw new Error('application_spec is a mandatory option')
 
             @commandManager = new CommandManager()
+
+            @selectionManager = new SelectionManager({
+                onselectionchange: @onselectionchange
+                context: this
+            })
 
             @eventTracker = new EventTracker()
 
@@ -68,7 +75,11 @@ define [
                 width: options.width
                 height: options.height
 
-            @application = @componentFactory.createComponent(@application_spec.type, attributes, this)
+            @application = @componentFactory.createComponent({
+                type: @application_spec.type
+                attrs: attributes
+                components: @application_spec.components
+            }, this)
             @view = @componentFactory.createView(@application, this)
 
             @eventController.setTarget @application
@@ -79,8 +90,8 @@ define [
 
             # Add layers into the application along to application_spec
 
-            if @application_spec.layers
-                (@application.add @componentFactory.createComponent(layer, attrs, this)) for layer, attrs of @application_spec.layers
+            # if @application_spec.layers
+            #     (@application.add @componentFactory.createComponent(layer, attrs, this)) for layer, attrs of @application_spec.layers
 
         despose: ->
             @eventTracker.despose()
@@ -121,8 +132,8 @@ define [
         createView: (component) ->
             @componentFactory.createView(component, this)
 
-        createComponent: (type, attrs) ->
-            @componentFactory.createComponent(type, attrs, this)
+        createComponent: (obj) ->
+            @componentFactory.createComponent(obj, this)
 
         drawView: ->
             @view.draw()
@@ -146,5 +157,7 @@ define [
 
             this.drawView()
 
+        onselectionchange: (changes) ->
+            @application.trigger 'change-selections', changes.after, changes.before, changes.added, changes.removed
 
     ApplicationContext

@@ -13,63 +13,78 @@ define [
     class SelectionManager
         constructor: (config) ->
             @onselectionchange = config.onselectionchange
+            @context = config.context
             @selections = []
+
+        focus: (target)->
+            return @selections[0] if not target
+
+            idx = @selections.indexOf(target)
+            if idx > -1
+                old_sels = dou.util.clone @selections
+
+                @selections.splice(idx, 1)
+                @selections.unshift(target)
+
+                if @onselectionchange
+                    @onselectionchange.call @context,
+                        added : []
+                        removed : []
+                        before : old_sels
+                        after : @selections
+            else
+                this.toggle(target)
 
         get: ->
             dou.util.clone @selections
     
         toggle: (target) ->
 
-            # target : 대상이 있는 경우는 Object. 없는 경우는 falsy
-            # toggle : 기존 선택된 것들을 기반으로 하면 true, 새로운 선택이면 false 또는 falsy
-            
-            # 1 단계 : 현재 선택된 리스트를 별도로 보관한다.
+            return if not target
+
             old_sels = dou.util.clone(@selections)
 
-            # 2 단계 : 현재 선택된 리스트를 별도로 보관한다.
-            added = []
-            removed = []
+            idx = @selections.indexOf(target)
 
-            # 3 단계 : target이 현재 선택된 것인지 확인한다.
-            if(@selections.indexOf(target) >= 0)
-                removed.push(target)
-                @selections = _.without(@selections, target)
+            if(idx > -1)
+                removed = @selections.splice(idx, 1)
             else
-                added.push(target)
-                @selections.push(target)
-            
-            if(@onselectionchange)
-                @onselectionchange
-                    added : added
-                    removed : removed
-                    selected : @selections
+                added = [target]
+                @selections.unshift(target)
+
+            if @onselectionchange
+                @onselectionchange.call @context,
+                    added : added || []
+                    removed : removed || []
                     before : old_sels
+                    after : @selections
 
         select : (target) ->
 
-            # target : 복수개가 선택된 경우는 Array, 하나인 경우는 Object. 없는 경우는 falsy
-            # append : 기존 선택된 것들에 추가이면 true, 새로운 선택이면 false 또는 falsy
+            old_sels = dou.util.clone(@selections)
         
-            # 1 단계 : 현재 선택된 리스트를 별도로 보관한다.
-            old_sels = _.clone(@selections)
-        
-            # 2 단계 : target 타입을 Array로 통일한다.
-            if not target instanceof Array
+            if not (target instanceof Array)
                 target = if not target then [] else [target]
             
-            # 3 단계 : 새로운 선택 리스트를 만든다.
             @selections = target
             
-            # 4 단계 : 변화된 리스트를 찾는다.(선택리스트에서 빠진 것 찾기)
-            added = _.difference(@selections, old_sels)
-            removed = _.difference(old_sels, @selections)
-            
+            added = (item for item in @selections when old_sels.indexOf(item) is -1)
+            removed = (item for item in old_sels when @selections.indexOf(item) is -1)
+
             if @onselectionchange
-                @onselectionchange
+                @onselectionchange.call @context,
                     added : added
                     removed : removed
-                    selected : @selections
                     before : old_sels
+                    after : @selections
         
         reset : ->
+            old_sels = @selections
             @selections = []
+
+            if old_sels.length > 0 and @onselectionchange
+                @onselectionchange.call @context,
+                    added : []
+                    removed : old_sels
+                    before : old_sels
+                    after : @selections

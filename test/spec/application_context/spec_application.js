@@ -2,12 +2,12 @@
 
 define([
   'KineticJS',
-  'src/SpecContentLayer',
+  'src/SpecContentViewLayer',
   'src/SpecGroup',
   'src/SpecRect'
 ], function(
   kin,
-  SpecContentLayer,
+  SpecContentViewLayer,
   SpecGroup,
   SpecRect
 ) {
@@ -40,13 +40,14 @@ define([
     controller: controller,
     view_factory_fn: createView,
     dependencies: {
-      'content-layer' : SpecContentLayer,
+      'content-view-layer' : SpecContentViewLayer,
       'group' : SpecGroup,
       'rect' : SpecRect
     },
-    layers : {
-      'content-layer' : {}
-    },
+    components : [{
+      type: 'content-view-layer',
+      attrs: {}
+    }],
     toolbox_image: 'images/toolbox_sample_app.png'
   };
 });
