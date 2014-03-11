@@ -1,5 +1,5 @@
 (function() {
-  define(['KineticJS', './SpecInfographic', './SpecContentEditLayer', './SpecGroup', './SpecRect'], function(kin, SpecInfographic, SpecContentEditLayer, SpecGroup, SpecRect) {
+  define(['KineticJS', './SpecInfographic', './SpecContentEditLayer', './SpecInfoScreen', './SpecGroup', './SpecRect', './SpecRing'], function(kin, SpecInfographic, SpecContentEditLayer, SpecInfoScreen, SpecGroup, SpecRect, SpecRing) {
     "use strict";
     var controller, createView;
     createView = function(attributes) {
@@ -17,12 +17,17 @@
       dependencies: {
         'infographic': SpecInfographic,
         'content-edit-layer': SpecContentEditLayer,
+        'info-screen': SpecInfoScreen,
         'group': SpecGroup,
-        'rect': SpecRect
+        'rect': SpecRect,
+        'ring': SpecRing
       },
       components: [
         {
           type: 'content-edit-layer',
+          attrs: {}
+        }, {
+          type: 'info-screen',
           attrs: {}
         }
       ],

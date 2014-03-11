@@ -5,8 +5,22 @@
 # ==========================================
 
 define [
-    'KineticJS', './SpecInfographic', './SpecContentEditLayer', './SpecGroup', './SpecRect'
-], (kin, SpecInfographic, SpecContentEditLayer, SpecGroup, SpecRect) ->
+    'KineticJS'
+    './SpecInfographic'
+    './SpecContentEditLayer'
+    './SpecInfoScreen'
+    './SpecGroup'
+    './SpecRect'
+    './SpecRing'
+], (
+    kin
+    SpecInfographic
+    SpecContentEditLayer
+    SpecInfoScreen
+    SpecGroup
+    SpecRect
+    SpecRing
+) ->
     
     "use strict"
 
@@ -30,11 +44,16 @@ define [
         dependencies: {
             'infographic' : SpecInfographic
             'content-edit-layer' : SpecContentEditLayer
+            'info-screen' : SpecInfoScreen
             'group' : SpecGroup
             'rect' : SpecRect
+            'ring' : SpecRing
         }
         components : [{
             type: 'content-edit-layer'
+            attrs: {}
+        }, {
+            type: 'info-screen'
             attrs: {}
         }]
         toolbox_image: 'images/toolbox_painter_app.png'

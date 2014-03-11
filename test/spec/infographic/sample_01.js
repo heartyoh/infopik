@@ -8,7 +8,8 @@ define([
     type: 'infographic',
     component_specs: {
       'group': '*',
-      'rectangle' : '*'
+      'rectangle' : '*',
+      'ring' : '*'
     },
     attrs: {
       width: 1000,
@@ -44,6 +45,13 @@ define([
           y: 110,
           width: 100,
           height: 50,
+          draggable: true
+        }
+      }, {
+        type: 'ring',
+        attrs: {
+          x: 210,
+          y: 210,
           draggable: true
         }
       }]

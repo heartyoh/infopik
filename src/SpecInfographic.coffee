@@ -13,7 +13,6 @@ define [
 
     createView = (attributes) ->
         infographic = new kin.Group(attributes);
-        # 이 Rect의 대응되는 Component가 없다. 방법을 찾아야..
         infographic.add new kin.Rect(dou.util.merge(attributes, {draggable: false, x: 0, y: 0}))
         infographic
 
