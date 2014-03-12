@@ -11,9 +11,18 @@ define [
     
     "use strict"
 
+    drag_handler = (e) ->
+        e.targetNode = this if not e.targetNode or e.targetNode is this.__background__
+
     createView = (attributes) ->
         group = new kin.Group(attributes);
-        group.add new kin.Rect(dou.util.merge(attributes, {draggable: false, x: 0, y: 0}))
+        background = new kin.Rect(dou.util.shallow_merge({}, attributes, {draggable: false, listening: true, x: 0, y: 0, id: undefined}))
+        group.add background
+        # Hack.. dragmove event lost its targetNode for background
+        if(attributes.draggable)
+            group.on 'dragstart dragmove dragend', drag_handler
+            group.__background__ = background
+
         group
 
     createHandle = (attributes) ->
@@ -28,9 +37,12 @@ define [
         defaults: {
             width: 100
             height: 50
-            fill: 'green'
+            # fill: 'green'
             stroke: 'black'
             strokeWidth: 4
+            draggable: true
+            listening: true
+            opacity: 1
         }
         view_factory_fn: createView
         handle_factory_fn: createHandle

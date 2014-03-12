@@ -1,9 +1,84 @@
 (function() {
-  define(['KineticJS', './EventTracker', './CommandPropertyChange', './ComponentSelector'], function(kin, EventTracker, CommandPropertyChange, ComponentSelector) {
+  define(['dou', 'KineticJS', './EventTracker', './CommandPropertyChange', './ComponentSelector'], function(dou, kin, EventTracker, CommandPropertyChange, ComponentSelector) {
     "use strict";
-    var component_listener, controller, createView, onadded, onchange, onchangemodel, onchangeselections, onremoved, view_listener;
+    var component_listener, controller, createView, draghandler, onadded, onchange, onchangemodel, onchangeselections, onremoved, view_listener;
+    draghandler = {
+      dragstart: function(e) {
+        var background;
+        if (e.targetNode && e.targetNode !== this.background) {
+          return;
+        }
+        background = this.background;
+        background.setAttrs({
+          x: 0,
+          y: 0
+        });
+        this.start_point = {
+          x: e.offsetX,
+          y: e.offsetY
+        };
+        this.selectbox = new kin.Rect({
+          stroke: 'black',
+          strokeWidth: 1,
+          dash: [3, 3]
+        });
+        this.layer.add(this.selectbox);
+        this.selectbox.setAttrs(this.start_point);
+        this.layer.draw();
+        return e.cancelBubble = true;
+      },
+      dragmove: function(e) {
+        var background;
+        if (e.targetNode && e.targetNode !== this.background) {
+          return;
+        }
+        background = this.background;
+        background.setAttrs({
+          x: 0,
+          y: 0
+        });
+        this.selectbox.setAttrs({
+          width: e.offsetX - this.start_point.x,
+          height: e.offsetY - this.start_point.y
+        });
+        this.layer.draw();
+        return e.cancelBubble = true;
+      },
+      dragend: function(e) {
+        var background;
+        if (e.targetNode && e.targetNode !== this.background) {
+          return;
+        }
+        background = this.background;
+        background.setAttrs({
+          x: 0,
+          y: 0
+        });
+        this.selectbox.remove();
+        delete this.selectbox;
+        this.layer.draw();
+        return e.cancelBubble = true;
+      }
+    };
     createView = function(attributes) {
-      return new kin.Layer(attributes);
+      var background, layer;
+      layer = new kin.Layer(attributes);
+      background = new kin.Rect(dou.util.shallow_merge({}, attributes, {
+        draggable: true,
+        listening: true,
+        x: 0,
+        y: 0,
+        width: 1000,
+        height: 1000,
+        id: void 0,
+        stroke: 'black'
+      }));
+      layer.add(background);
+      this.getEventTracker().on(layer, draghandler, {
+        layer: layer,
+        background: background
+      });
+      return layer;
     };
     onadded = function(container, component, index, e) {};
     onremoved = function(container, component, e) {};
@@ -42,15 +117,14 @@
       'change': onchange
     };
     view_listener = {
-      dragstart: function(e) {
-        return console.log(e);
-      },
+      dragstart: function(e) {},
       dragmove: function(e) {},
       dragend: function(e) {
         var cmd, component, id, node;
         node = e.targetNode;
         id = e.targetNode.getAttr('id');
         component = this.findComponent("\#" + id)[0];
+        console.log(e);
         if (!component) {
           return;
         }
@@ -63,8 +137,8 @@
                 y: component.get('y')
               },
               after: {
-                x: node.getAttr('x'),
-                y: node.getAttr('y')
+                x: node.x(),
+                y: node.y()
               }
             }
           ]
@@ -90,7 +164,7 @@
       description: 'Selection Edit Layer Specification',
       defaults: {
         listening: true,
-        draggable: true
+        draggable: false
       },
       controller: controller,
       component_listener: component_listener,

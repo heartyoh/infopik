@@ -55,10 +55,8 @@ define [
     bound_fn = (x, y) ->
         node = this
         pos = node.getAbsolutePosition();
-        console.log('before', pos)
         pos.x = Math.round(pos.x / 10) * 10
         pos.y = Math.round(pos.y / 10) * 10
-        console.log('after', pos)
         pos
 
     guide_handler = 

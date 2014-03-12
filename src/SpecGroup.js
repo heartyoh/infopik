@@ -1,15 +1,27 @@
 (function() {
   define(['dou', 'KineticJS'], function(dou, kin) {
     "use strict";
-    var createHandle, createView;
+    var createHandle, createView, drag_handler;
+    drag_handler = function(e) {
+      if (!e.targetNode || e.targetNode === this.__background__) {
+        return e.targetNode = this;
+      }
+    };
     createView = function(attributes) {
-      var group;
+      var background, group;
       group = new kin.Group(attributes);
-      group.add(new kin.Rect(dou.util.merge(attributes, {
+      background = new kin.Rect(dou.util.shallow_merge({}, attributes, {
         draggable: false,
+        listening: true,
         x: 0,
-        y: 0
-      })));
+        y: 0,
+        id: void 0
+      }));
+      group.add(background);
+      if (attributes.draggable) {
+        group.on('dragstart dragmove dragend', drag_handler);
+        group.__background__ = background;
+      }
       return group;
     };
     createHandle = function(attributes) {
@@ -24,9 +36,11 @@
       defaults: {
         width: 100,
         height: 50,
-        fill: 'green',
         stroke: 'black',
-        strokeWidth: 4
+        strokeWidth: 4,
+        draggable: true,
+        listening: true,
+        opacity: 1
       },
       view_factory_fn: createView,
       handle_factory_fn: createHandle,

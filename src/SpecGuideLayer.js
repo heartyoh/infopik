@@ -58,10 +58,8 @@
       var node, pos;
       node = this;
       pos = node.getAbsolutePosition();
-      console.log('before', pos);
       pos.x = Math.round(pos.x / 10) * 10;
       pos.y = Math.round(pos.y / 10) * 10;
-      console.log('after', pos);
       return pos;
     };
     guide_handler = {

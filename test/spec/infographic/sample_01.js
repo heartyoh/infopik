@@ -22,10 +22,7 @@ define([
         y: 0,
         width: 300,
         height: 300,
-        fill: 'white',
-        opacity: 1,
-        draggable: true,
-        listening: true
+        // fill: 'red'
       },
       components: [{
         type: 'rectangle',
