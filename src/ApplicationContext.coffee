@@ -12,10 +12,13 @@ define [
     './EventController'
     './EventTracker'
     './ComponentFactory'
+    './Command'
     './CommandManager'
+    './CommandPropertyChange'
     './ComponentRegistry'
     './ComponentSelector'
     './SelectionManager'
+    './ComponentSpec'
 ], (dou
     kin
     Component
@@ -23,10 +26,13 @@ define [
     EventController
     EventTracker
     ComponentFactory
+    Command
     CommandManager
+    CommandPropertyChange
     ComponentRegistry
     ComponentSelector
     SelectionManager
+    ComponentSpec
 ) ->
     
     "use strict"

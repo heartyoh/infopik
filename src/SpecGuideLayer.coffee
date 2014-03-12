@@ -13,31 +13,32 @@ define [
     "use strict"
 
     createView = (attributes) ->
-        layer = new kin.Layer(attributes)
-        layer.add new kin.Text
-            x: 10
-            y: 10
-            listening: false
-            fontSize: 12
-            fontFamily: 'Calibri'
-            fill: 'green'
-
-        layer
+        new kin.Layer(attributes)
 
     onchange = (component, before, after) ->
         self = this
-        self.changes++
         layer = this.layer
-        text = this.text
+
+        this.changes = (this.changes || 0) + 1
+        if not this.text
+            this.text = new kin.Text
+                x: 10
+                y: 10
+                listening: false
+                fontSize: 12
+                fontFamily: 'Calibri'
+                fill: 'green'
+            layer.add this.text
 
         msg = "[ PropertyChange ] #{component.type} : #{component.get('id')}\n[ Before ] #{JSON.stringify(before)}\n[ After ] #{JSON.stringify(after)}"
-        text.setAttr('text', msg)
+        this.text.setAttr('text', msg)
 
         layer.draw()
 
         setTimeout ->
             return if (--self.changes) > 0
-            text.setAttr('text', '')
+            self.text.remove()
+            delete self.text
             layer.draw()
         , 5000
 
@@ -47,41 +48,88 @@ define [
         for screen in this.findComponent 'guide-layer'
 
             layer = (appcontext.findViewByComponent screen)[0]
-            text = layer.find('Text').toArray()[0]
 
             before.off('change', onchange) if before
-            after.on('change', onchange, {layer:layer, text:text, changes: 0}) if after
+            after.on('change', onchange, {layer:layer}) if after
+
+    bound_fn = (x, y) ->
+        node = this
+        pos = node.getAbsolutePosition();
+        console.log('before', pos)
+        pos.x = Math.round(pos.x / 10) * 10
+        pos.y = Math.round(pos.y / 10) * 10
+        console.log('after', pos)
+        pos
 
     guide_handler = 
         dragstart : (e) ->
-            pos = e.targetNode.getAbsolutePosition()
-            layer = this.layer
+            this.mouse_origin = {
+                x: e.x,
+                y: e.y
+            }
+
+            node = e.targetNode
+
+            this.node_origin = node.getAbsolutePosition();
+
+            pos = node.getAbsolutePosition()
+
             x = pos.x
             y = pos.y
+
             this.vert = new kin.Line({stroke:'red', tension: 1, points:[x, 0, x, 1000]})
             this.hori = new kin.Line({stroke:'red', tension: 1, points:[0, y, 1000, y]})
+            this.text = new kin.Text
+                x: x
+                y: y
+                listening: false
+                fontSize: 12
+                fontFamily: 'Calibri'
+                fill: 'green'
+            this.text.setAttr('text', "[ #{x}(#{node.x()}), #{y}(#{node.y()}) ]")
+            textx = if Math.max(x, 0) > (this.text.width() + 10) then x - (this.text.width() + 10) else Math.max(x + 10, 10)
+            texty = if Math.max(y, 0) > (this.text.height() + 10) then y - (this.text.height() + 10) else Math.max(y + 10, 10)
+            this.text.setAttrs({x: textx, y: texty})
+
+            layer = this.layer
+
             layer.add(this.vert)
             layer.add(this.hori)
+            layer.add(this.text)
+
             layer.draw()
+
         dragmove : (e) ->
-            pos = e.targetNode.getAbsolutePosition()
-            x = pos.x
-            y = pos.y
-            layer = this.layer
+            pos = {
+                x: e.x - this.mouse_origin.x + this.node_origin.x,
+                y: e.y - this.mouse_origin.y + this.node_origin.y
+            }
+            x = Math.round(pos.x / 10) * 10
+            y = Math.round(pos.y / 10) * 10
+
+            node = e.targetNode
+            node.setAbsolutePosition({x: x, y:y})
+
             this.vert.setAttrs({points:[x, 0, x, 1000]})
             this.hori.setAttrs({points:[0, y, 1000, y]})
-            layer.draw()
+            this.text.setAttr('text', "[ #{x}(#{node.x()}), #{y}(#{node.y()}) ]")
+            textx = if Math.max(x, 0) > (this.text.width() + 10) then x - (this.text.width() + 10) else Math.max(x + 10, 10)
+            texty = if Math.max(y, 0) > (this.text.height() + 10) then y - (this.text.height() + 10) else Math.max(y + 10, 10)
+            this.text.setAttrs({x: textx, y: texty})
+
+            this.layer.draw()
+
         dragend : (e) ->
-            layer = this.layer
             this.vert.remove()
             this.hori.remove()
-            layer.draw()
+            this.text.remove()
+
+            this.layer.draw()
 
     onadded = (container, component, index, e) ->
-        topview = this.getView()
-        layer = this.findView "\##{component.get('id')}"
+        layer = (this.findView "\##{component.get('id')}")[0]
 
-        this.getEventTracker().on(topview, guide_handler, {app:this, layer:layer[0]})
+        this.getEventTracker().on(this.getView(), guide_handler, {layer:layer})
 
     onremoved = (container, component, e) ->
         app = this.getView()
