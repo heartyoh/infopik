@@ -8,7 +8,7 @@ define [
     'KineticJS'
     './SpecInfographic'
     './SpecContentEditLayer'
-    './SpecInfoScreen'
+    './SpecGuideLayer'
     './SpecGroup'
     './SpecRect'
     './SpecRing'
@@ -16,7 +16,7 @@ define [
     kin
     SpecInfographic
     SpecContentEditLayer
-    SpecInfoScreen
+    SpecGuideLayer
     SpecGroup
     SpecRect
     SpecRing
@@ -44,7 +44,7 @@ define [
         dependencies: {
             'infographic' : SpecInfographic
             'content-edit-layer' : SpecContentEditLayer
-            'info-screen' : SpecInfoScreen
+            'guide-layer' : SpecGuideLayer
             'group' : SpecGroup
             'rect' : SpecRect
             'ring' : SpecRing
@@ -53,7 +53,7 @@ define [
             type: 'content-edit-layer'
             attrs: {}
         }, {
-            type: 'info-screen'
+            type: 'guide-layer'
             attrs: {}
         }]
         toolbox_image: 'images/toolbox_painter_app.png'

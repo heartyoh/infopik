@@ -5,14 +5,12 @@ define([
   'src/SpecPainter',
   'src/SpecGroup',
   'src/SpecRect',
-  // 'src/ModelFactory',
   'test/spec/infographic/sample_01'
 ], function (
   infopik,
   SpecPainter,
   SpecGroup,
   SpecRect,
-  // ModelFactory,
   sample_01
 ) {
 

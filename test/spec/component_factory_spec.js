@@ -5,6 +5,7 @@ define([
   'src/ComponentRegistry',
   'src/SpecGroup',
   'src/SpecRect',
+  'src/SpecRing',
   'src/SpecInfographic',
   'test/spec/infographic/sample_01'
 ], function (
@@ -12,6 +13,7 @@ define([
   ComponentRegistry,
   SpecGroup,
   SpecRect,
+  SpecRing,
   SpecInfographic,
   sample_01
 ) {
@@ -81,6 +83,7 @@ define([
 
       beforeEach(function() {
         registry.register(SpecRect);
+        registry.register(SpecRing);
         registry.register(SpecGroup);
         registry.register(SpecInfographic);
       });

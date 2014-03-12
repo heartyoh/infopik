@@ -26,12 +26,7 @@
     onchangeselections = function(after, before, added, removed) {
       return console.log('selection-changed', after);
     };
-    onchange = function(component, before, after) {
-      var view;
-      view = this.findViewByComponent(component);
-      view.setAttrs(after);
-      return this.drawView();
-    };
+    onchange = function(component, before, after) {};
     controller = {
       '#application': {
         'change-model': onchangemodel,
@@ -81,13 +76,9 @@
         node = e.targetNode;
         return this.selectionManager.select(node);
       },
-      mouseover: function(e) {
-        return console.log(e.type, e);
-      },
+      mouseover: function(e) {},
       mousemove: function(e) {},
-      mouseout: function(e) {
-        return console.log(e.type, e);
-      },
+      mouseout: function(e) {},
       mouseenter: function(e) {},
       mouseleave: function(e) {}
     };

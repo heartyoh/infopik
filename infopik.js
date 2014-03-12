@@ -776,7 +776,7 @@
         var ApplicationContext;
         ApplicationContext = function () {
             function ApplicationContext(options) {
-                var attributes, container;
+                var attributes, attrs, component, container, _i, _len, _ref;
                 this.application_spec = options.application_spec, container = options.container;
                 if (typeof container !== 'string') {
                     throw new Error('container is a mandatory string type option.');
@@ -812,14 +812,20 @@
                 };
                 this.application = this.componentFactory.createComponent({
                     type: this.application_spec.type,
-                    attrs: attributes,
-                    components: this.application_spec.components
+                    attrs: attributes
                 }, this);
                 this.view = this.componentFactory.createView(this.application, this);
                 this.eventController.setTarget(this.application);
                 this.eventController.start(this);
                 this.application.on('add', this.onadd, this);
                 this.application.on('remove', this.onremove, this);
+                if (this.application_spec.components) {
+                    _ref = this.application_spec.components;
+                    for (attrs = _i = 0, _len = _ref.length; _i < _len; attrs = ++_i) {
+                        component = _ref[attrs];
+                        this.application.add(this.componentFactory.createComponent(component, attrs, this));
+                    }
+                }
             }
             ApplicationContext.prototype.despose = function () {
                 this.eventTracker.despose();

@@ -75,23 +75,24 @@ define [
                 width: options.width
                 height: options.height
 
+            # First. create root container and view
             @application = @componentFactory.createComponent({
                 type: @application_spec.type
                 attrs: attributes
-                components: @application_spec.components
             }, this)
+
             @view = @componentFactory.createView(@application, this)
 
+            # Second. attach event handlers to root container
             @eventController.setTarget @application
             @eventController.start this
 
             @application.on 'add', @onadd, this
             @application.on 'remove', @onremove, this
 
-            # Add layers into the application along to application_spec
-
-            # if @application_spec.layers
-            #     (@application.add @componentFactory.createComponent(layer, attrs, this)) for layer, attrs of @application_spec.layers
+            # Third. add sub components to root container
+            if @application_spec.components
+                (@application.add @componentFactory.createComponent(component, attrs, this)) for component, attrs in @application_spec.components
 
         despose: ->
             @eventTracker.despose()

@@ -60,10 +60,10 @@ define [
         console.log 'selection-changed', after
 
     onchange = (component, before, after) ->
-        view = this.findViewByComponent component
-        view.setAttrs after
+        # view = this.findViewByComponent component
+        # view.setAttrs after
 
-        this.drawView()
+        # this.drawView()
 
     controller =
         '#application' :
@@ -106,11 +106,11 @@ define [
             this.selectionManager.select(node)
 
         mouseover: (e) ->
-            console.log(e.type, e)
+            # console.log(e.type, e)
         mousemove: (e) ->
             # console.log(e.type, e)
         mouseout: (e) ->
-            console.log(e.type, e)
+            # console.log(e.type, e)
         mouseenter: (e) ->
             # console.log(e.type, e)
         mouseleave: (e) ->
