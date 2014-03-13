@@ -96,9 +96,9 @@ define [
             @application.on 'add', @onadd, this
             @application.on 'remove', @onremove, this
 
-            # Third. add sub components to root container
-            if @application_spec.components
-                (@application.add @componentFactory.createComponent(component, attrs, this)) for component, attrs in @application_spec.components
+            # Third. add layers to root container
+            if @application_spec.layers
+                (@application.add @componentFactory.createComponent(component, this)) for component in @application_spec.layers
 
         despose: ->
             @eventTracker.despose()

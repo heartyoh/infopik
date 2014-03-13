@@ -44,7 +44,7 @@ define([
       'group' : SpecGroup,
       'rect' : SpecRect
     },
-    components : [{
+    layers : [{
       type: 'content-view-layer',
       attrs: {}
     }],

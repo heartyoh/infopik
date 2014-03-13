@@ -1,7 +1,7 @@
 (function() {
   define(['KineticJS'], function(kin) {
     "use strict";
-    var bound_fn, controller, createView, guide_handler, onadded, onchange, onchangemodel, onremoved, view_listener;
+    var controller, createView, guide_handler, onadded, onchange, onchangemodel, onremoved, view_listener;
     createView = function(attributes) {
       return new kin.Layer(attributes);
     };
@@ -25,12 +25,29 @@
       this.text.setAttr('text', msg);
       layer.draw();
       return setTimeout(function() {
+        var tween;
         if ((--self.changes) > 0) {
           return;
         }
-        self.text.remove();
-        delete self.text;
-        return layer.draw();
+        tween = new Kinetic.Tween({
+          node: self.text,
+          opacity: 0,
+          duration: 1,
+          easing: kin.Easings.EaseOut
+        });
+        tween.play();
+        return setTimeout(function() {
+          if (self.changes > 0) {
+            tween.reset();
+            tween.destroy();
+            return;
+          }
+          tween.finish();
+          tween.destroy();
+          self.text.remove();
+          delete self.text;
+          return layer.draw();
+        }, 1000);
       }, 5000);
     };
     onchangemodel = function(after, before) {
@@ -53,14 +70,6 @@
         }
       }
       return _results;
-    };
-    bound_fn = function(x, y) {
-      var node, pos;
-      node = this;
-      pos = node.getAbsolutePosition();
-      pos.x = Math.round(pos.x / 10) * 10;
-      pos.y = Math.round(pos.y / 10) * 10;
-      return pos;
     };
     guide_handler = {
       dragstart: function(e) {

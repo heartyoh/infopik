@@ -48,6 +48,9 @@ define [
             if spec.containable
                 component = new Container(obj.type)
 
+                if spec.components
+                    component.add(@createComponent(child, context)) for child in spec.components
+
                 if obj.components
                     component.add(@createComponent(child, context)) for child in obj.components
             else

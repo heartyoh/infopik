@@ -9,7 +9,8 @@ define([
     component_specs: {
       'group': '*',
       'rectangle' : '*',
-      'ring' : '*'
+      'ring' : '*',
+      'ruler' : '*'
     },
     attrs: {
       width: 1000,
@@ -21,8 +22,7 @@ define([
         x: 0,
         y: 0,
         width: 300,
-        height: 300,
-        // fill: 'red'
+        height: 300
       },
       components: [{
         type: 'rectangle',
@@ -50,6 +50,30 @@ define([
           x: 210,
           y: 210,
           draggable: true
+        }
+      }, {
+        type: 'ruler',
+        attrs: {
+          x: 310,
+          y: 110,
+          width: 500,
+          height: 20,
+          draggable: true,
+          direction: 'horizontal',
+          zeropos: 100,
+          margin: [15, 0]
+        }
+      }, {
+        type: 'ruler',
+        attrs: {
+          x: 310,
+          y: 110,
+          width: 20,
+          height: 500,
+          draggable: true,
+          direction: 'vertical',
+          zeropos: 100,
+          margin: [15, 0]
         }
       }]
     }, {

@@ -4,7 +4,7 @@
     var ApplicationContext;
     ApplicationContext = (function() {
       function ApplicationContext(options) {
-        var attributes, attrs, component, container, _i, _len, _ref;
+        var attributes, component, container, _i, _len, _ref;
         this.application_spec = options.application_spec, container = options.container;
         if (typeof container !== 'string') {
           throw new Error('container is a mandatory string type option.');
@@ -47,11 +47,11 @@
         this.eventController.start(this);
         this.application.on('add', this.onadd, this);
         this.application.on('remove', this.onremove, this);
-        if (this.application_spec.components) {
-          _ref = this.application_spec.components;
-          for (attrs = _i = 0, _len = _ref.length; _i < _len; attrs = ++_i) {
-            component = _ref[attrs];
-            this.application.add(this.componentFactory.createComponent(component, attrs, this));
+        if (this.application_spec.layers) {
+          _ref = this.application_spec.layers;
+          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+            component = _ref[_i];
+            this.application.add(this.componentFactory.createComponent(component, this));
           }
         }
       }

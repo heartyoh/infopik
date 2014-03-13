@@ -460,17 +460,24 @@
                 return view;
             };
             ComponentFactory.prototype.createComponent = function (obj, context) {
-                var child, component, spec, _i, _len, _ref;
+                var child, component, spec, _i, _j, _len, _len1, _ref, _ref1;
                 spec = this.componentRegistry.get(obj.type);
                 if (!spec) {
                     throw new Error('Component Spec Not Found for type \'' + obj.type + '\'');
                 }
                 if (spec.containable) {
                     component = new Container(obj.type);
-                    if (obj.components) {
-                        _ref = obj.components;
+                    if (spec.components) {
+                        _ref = spec.components;
                         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
                             child = _ref[_i];
+                            component.add(this.createComponent(child, context));
+                        }
+                    }
+                    if (obj.components) {
+                        _ref1 = obj.components;
+                        for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+                            child = _ref1[_j];
                             component.add(this.createComponent(child, context));
                         }
                     }
@@ -854,7 +861,7 @@
         var ApplicationContext;
         ApplicationContext = function () {
             function ApplicationContext(options) {
-                var attributes, attrs, component, container, _i, _len, _ref;
+                var attributes, component, container, _i, _len, _ref;
                 this.application_spec = options.application_spec, container = options.container;
                 if (typeof container !== 'string') {
                     throw new Error('container is a mandatory string type option.');
@@ -897,11 +904,11 @@
                 this.eventController.start(this);
                 this.application.on('add', this.onadd, this);
                 this.application.on('remove', this.onremove, this);
-                if (this.application_spec.components) {
-                    _ref = this.application_spec.components;
-                    for (attrs = _i = 0, _len = _ref.length; _i < _len; attrs = ++_i) {
-                        component = _ref[attrs];
-                        this.application.add(this.componentFactory.createComponent(component, attrs, this));
+                if (this.application_spec.layers) {
+                    _ref = this.application_spec.layers;
+                    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+                        component = _ref[_i];
+                        this.application.add(this.componentFactory.createComponent(component, this));
                     }
                 }
             }

@@ -1,5 +1,5 @@
 (function() {
-  define(['KineticJS', './SpecInfographic', './SpecContentEditLayer', './SpecGuideLayer', './SpecGroup', './SpecRect', './SpecRing'], function(kin, SpecInfographic, SpecContentEditLayer, SpecGuideLayer, SpecGroup, SpecRect, SpecRing) {
+  define(['KineticJS', './SpecInfographic', './SpecContentEditLayer', './SpecGuideLayer', './SpecRulerLayer', './SpecGroup', './SpecRect', './SpecRing', './SpecRuler'], function(kin, SpecInfographic, SpecContentEditLayer, SpecGuideLayer, SpecRulerLayer, SpecGroup, SpecRect, SpecRing, SpecRuler) {
     "use strict";
     var controller, createView;
     createView = function(attributes) {
@@ -18,16 +18,21 @@
         'infographic': SpecInfographic,
         'content-edit-layer': SpecContentEditLayer,
         'guide-layer': SpecGuideLayer,
+        'ruler-layer': SpecRulerLayer,
         'group': SpecGroup,
         'rect': SpecRect,
-        'ring': SpecRing
+        'ring': SpecRing,
+        'ruler': SpecRuler
       },
-      components: [
+      layers: [
         {
           type: 'content-edit-layer',
           attrs: {}
         }, {
           type: 'guide-layer',
+          attrs: {}
+        }, {
+          type: 'ruler-layer',
           attrs: {}
         }
       ],

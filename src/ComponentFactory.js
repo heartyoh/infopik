@@ -37,17 +37,24 @@
       };
 
       ComponentFactory.prototype.createComponent = function(obj, context) {
-        var child, component, spec, _i, _len, _ref;
+        var child, component, spec, _i, _j, _len, _len1, _ref, _ref1;
         spec = this.componentRegistry.get(obj.type);
         if (!spec) {
           throw new Error("Component Spec Not Found for type '" + obj.type + "'");
         }
         if (spec.containable) {
           component = new Container(obj.type);
-          if (obj.components) {
-            _ref = obj.components;
+          if (spec.components) {
+            _ref = spec.components;
             for (_i = 0, _len = _ref.length; _i < _len; _i++) {
               child = _ref[_i];
+              component.add(this.createComponent(child, context));
+            }
+          }
+          if (obj.components) {
+            _ref1 = obj.components;
+            for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+              child = _ref1[_j];
               component.add(this.createComponent(child, context));
             }
           }

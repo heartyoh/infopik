@@ -9,17 +9,21 @@ define [
     './SpecInfographic'
     './SpecContentEditLayer'
     './SpecGuideLayer'
+    './SpecRulerLayer'
     './SpecGroup'
     './SpecRect'
     './SpecRing'
+    './SpecRuler'
 ], (
     kin
     SpecInfographic
     SpecContentEditLayer
     SpecGuideLayer
+    SpecRulerLayer
     SpecGroup
     SpecRect
     SpecRing
+    SpecRuler
 ) ->
     
     "use strict"
@@ -45,15 +49,20 @@ define [
             'infographic' : SpecInfographic
             'content-edit-layer' : SpecContentEditLayer
             'guide-layer' : SpecGuideLayer
+            'ruler-layer' : SpecRulerLayer
             'group' : SpecGroup
             'rect' : SpecRect
             'ring' : SpecRing
+            'ruler' : SpecRuler
         }
-        components : [{
+        layers : [{
             type: 'content-edit-layer'
             attrs: {}
         }, {
             type: 'guide-layer'
+            attrs: {}
+        }, {
+            type: 'ruler-layer'
             attrs: {}
         }]
         toolbox_image: 'images/toolbox_painter_app.png'

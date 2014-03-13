@@ -31,15 +31,35 @@ define [
             layer.add this.text
 
         msg = "[ PropertyChange ] #{component.type} : #{component.get('id')}\n[ Before ] #{JSON.stringify(before)}\n[ After ] #{JSON.stringify(after)}"
-        this.text.setAttr('text', msg)
+        this.text.setAttr 'text', msg
 
         layer.draw()
 
         setTimeout ->
             return if (--self.changes) > 0
-            self.text.remove()
-            delete self.text
-            layer.draw()
+            
+            tween = new Kinetic.Tween({
+                node: self.text
+                opacity: 0
+                duration: 1
+                easing: kin.Easings.EaseOut
+            })
+
+            tween.play();
+
+            setTimeout ->
+                if self.changes > 0
+                    tween.reset()
+                    tween.destroy()
+                    return
+
+                tween.finish()
+                tween.destroy()
+
+                self.text.remove()
+                delete self.text
+                layer.draw()
+            , 1000
         , 5000
 
     onchangemodel = (after, before) ->
@@ -51,13 +71,6 @@ define [
 
             before.off('change', onchange) if before
             after.on('change', onchange, {layer:layer}) if after
-
-    bound_fn = (x, y) ->
-        node = this
-        pos = node.getAbsolutePosition();
-        pos.x = Math.round(pos.x / 10) * 10
-        pos.y = Math.round(pos.y / 10) * 10
-        pos
 
     guide_handler = 
         dragstart : (e) ->

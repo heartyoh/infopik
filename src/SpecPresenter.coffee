@@ -5,8 +5,22 @@
 # ==========================================
 
 define [
-    'KineticJS', './SpecInfographic', './SpecContentViewLayer', './SpecGroup', './SpecRect'
-], (kin, SpecInfographic, SpecContentViewLayer, SpecGroup, SpecRect) ->
+    'KineticJS',
+    './SpecInfographic',
+    './SpecContentViewLayer',
+    './SpecGroup',
+    './SpecRect'
+    './SpecRing'
+    './SpecRuler'
+], (
+    kin
+    SpecInfographic
+    SpecContentViewLayer
+    SpecGroup
+    SpecRect
+    SpecRing
+    SpecRuler
+) ->
     
     "use strict"
 
@@ -31,8 +45,10 @@ define [
           'content-view-layer' : SpecContentViewLayer
           'group' : SpecGroup
           'rect' : SpecRect
+          'ring' : SpecRing
+          'ruler' : SpecRuler
         }
-        components : [{
+        layers : [{
             type: 'content-view-layer'
             attrs: {}
         }]
