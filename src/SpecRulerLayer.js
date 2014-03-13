@@ -21,7 +21,7 @@
           attrs: {
             direction: 'horizontal',
             margin: [20, 0],
-            opacity: 1,
+            opacity: 0.8,
             x: 0,
             y: 0,
             width: 1000,
@@ -33,7 +33,7 @@
           attrs: {
             direction: 'vertical',
             margin: [20, 0],
-            opacity: 1,
+            opacity: 0.8,
             x: 0,
             y: 0,
             width: 20,

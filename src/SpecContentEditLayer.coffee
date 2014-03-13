@@ -26,25 +26,30 @@ define [
 
             background = this.background
 
-            background.setAttrs({x: 0, y: 0})
+            layer_offset = this.layer.offset()
+            background.setAttrs({x: layer_offset.x + 20, y: layer_offset.y + 20})
 
             this.start_point =
                 x: e.offsetX
                 y: e.offsetY
 
-            layer_offset = this.layer.offset()
+            this.origin_offset = this.layer.offset()
 
             offset = 
-                x: this.start_point.x + layer_offset.x
-                y: this.start_point.y + layer_offset.y
+                x: this.start_point.x + this.origin_offset.x
+                y: this.start_point.y + this.origin_offset.y
 
-            this.selectbox = new kin.Rect
-                stroke: 'black'
-                strokeWidth: 1
-                dash: [3, 3]
+            mode = 'SELECT'
+            if(mode is 'SELECT')
+                this.selectbox = new kin.Rect
+                    stroke: 'black'
+                    strokeWidth: 1
+                    dash: [3, 3]
 
-            this.layer.add this.selectbox
-            this.selectbox.setAttrs(offset)
+                this.layer.add this.selectbox
+                this.selectbox.setAttrs(offset)
+            else if(mode is 'MOVE')
+            else
 
             this.layer.draw();
 
@@ -55,9 +60,21 @@ define [
 
             background = this.background
 
-            background.setAttrs({x: 0, y: 0})
+            mode = 'SELECT'
+            if(mode is 'SELECT')
+                background.setAttrs({x:this.origin_offset.x + 20, y:this.origin_offset.y + 20})
+                this.selectbox.setAttrs({width: e.offsetX - this.start_point.x, height: e.offsetY - this.start_point.y})
+            else if(mode is 'MOVE')
+                x = Math.max(this.origin_offset.x - (e.offsetX - this.start_point.x), -20)
+                y = Math.max(this.origin_offset.y - (e.offsetY - this.start_point.y), -20)
 
-            this.selectbox.setAttrs({width: e.offsetX - this.start_point.x, height: e.offsetY - this.start_point.y})
+                this.layer.offset
+                    x: x
+                    y: y
+                this.background.setAttrs
+                    x: x + 20
+                    y: y + 20
+            else
 
             this.layer.draw();
 
@@ -68,26 +85,34 @@ define [
 
             background = this.background
 
-            background.setAttrs({x: 0, y: 0})
-
-            this.selectbox.remove()
-            delete this.selectbox
+            mode = 'SELECT'
+            if(mode is 'SELECT')
+                background.setAttrs({x:this.origin_offset.x + 20, y:this.origin_offset.y + 20})
+                this.selectbox.remove()
+                delete this.selectbox
+            else if(mode is 'MOVE')
+            else
 
             this.layer.draw();
 
             e.cancelBubble = true
 
-
     createView = (attributes) ->
+        stage = this.getView().getStage()
+
+        offset = attributes.offset || {x:0, y:0}
+
         layer = new kin.Layer(attributes)
+
         background = new kin.Rect
             draggable: true
             listening: true
             x: 0
             y: 0
-            width: 1000
-            height: 1000
+            width: Math.min(stage.width() + offset.x, stage.width())
+            height: Math.min(stage.height() + offset.y, stage.height())
             stroke: attributes.stroke
+            fill: 'cyan'
             # id: undefined
 
         layer.add background

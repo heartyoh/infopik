@@ -56,9 +56,6 @@ define [
             'ruler' : SpecRuler
         }
         layers : [{
-            type: 'ruler-layer'
-            attrs: {}
-        }, {
             type: 'content-edit-layer'
             attrs: {
                 offset :
@@ -72,6 +69,9 @@ define [
                     x: -20
                     y: -20
             }
+        }, {
+            type: 'ruler-layer'
+            attrs: {}
         }]
         toolbox_image: 'images/toolbox_painter_app.png'
     }
