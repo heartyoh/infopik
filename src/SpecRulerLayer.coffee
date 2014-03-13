@@ -41,7 +41,7 @@ define [
                 y: 0
                 width: 1000
                 height: 20
-                zeropos: 0
+                zeropos: 20
         }, {
             type: 'ruler'
             attrs:
@@ -52,7 +52,7 @@ define [
                 y: 0
                 width: 20
                 height: 1000
-                zeropos: 0
+                zeropos: 20
         }]
         toolbox_image: 'images/toolbox_ruler_layer.png'
     }

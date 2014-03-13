@@ -73,37 +73,35 @@
     };
     guide_handler = {
       dragstart: function(e) {
-        var layer, node, pos, textx, texty, x, y;
+        var layer, layer_offset, node, offset_x, offset_y, textx, texty;
         this.mouse_origin = {
           x: e.x,
           y: e.y
         };
         node = e.targetNode;
         this.node_origin = node.getAbsolutePosition();
-        pos = node.getAbsolutePosition();
-        x = pos.x;
-        y = pos.y;
+        layer_offset = this.layer.offset();
+        offset_x = this.node_origin.x + layer_offset.x;
+        offset_y = this.node_origin.y + layer_offset.y;
         this.vert = new kin.Line({
           stroke: 'red',
           tension: 1,
-          points: [x, 0, x, 1000]
+          points: [offset_x, 0, offset_x, 1000]
         });
         this.hori = new kin.Line({
           stroke: 'red',
           tension: 1,
-          points: [0, y, 1000, y]
+          points: [0, offset_y, 1000, offset_y]
         });
         this.text = new kin.Text({
-          x: x,
-          y: y,
           listening: false,
           fontSize: 12,
           fontFamily: 'Calibri',
           fill: 'green'
         });
-        this.text.setAttr('text', "[ " + x + "(" + (node.x()) + "), " + y + "(" + (node.y()) + ") ]");
-        textx = Math.max(x, 0) > (this.text.width() + 10) ? x - (this.text.width() + 10) : Math.max(x + 10, 10);
-        texty = Math.max(y, 0) > (this.text.height() + 10) ? y - (this.text.height() + 10) : Math.max(y + 10, 10);
+        this.text.setAttr('text', "[ " + offset_x + "(" + (node.x()) + "), " + offset_y + "(" + (node.y()) + ") ]");
+        textx = Math.max(offset_x, 0) > (this.text.width() + 10) ? offset_x - (this.text.width() + 10) : Math.max(offset_x + 10, 10);
+        texty = Math.max(offset_y, 0) > (this.text.height() + 10) ? offset_y - (this.text.height() + 10) : Math.max(offset_y + 10, 10);
         this.text.setAttrs({
           x: textx,
           y: texty
@@ -115,27 +113,30 @@
         return layer.draw();
       },
       dragmove: function(e) {
-        var node, pos, textx, texty, x, y;
-        pos = {
-          x: e.x - this.mouse_origin.x + this.node_origin.x,
-          y: e.y - this.mouse_origin.y + this.node_origin.y
+        var layer_offset, node, node_new_pos, offset_x, offset_y, textx, texty, x, y;
+        node_new_pos = {
+          x: (e.x - this.mouse_origin.x) + this.node_origin.x,
+          y: (e.y - this.mouse_origin.y) + this.node_origin.y
         };
-        x = Math.round(pos.x / 10) * 10;
-        y = Math.round(pos.y / 10) * 10;
+        x = Math.round(node_new_pos.x / 10) * 10;
+        y = Math.round(node_new_pos.y / 10) * 10;
         node = e.targetNode;
         node.setAbsolutePosition({
           x: x,
           y: y
         });
+        layer_offset = this.layer.offset();
+        offset_x = x + layer_offset.x;
+        offset_y = y + layer_offset.y;
         this.vert.setAttrs({
-          points: [x, 0, x, 1000]
+          points: [offset_x, 0, offset_x, 1000]
         });
         this.hori.setAttrs({
-          points: [0, y, 1000, y]
+          points: [0, offset_y, 1000, offset_y]
         });
-        this.text.setAttr('text', "[ " + x + "(" + (node.x()) + "), " + y + "(" + (node.y()) + ") ]");
-        textx = Math.max(x, 0) > (this.text.width() + 10) ? x - (this.text.width() + 10) : Math.max(x + 10, 10);
-        texty = Math.max(y, 0) > (this.text.height() + 10) ? y - (this.text.height() + 10) : Math.max(y + 10, 10);
+        this.text.setAttr('text', "[ " + offset_x + "(" + (node.x()) + "), " + offset_y + "(" + (node.y()) + ") ]");
+        textx = Math.max(offset_x, 0) > (this.text.width() + 10) ? offset_x - (this.text.width() + 10) : Math.max(offset_x + 10, 10);
+        texty = Math.max(offset_y, 0) > (this.text.height() + 10) ? offset_y - (this.text.height() + 10) : Math.max(offset_y + 10, 10);
         this.text.setAttrs({
           x: textx,
           y: texty

@@ -56,14 +56,22 @@ define [
             'ruler' : SpecRuler
         }
         layers : [{
-            type: 'content-edit-layer'
-            attrs: {}
-        }, {
-            type: 'guide-layer'
-            attrs: {}
-        }, {
             type: 'ruler-layer'
             attrs: {}
+        }, {
+            type: 'content-edit-layer'
+            attrs: {
+                offset :
+                    x: -20
+                    y: -20
+            }
+        }, {
+            type: 'guide-layer'
+            attrs: {
+                offset :
+                    x: -20
+                    y: -20
+            }
         }]
         toolbox_image: 'images/toolbox_painter_app.png'
     }

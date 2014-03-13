@@ -32,13 +32,19 @@ define [
                 x: e.offsetX
                 y: e.offsetY
 
+            layer_offset = this.layer.offset()
+
+            offset = 
+                x: this.start_point.x + layer_offset.x
+                y: this.start_point.y + layer_offset.y
+
             this.selectbox = new kin.Rect
                 stroke: 'black'
                 strokeWidth: 1
                 dash: [3, 3]
 
             this.layer.add this.selectbox
-            this.selectbox.setAttrs(this.start_point)
+            this.selectbox.setAttrs(offset)
 
             this.layer.draw();
 
@@ -74,16 +80,15 @@ define [
 
     createView = (attributes) ->
         layer = new kin.Layer(attributes)
-        background = new kin.Rect dou.util.shallow_merge({}, attributes, 
+        background = new kin.Rect
             draggable: true
             listening: true
             x: 0
             y: 0
             width: 1000
             height: 1000
-            id: undefined
-            stroke: 'black'
-        )
+            stroke: attributes.stroke
+            # id: undefined
 
         layer.add background
 
@@ -158,7 +163,6 @@ define [
             id = e.targetNode.getAttr('id')
             component = this.findComponent("\##{id}")[0]
 
-            console.log(e)
             return if not component
 
             cmd = new CommandPropertyChange

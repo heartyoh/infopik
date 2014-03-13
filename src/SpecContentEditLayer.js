@@ -4,7 +4,7 @@
     var component_listener, controller, createView, draghandler, onadded, onchange, onchangemodel, onchangeselections, onremoved, view_listener;
     draghandler = {
       dragstart: function(e) {
-        var background;
+        var background, layer_offset, offset;
         if (e.targetNode && e.targetNode !== this.background) {
           return;
         }
@@ -17,13 +17,18 @@
           x: e.offsetX,
           y: e.offsetY
         };
+        layer_offset = this.layer.offset();
+        offset = {
+          x: this.start_point.x + layer_offset.x,
+          y: this.start_point.y + layer_offset.y
+        };
         this.selectbox = new kin.Rect({
           stroke: 'black',
           strokeWidth: 1,
           dash: [3, 3]
         });
         this.layer.add(this.selectbox);
-        this.selectbox.setAttrs(this.start_point);
+        this.selectbox.setAttrs(offset);
         this.layer.draw();
         return e.cancelBubble = true;
       },
@@ -63,16 +68,15 @@
     createView = function(attributes) {
       var background, layer;
       layer = new kin.Layer(attributes);
-      background = new kin.Rect(dou.util.shallow_merge({}, attributes, {
+      background = new kin.Rect({
         draggable: true,
         listening: true,
         x: 0,
         y: 0,
         width: 1000,
         height: 1000,
-        id: void 0,
-        stroke: 'black'
-      }));
+        stroke: attributes.stroke
+      });
       layer.add(background);
       this.getEventTracker().on(layer, draghandler, {
         layer: layer,
@@ -124,7 +128,6 @@
         node = e.targetNode;
         id = e.targetNode.getAttr('id');
         component = this.findComponent("\#" + id)[0];
-        console.log(e);
         if (!component) {
           return;
         }

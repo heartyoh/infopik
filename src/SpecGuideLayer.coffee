@@ -74,32 +74,30 @@ define [
 
     guide_handler = 
         dragstart : (e) ->
-            this.mouse_origin = {
-                x: e.x,
+            this.mouse_origin =
+                x: e.x
                 y: e.y
-            }
 
             node = e.targetNode
 
-            this.node_origin = node.getAbsolutePosition();
+            this.node_origin = node.getAbsolutePosition()
+            layer_offset = this.layer.offset()
 
-            pos = node.getAbsolutePosition()
+            offset_x = this.node_origin.x + layer_offset.x
+            offset_y = this.node_origin.y + layer_offset.y
 
-            x = pos.x
-            y = pos.y
+            this.vert = new kin.Line({stroke:'red', tension: 1, points:[offset_x, 0, offset_x, 1000]})
+            this.hori = new kin.Line({stroke:'red', tension: 1, points:[0, offset_y, 1000, offset_y]})
 
-            this.vert = new kin.Line({stroke:'red', tension: 1, points:[x, 0, x, 1000]})
-            this.hori = new kin.Line({stroke:'red', tension: 1, points:[0, y, 1000, y]})
             this.text = new kin.Text
-                x: x
-                y: y
                 listening: false
                 fontSize: 12
                 fontFamily: 'Calibri'
                 fill: 'green'
-            this.text.setAttr('text', "[ #{x}(#{node.x()}), #{y}(#{node.y()}) ]")
-            textx = if Math.max(x, 0) > (this.text.width() + 10) then x - (this.text.width() + 10) else Math.max(x + 10, 10)
-            texty = if Math.max(y, 0) > (this.text.height() + 10) then y - (this.text.height() + 10) else Math.max(y + 10, 10)
+
+            this.text.setAttr('text', "[ #{offset_x}(#{node.x()}), #{offset_y}(#{node.y()}) ]")
+            textx = if Math.max(offset_x, 0) > (this.text.width() + 10) then offset_x - (this.text.width() + 10) else Math.max(offset_x + 10, 10)
+            texty = if Math.max(offset_y, 0) > (this.text.height() + 10) then offset_y - (this.text.height() + 10) else Math.max(offset_y + 10, 10)
             this.text.setAttrs({x: textx, y: texty})
 
             layer = this.layer
@@ -111,21 +109,27 @@ define [
             layer.draw()
 
         dragmove : (e) ->
-            pos = {
-                x: e.x - this.mouse_origin.x + this.node_origin.x,
-                y: e.y - this.mouse_origin.y + this.node_origin.y
+            node_new_pos = {
+                x: (e.x - this.mouse_origin.x) + this.node_origin.x,
+                y: (e.y - this.mouse_origin.y) + this.node_origin.y
             }
-            x = Math.round(pos.x / 10) * 10
-            y = Math.round(pos.y / 10) * 10
+            x = Math.round(node_new_pos.x / 10) * 10
+            y = Math.round(node_new_pos.y / 10) * 10
 
             node = e.targetNode
-            node.setAbsolutePosition({x: x, y:y})
+            node.setAbsolutePosition({x: x, y: y})
 
-            this.vert.setAttrs({points:[x, 0, x, 1000]})
-            this.hori.setAttrs({points:[0, y, 1000, y]})
-            this.text.setAttr('text', "[ #{x}(#{node.x()}), #{y}(#{node.y()}) ]")
-            textx = if Math.max(x, 0) > (this.text.width() + 10) then x - (this.text.width() + 10) else Math.max(x + 10, 10)
-            texty = if Math.max(y, 0) > (this.text.height() + 10) then y - (this.text.height() + 10) else Math.max(y + 10, 10)
+            layer_offset = this.layer.offset()
+
+            offset_x = x + layer_offset.x
+            offset_y = y + layer_offset.y
+
+            this.vert.setAttrs({points:[offset_x, 0, offset_x, 1000]})
+            this.hori.setAttrs({points:[0, offset_y, 1000, offset_y]})
+
+            this.text.setAttr('text', "[ #{offset_x}(#{node.x()}), #{offset_y}(#{node.y()}) ]")
+            textx = if Math.max(offset_x, 0) > (this.text.width() + 10) then offset_x - (this.text.width() + 10) else Math.max(offset_x + 10, 10)
+            texty = if Math.max(offset_y, 0) > (this.text.height() + 10) then offset_y - (this.text.height() + 10) else Math.max(offset_y + 10, 10)
             this.text.setAttrs({x: textx, y: texty})
 
             this.layer.draw()
