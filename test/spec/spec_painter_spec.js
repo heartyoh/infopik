@@ -1,10 +1,10 @@
 "use strict";
 
 define([
-  'src/infopik',
-  'src/SpecPainter',
-  'src/SpecGroup',
-  'src/SpecRect',
+  'build/infopik',
+  'build/spec/SpecPainter',
+  'build/spec/SpecGroup',
+  'build/spec/SpecRect',
   'test/spec/infographic/sample_01'
 ], function (
   infopik,

@@ -1,10 +1,10 @@
 "use strict";
 
 define([
-  'src/ApplicationContext',
-  'src/SpecPresenter',
-  'src/SpecGroup',
-  'src/SpecRect'
+  'build/ApplicationContext',
+  'build/spec/SpecPresenter',
+  'build/spec/SpecGroup',
+  'build/spec/SpecRect'
 ], function (
   ApplicationContext,
   SpecPresenter,

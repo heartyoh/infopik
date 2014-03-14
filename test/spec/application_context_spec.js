@@ -1,13 +1,13 @@
 "use strict";
 
 define([
-  'src/ApplicationContext',
   'test/spec/application_context/spec_application',
-  'src/SpecGroup',
-  'src/SpecRect'
+  'build/ApplicationContext',
+  'build/spec/SpecGroup',
+  'build/spec/SpecRect'
 ], function (
-  ApplicationContext,
   SpecSampleApp,
+  ApplicationContext,
   SpecGroup,
   SpecRect
 ) {

@@ -86,8 +86,8 @@ define [
             offset_x = this.node_origin.x + layer_offset.x
             offset_y = this.node_origin.y + layer_offset.y
 
-            this.vert = new kin.Line({stroke:'red', tension: 1, points:[offset_x, 0, offset_x, 1000]})
-            this.hori = new kin.Line({stroke:'red', tension: 1, points:[0, offset_y, 1000, offset_y]})
+            this.vert = new kin.Line({stroke:'red', tension: 1, points:[offset_x, 0, offset_x, this.height]})
+            this.hori = new kin.Line({stroke:'red', tension: 1, points:[0, offset_y, this.width, offset_y]})
 
             this.text = new kin.Text
                 listening: false
@@ -124,8 +124,8 @@ define [
             offset_x = x + layer_offset.x
             offset_y = y + layer_offset.y
 
-            this.vert.setAttrs({points:[offset_x, 0, offset_x, 1000]})
-            this.hori.setAttrs({points:[0, offset_y, 1000, offset_y]})
+            this.vert.setAttrs({points:[offset_x, 0, offset_x, this.height]})
+            this.hori.setAttrs({points:[0, offset_y, this.width, offset_y]})
 
             this.text.setAttr('text', "[ #{offset_x}(#{node.x()}), #{offset_y}(#{node.y()}) ]")
             textx = if Math.max(offset_x, 0) > (this.text.width() + 10) then offset_x - (this.text.width() + 10) else Math.max(offset_x + 10, 10)
@@ -144,7 +144,11 @@ define [
     onadded = (container, component, index, e) ->
         layer = (this.findView "\##{component.get('id')}")[0]
 
-        this.getEventTracker().on(this.getView(), guide_handler, {layer:layer})
+        stage = this.getView().getStage()
+        width = stage.getWidth()
+        height = stage.getHeight()
+
+        this.getEventTracker().on(this.getView(), guide_handler, {layer:layer, width:width, height:height})
 
     onremoved = (container, component, e) ->
         app = this.getView()

@@ -17,7 +17,7 @@ var infopikSource = builder({
   docRoot: rootPath,
   path: '.',
   excludes: ['dou', 'KineticJS', 'bwip']
-}).include('src/infopik').toSource();
+}).include('build/infopik').toSource();
 
 var amdShim = fs.readFileSync(shimPath, 'utf8');
 var banner = fs.readFileSync(bannerPath, 'utf8').split(versionPlaceholder).join(version);

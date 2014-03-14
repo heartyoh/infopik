@@ -2,9 +2,9 @@
 
 define([
   'KineticJS',
-  'src/SpecContentViewLayer',
-  'src/SpecGroup',
-  'src/SpecRect'
+  'build/spec/SpecContentViewLayer',
+  'build/spec/SpecGroup',
+  'build/spec/SpecRect'
 ], function(
   kin,
   SpecContentViewLayer,

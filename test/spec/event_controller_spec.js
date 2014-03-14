@@ -1,6 +1,6 @@
 "use strict";
 
-define(['src/Component', 'src/Container', 'src/EventController'], function (Component, Container, EventController) {
+define(['build/Component', 'build/Container', 'build/EventController'], function (Component, Container, EventController) {
 
   describe('EventController', function () {
     var controller;

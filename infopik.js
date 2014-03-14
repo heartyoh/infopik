@@ -59,7 +59,7 @@
   }
 
 (function () {
-    define('src/Component', ['dou'], function (dou) {
+    define('build/Component', ['dou'], function (dou) {
         'use strict';
         var Component;
         Component = function () {
@@ -91,7 +91,7 @@
             child.__super__ = parent.prototype;
             return child;
         };
-    define('src/Container', [
+    define('build/Container', [
         'dou',
         './Component'
     ], function (dou, Component) {
@@ -188,7 +188,7 @@
     });
 }.call(this));
 (function () {
-    define('src/ComponentSelector', [
+    define('build/ComponentSelector', [
         'dou',
         './Component',
         './Container'
@@ -247,7 +247,7 @@
 }.call(this));
 (function () {
     var __hasProp = {}.hasOwnProperty;
-    define('src/EventController', [
+    define('build/EventController', [
         'dou',
         './ComponentSelector'
     ], function (dou, ComponentSelector) {
@@ -315,7 +315,7 @@
 }.call(this));
 (function () {
     var __hasProp = {}.hasOwnProperty;
-    define('src/EventTracker', [], function () {
+    define('build/EventTracker', [], function () {
         'use strict';
         var EventTracker, StandAloneTracker;
         StandAloneTracker = function () {
@@ -421,7 +421,7 @@
     });
 }.call(this));
 (function () {
-    define('src/ComponentFactory', [
+    define('build/ComponentFactory', [
         'dou',
         './Component',
         './Container',
@@ -499,7 +499,7 @@
     });
 }.call(this));
 (function () {
-    define('src/Command', ['dou'], function (dou) {
+    define('build/Command', ['dou'], function (dou) {
         'use strict';
         var Command;
         Command = function () {
@@ -516,7 +516,7 @@
     });
 }.call(this));
 (function () {
-    define('src/CommandManager', ['src/Command'], function (Command) {
+    define('build/CommandManager', ['./Command'], function (Command) {
         'use strict';
         var CommandManager;
         CommandManager = function () {
@@ -566,65 +566,8 @@
     });
 }.call(this));
 (function () {
-    var __hasProp = {}.hasOwnProperty, __extends = function (child, parent) {
-            for (var key in parent) {
-                if (__hasProp.call(parent, key))
-                    child[key] = parent[key];
-            }
-            function ctor() {
-                this.constructor = child;
-            }
-            ctor.prototype = parent.prototype;
-            child.prototype = new ctor();
-            child.__super__ = parent.prototype;
-            return child;
-        };
-    define('src/CommandPropertyChange', [
-        'dou',
-        './Command'
-    ], function (dou, Command) {
-        'use strict';
-        var CommandPropertyChange;
-        return CommandPropertyChange = function (_super) {
-            __extends(CommandPropertyChange, _super);
-            function CommandPropertyChange() {
-                return CommandPropertyChange.__super__.constructor.apply(this, arguments);
-            }
-            CommandPropertyChange.prototype.execute = function () {
-                var change, _i, _len, _ref, _results;
-                _ref = this.params.changes;
-                _results = [];
-                for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-                    change = _ref[_i];
-                    if (change.property) {
-                        _results.push(change.component.set(change.property, change.after));
-                    } else {
-                        _results.push(change.component.set(change.after));
-                    }
-                }
-                return _results;
-            };
-            CommandPropertyChange.prototype.unexecute = function () {
-                var change, _i, _len, _ref, _results;
-                _ref = this.params.changes;
-                _results = [];
-                for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-                    change = _ref[_i];
-                    if (change.property) {
-                        _results.push(change.component.set(change.property, change.before));
-                    } else {
-                        _results.push(change.component.set(change.before));
-                    }
-                }
-                return _results;
-            };
-            return CommandPropertyChange;
-        }(Command);
-    });
-}.call(this));
-(function () {
     var __hasProp = {}.hasOwnProperty;
-    define('src/ComponentRegistry', [
+    define('build/ComponentRegistry', [
         'dou',
         './EventController'
     ], function (dou, EventController) {
@@ -710,7 +653,7 @@
     });
 }.call(this));
 (function () {
-    define('src/SelectionManager', ['dou'], function (dou) {
+    define('build/SelectionManager', ['dou'], function (dou) {
         'use strict';
         var SelectionManager;
         return SelectionManager = function () {
@@ -823,7 +766,7 @@
     });
 }.call(this));
 (function () {
-    define('src/ComponentSpec', ['dou'], function (dou) {
+    define('build/ComponentSpec', ['dou'], function (dou) {
         'use strict';
         var ComponentSpec;
         return ComponentSpec = function () {
@@ -841,7 +784,7 @@
     });
 }.call(this));
 (function () {
-    define('src/ApplicationContext', [
+    define('build/ApplicationContext', [
         'dou',
         'KineticJS',
         './Component',
@@ -851,12 +794,11 @@
         './ComponentFactory',
         './Command',
         './CommandManager',
-        './CommandPropertyChange',
         './ComponentRegistry',
         './ComponentSelector',
         './SelectionManager',
         './ComponentSpec'
-    ], function (dou, kin, Component, Container, EventController, EventTracker, ComponentFactory, Command, CommandManager, CommandPropertyChange, ComponentRegistry, ComponentSelector, SelectionManager, ComponentSpec) {
+    ], function (dou, kin, Component, Container, EventController, EventTracker, ComponentFactory, Command, CommandManager, ComponentRegistry, ComponentSelector, SelectionManager, ComponentSpec) {
         'use strict';
         var ApplicationContext;
         ApplicationContext = function () {
@@ -983,7 +925,7 @@
     });
 }.call(this));
 (function () {
-    define('src/infopik', ['./ApplicationContext'], function (ApplicationContext) {
+    define('build/infopik', ['./ApplicationContext'], function (ApplicationContext) {
         'use strict';
         return {
             app: function (options) {

@@ -1,5 +1,5 @@
 (function() {
-  define(['KineticJS', './EventTracker', './CommandPropertyChange', './ComponentSelector'], function(kin, EventTracker, CommandPropertyChange, ComponentSelector) {
+  define(['KineticJS', '../EventTracker', '../ComponentSelector', '../command/CommandPropertyChange'], function(kin, EventTracker, ComponentSelector, CommandPropertyChange) {
     "use strict";
     var component_listener, controller, createView, onadded, onchange, onchangemodel, onremoved, view_listener;
     createView = function(attributes) {

@@ -1,6 +1,6 @@
 "use strict";
 
-define(['dou', 'src/ComponentRegistry'], 
+define(['dou', 'build/ComponentRegistry'], 
   function (dou, ComponentRegistry) {
 
   describe('ComponentRegistry', function () {

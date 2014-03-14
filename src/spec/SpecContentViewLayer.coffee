@@ -6,14 +6,14 @@
 
 define [
     'KineticJS'
-    './EventTracker'
-    './CommandPropertyChange'
-    './ComponentSelector'
+    '../EventTracker'
+    '../ComponentSelector'
+    '../command/CommandPropertyChange'
 ], (
     kin
     EventTracker
-    CommandPropertyChange
     ComponentSelector
+    CommandPropertyChange
 ) ->
 
     "use strict"

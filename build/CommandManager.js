@@ -1,5 +1,5 @@
 (function() {
-  define(['src/Command'], function(Command) {
+  define(['./Command'], function(Command) {
     "use strict";
     var CommandManager;
     CommandManager = (function() {

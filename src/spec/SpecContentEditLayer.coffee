@@ -7,15 +7,15 @@
 define [
     'dou'
     'KineticJS'
-    './EventTracker'
-    './CommandPropertyChange'
-    './ComponentSelector'
+    '../EventTracker'
+    '../ComponentSelector'
+    '../command/CommandPropertyChange'
 ], (
     dou
     kin
     EventTracker
-    CommandPropertyChange
     ComponentSelector
+    CommandPropertyChange
 ) ->
 
     "use strict"
@@ -39,7 +39,7 @@ define [
                 x: this.start_point.x + this.origin_offset.x
                 y: this.start_point.y + this.origin_offset.y
 
-            mode = 'SELECT'
+            mode = 'MOVE'
             if(mode is 'SELECT')
                 this.selectbox = new kin.Rect
                     stroke: 'black'
@@ -60,7 +60,7 @@ define [
 
             background = this.background
 
-            mode = 'SELECT'
+            mode = 'MOVE'
             if(mode is 'SELECT')
                 background.setAttrs({x:this.origin_offset.x + 20, y:this.origin_offset.y + 20})
                 this.selectbox.setAttrs({width: e.offsetX - this.start_point.x, height: e.offsetY - this.start_point.y})
@@ -85,7 +85,7 @@ define [
 
             background = this.background
 
-            mode = 'SELECT'
+            mode = 'MOVE'
             if(mode is 'SELECT')
                 background.setAttrs({x:this.origin_offset.x + 20, y:this.origin_offset.y + 20})
                 this.selectbox.remove()

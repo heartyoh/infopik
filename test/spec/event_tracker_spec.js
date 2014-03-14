@@ -1,6 +1,6 @@
 "use strict";
 
-define(['dou', 'src/EventTracker'], function (dou, EventTracker) {
+define(['dou', 'build/EventTracker'], function (dou, EventTracker) {
 
   describe('EventTracker', function () {
 

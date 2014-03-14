@@ -1,6 +1,6 @@
 "use strict";
 
-define(['src/SelectionManager'], function (SelectionManager) {
+define(['build/SelectionManager'], function (SelectionManager) {
 
   describe('SelectionManager', function () {
 

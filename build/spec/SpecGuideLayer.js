@@ -86,12 +86,12 @@
         this.vert = new kin.Line({
           stroke: 'red',
           tension: 1,
-          points: [offset_x, 0, offset_x, 1000]
+          points: [offset_x, 0, offset_x, this.height]
         });
         this.hori = new kin.Line({
           stroke: 'red',
           tension: 1,
-          points: [0, offset_y, 1000, offset_y]
+          points: [0, offset_y, this.width, offset_y]
         });
         this.text = new kin.Text({
           listening: false,
@@ -129,10 +129,10 @@
         offset_x = x + layer_offset.x;
         offset_y = y + layer_offset.y;
         this.vert.setAttrs({
-          points: [offset_x, 0, offset_x, 1000]
+          points: [offset_x, 0, offset_x, this.height]
         });
         this.hori.setAttrs({
-          points: [0, offset_y, 1000, offset_y]
+          points: [0, offset_y, this.width, offset_y]
         });
         this.text.setAttr('text', "[ " + offset_x + "(" + (node.x()) + "), " + offset_y + "(" + (node.y()) + ") ]");
         textx = Math.max(offset_x, 0) > (this.text.width() + 10) ? offset_x - (this.text.width() + 10) : Math.max(offset_x + 10, 10);
@@ -151,10 +151,15 @@
       }
     };
     onadded = function(container, component, index, e) {
-      var layer;
+      var height, layer, stage, width;
       layer = (this.findView("\#" + (component.get('id'))))[0];
+      stage = this.getView().getStage();
+      width = stage.getWidth();
+      height = stage.getHeight();
       return this.getEventTracker().on(this.getView(), guide_handler, {
-        layer: layer
+        layer: layer,
+        width: width,
+        height: height
       });
     };
     onremoved = function(container, component, e) {

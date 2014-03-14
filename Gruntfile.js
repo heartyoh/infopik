@@ -26,10 +26,9 @@ module.exports = function (grunt) {
           sourceMap: false
         },
         expand: true,
-        flatten: true,
         cwd: 'src',
-        src: ['*.coffee'],
-        dest: 'src',
+        src: '**/*.coffee',
+        dest: 'build',
         ext: '.js'
       }
     },
@@ -44,7 +43,7 @@ module.exports = function (grunt) {
         stripBanners: true
       }, 
       build: {
-        src: ['src/**/*.js'],
+        src: ['build/**/*.js'],
         dest: 'infopik.js'
       }
     },
@@ -91,6 +90,10 @@ module.exports = function (grunt) {
       gruntfile: {
         files: '<%= jshint.gruntfile.src %>',
         tasks: ['jshint:gruntfile']
+      },
+      coffee: {
+        files: '<%= coffee.build.src %>',
+        tasks: ['coffee:build']
       },
       src: {
         files: '<%= jshint.src.src %>',

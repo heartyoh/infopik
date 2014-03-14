@@ -1,13 +1,13 @@
 "use strict";
 
 define([
-  'src/ComponentFactory',
-  'src/ComponentRegistry',
-  'src/SpecGroup',
-  'src/SpecRect',
-  'src/SpecRing',
-  'src/SpecRuler',
-  'src/SpecInfographic',
+  'build/ComponentFactory',
+  'build/ComponentRegistry',
+  'build/spec/SpecGroup',
+  'build/spec/SpecRect',
+  'build/spec/SpecRing',
+  'build/spec/SpecRuler',
+  'build/spec/SpecInfographic',
   'test/spec/infographic/sample_01'
 ], function (
   ComponentFactory,

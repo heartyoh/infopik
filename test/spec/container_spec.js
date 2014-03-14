@@ -1,6 +1,6 @@
 "use strict";
 
-define(['src/Component', 'src/Container', 'src/ComponentSelector'], function (Component, Container, ComponentSelector) {
+define(['build/Component', 'build/Container', 'build/ComponentSelector'], function (Component, Container, ComponentSelector) {
 
   describe('Container', function () {
 

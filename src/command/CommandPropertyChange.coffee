@@ -6,7 +6,7 @@
 
 define [
     'dou'
-    './Command'
+    '../Command'
 ], (dou, Command) ->
     
     "use strict"

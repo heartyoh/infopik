@@ -14,7 +14,6 @@ define [
     './ComponentFactory'
     './Command'
     './CommandManager'
-    './CommandPropertyChange'
     './ComponentRegistry'
     './ComponentSelector'
     './SelectionManager'
@@ -28,7 +27,6 @@ define [
     ComponentFactory
     Command
     CommandManager
-    CommandPropertyChange
     ComponentRegistry
     ComponentSelector
     SelectionManager

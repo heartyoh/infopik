@@ -5,7 +5,7 @@
 # ==========================================
 
 define [
-    'src/Command'
+    './Command'
 ], (Command) ->
     
     "use strict"

@@ -1,5 +1,5 @@
 (function() {
-  define(['dou', 'KineticJS', './EventTracker', './CommandPropertyChange', './ComponentSelector'], function(dou, kin, EventTracker, CommandPropertyChange, ComponentSelector) {
+  define(['dou', 'KineticJS', '../EventTracker', '../ComponentSelector', '../command/CommandPropertyChange'], function(dou, kin, EventTracker, ComponentSelector, CommandPropertyChange) {
     "use strict";
     var component_listener, controller, createView, draghandler, onadded, onchange, onchangemodel, onchangeselections, onremoved, view_listener;
     draghandler = {
@@ -23,7 +23,7 @@
           x: this.start_point.x + this.origin_offset.x,
           y: this.start_point.y + this.origin_offset.y
         };
-        mode = 'SELECT';
+        mode = 'MOVE';
         if (mode === 'SELECT') {
           this.selectbox = new kin.Rect({
             stroke: 'black',
@@ -46,7 +46,7 @@
           return;
         }
         background = this.background;
-        mode = 'SELECT';
+        mode = 'MOVE';
         if (mode === 'SELECT') {
           background.setAttrs({
             x: this.origin_offset.x + 20,
@@ -79,7 +79,7 @@
           return;
         }
         background = this.background;
-        mode = 'SELECT';
+        mode = 'MOVE';
         if (mode === 'SELECT') {
           background.setAttrs({
             x: this.origin_offset.x + 20,
