@@ -10,8 +10,9 @@ define(['dou', 'build/EventTracker'], function (dou, EventTracker) {
         members: {
           test: function(e) {
             this.trigger('dragstart', e);
-            for(var i = 0;i < 10;i++)
+            for(var i = 0;i < 10;i++) {
               this.trigger('dragmove', e);
+            }
             this.trigger('dragend', e);
           },
           twice: function(num) {

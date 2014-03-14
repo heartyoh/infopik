@@ -98,10 +98,10 @@ module.exports = function (grunt) {
       src: {
         files: '<%= jshint.src.src %>',
         tasks: ['jshint:src', 'nodeunit']
-      },
-      test: {
-        files: '<%= jshint.test.src %>',
-        tasks: ['jshint:test', 'nodeunit']
+      // },
+      // test: {
+      //   files: '<%= jshint.test.src %>',
+      //   tasks: ['jshint:test', 'nodeunit']
       }
     },
     mocha: {
@@ -151,10 +151,17 @@ module.exports = function (grunt) {
       publish_npm: {
         command: "npm publish"
       }
+    },
+    notify_hooks: {
+      options: {
+        enabled: true,
+        max_jshint_notifications: 5, // maximum number of notifications from jshint output
+        title: "Project Name" // defaults to the name in package.json, or will use project directory's name
+      }
     }
   });
 
-  grunt.registerTask('bumpup', ['bump-only', 'replace:bump-gem'])
+  grunt.registerTask('bumpup', ['bump-only', 'replace:bump-gem']);
   // grunt.registerTask('build', ['coffee:build', 'concat:build', 'uglify:build', 'copy:rails']);
   grunt.registerTask('build', ['coffee:build', 'execute:standalone', 'copy:rails']);
   grunt.registerTask('release', ['bumpup', 'build', 'exec:build_gem', 'exec:push_gem', 'exec:publish_npm']);

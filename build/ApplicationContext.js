@@ -1,5 +1,5 @@
 (function() {
-  define(['dou', 'KineticJS', './Component', './Container', './EventController', './EventTracker', './ComponentFactory', './Command', './CommandManager', './ComponentRegistry', './ComponentSelector', './SelectionManager', './ComponentSpec'], function(dou, kin, Component, Container, EventController, EventTracker, ComponentFactory, Command, CommandManager, ComponentRegistry, ComponentSelector, SelectionManager, ComponentSpec) {
+  define(['dou', 'KineticJS', './Component', './Container', './EventController', './EventTracker', './ComponentFactory', './Command', './CommandManager', './ComponentRegistry', './ComponentSelector', './SelectionManager', './ComponentSpec', './spec/SpecPainter', './spec/SpecPresenter', './spec/SpecInfographic'], function(dou, kin, Component, Container, EventController, EventTracker, ComponentFactory, Command, CommandManager, ComponentRegistry, ComponentSelector, SelectionManager, ComponentSpec, SpecPainter, SpecPresenter, SpecInfographic) {
     "use strict";
     var ApplicationContext;
     ApplicationContext = (function() {

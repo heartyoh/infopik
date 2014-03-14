@@ -1,6 +1,6 @@
 "use strict";
 
-define(['build/Command', 'build/CommandManager'], function (Command, CommandManager) {
+define(['dou', 'build/Command', 'build/CommandManager'], function (dou, Command, CommandManager) {
 
   describe('CommandManager', function () {
     var cm;

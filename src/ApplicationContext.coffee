@@ -18,6 +18,9 @@ define [
     './ComponentSelector'
     './SelectionManager'
     './ComponentSpec'
+    './spec/SpecPainter'
+    './spec/SpecPresenter'
+    './spec/SpecInfographic'
 ], (dou
     kin
     Component
@@ -31,6 +34,9 @@ define [
     ComponentSelector
     SelectionManager
     ComponentSpec
+    SpecPainter
+    SpecPresenter
+    SpecInfographic
 ) ->
     
     "use strict"

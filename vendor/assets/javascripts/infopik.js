@@ -784,6 +784,1064 @@
     });
 }.call(this));
 (function () {
+    define('build/spec/SpecInfographic', [
+        'dou',
+        'KineticJS'
+    ], function (dou, kin) {
+        'use strict';
+        var createHandle, createView;
+        createView = function (attributes) {
+            return new kin.Group(attributes);
+        };
+        createHandle = function (attributes) {
+            return new Kin.Group(attributes);
+        };
+        return {
+            type: 'infographic',
+            name: 'infographic',
+            containable: true,
+            container_type: 'container',
+            description: 'Infographic Specification',
+            defaults: { draggable: false },
+            view_factory_fn: createView,
+            handle_factory_fn: createHandle,
+            toolbox_image: 'images/toolbox_infographic.png'
+        };
+    });
+}.call(this));
+(function () {
+    var __hasProp = {}.hasOwnProperty, __extends = function (child, parent) {
+            for (var key in parent) {
+                if (__hasProp.call(parent, key))
+                    child[key] = parent[key];
+            }
+            function ctor() {
+                this.constructor = child;
+            }
+            ctor.prototype = parent.prototype;
+            child.prototype = new ctor();
+            child.__super__ = parent.prototype;
+            return child;
+        };
+    define('build/command/CommandPropertyChange', [
+        'dou',
+        '../Command'
+    ], function (dou, Command) {
+        'use strict';
+        var CommandPropertyChange;
+        return CommandPropertyChange = function (_super) {
+            __extends(CommandPropertyChange, _super);
+            function CommandPropertyChange() {
+                return CommandPropertyChange.__super__.constructor.apply(this, arguments);
+            }
+            CommandPropertyChange.prototype.execute = function () {
+                var change, _i, _len, _ref, _results;
+                _ref = this.params.changes;
+                _results = [];
+                for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+                    change = _ref[_i];
+                    if (change.property) {
+                        _results.push(change.component.set(change.property, change.after));
+                    } else {
+                        _results.push(change.component.set(change.after));
+                    }
+                }
+                return _results;
+            };
+            CommandPropertyChange.prototype.unexecute = function () {
+                var change, _i, _len, _ref, _results;
+                _ref = this.params.changes;
+                _results = [];
+                for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+                    change = _ref[_i];
+                    if (change.property) {
+                        _results.push(change.component.set(change.property, change.before));
+                    } else {
+                        _results.push(change.component.set(change.before));
+                    }
+                }
+                return _results;
+            };
+            return CommandPropertyChange;
+        }(Command);
+    });
+}.call(this));
+(function () {
+    define('build/spec/SpecContentEditLayer', [
+        'dou',
+        'KineticJS',
+        '../EventTracker',
+        '../ComponentSelector',
+        '../command/CommandPropertyChange'
+    ], function (dou, kin, EventTracker, ComponentSelector, CommandPropertyChange) {
+        'use strict';
+        var component_listener, controller, createView, draghandler, onadded, onchange, onchangemodel, onchangeselections, onremoved, view_listener;
+        draghandler = {
+            dragstart: function (e) {
+                var background, layer_offset, mode, offset;
+                if (e.targetNode && e.targetNode !== this.background) {
+                    return;
+                }
+                background = this.background;
+                layer_offset = this.layer.offset();
+                background.setAttrs({
+                    x: layer_offset.x + 20,
+                    y: layer_offset.y + 20
+                });
+                this.start_point = {
+                    x: e.offsetX,
+                    y: e.offsetY
+                };
+                this.origin_offset = this.layer.offset();
+                offset = {
+                    x: this.start_point.x + this.origin_offset.x,
+                    y: this.start_point.y + this.origin_offset.y
+                };
+                mode = 'MOVE';
+                if (mode === 'SELECT') {
+                    this.selectbox = new kin.Rect({
+                        stroke: 'black',
+                        strokeWidth: 1,
+                        dash: [
+                            3,
+                            3
+                        ]
+                    });
+                    this.layer.add(this.selectbox);
+                    this.selectbox.setAttrs(offset);
+                } else if (mode === 'MOVE') {
+                } else {
+                }
+                this.layer.draw();
+                return e.cancelBubble = true;
+            },
+            dragmove: function (e) {
+                var background, mode, x, y;
+                if (e.targetNode && e.targetNode !== this.background) {
+                    return;
+                }
+                background = this.background;
+                mode = 'MOVE';
+                if (mode === 'SELECT') {
+                    background.setAttrs({
+                        x: this.origin_offset.x + 20,
+                        y: this.origin_offset.y + 20
+                    });
+                    this.selectbox.setAttrs({
+                        width: e.offsetX - this.start_point.x,
+                        height: e.offsetY - this.start_point.y
+                    });
+                } else if (mode === 'MOVE') {
+                    x = Math.max(this.origin_offset.x - (e.offsetX - this.start_point.x), -20);
+                    y = Math.max(this.origin_offset.y - (e.offsetY - this.start_point.y), -20);
+                    this.layer.offset({
+                        x: x,
+                        y: y
+                    });
+                    this.background.setAttrs({
+                        x: x + 20,
+                        y: y + 20
+                    });
+                } else {
+                }
+                this.layer.draw();
+                return e.cancelBubble = true;
+            },
+            dragend: function (e) {
+                var background, mode;
+                if (e.targetNode && e.targetNode !== this.background) {
+                    return;
+                }
+                background = this.background;
+                mode = 'MOVE';
+                if (mode === 'SELECT') {
+                    background.setAttrs({
+                        x: this.origin_offset.x + 20,
+                        y: this.origin_offset.y + 20
+                    });
+                    this.selectbox.remove();
+                    delete this.selectbox;
+                } else if (mode === 'MOVE') {
+                } else {
+                }
+                this.layer.draw();
+                return e.cancelBubble = true;
+            }
+        };
+        createView = function (attributes) {
+            var background, layer, offset, stage;
+            stage = this.getView().getStage();
+            offset = attributes.offset || {
+                x: 0,
+                y: 0
+            };
+            layer = new kin.Layer(attributes);
+            background = new kin.Rect({
+                draggable: true,
+                listening: true,
+                x: 0,
+                y: 0,
+                width: Math.min(stage.width() + offset.x, stage.width()),
+                height: Math.min(stage.height() + offset.y, stage.height()),
+                stroke: attributes.stroke,
+                fill: 'cyan'
+            });
+            layer.add(background);
+            this.getEventTracker().on(layer, draghandler, {
+                layer: layer,
+                background: background
+            });
+            return layer;
+        };
+        onadded = function (container, component, index, e) {
+        };
+        onremoved = function (container, component, e) {
+        };
+        onchangemodel = function (after, before) {
+            var layer, _i, _len, _ref, _results;
+            _ref = this.findComponent('content-edit-layer');
+            _results = [];
+            for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+                layer = _ref[_i];
+                if (before) {
+                    layer.remove(before);
+                }
+                if (after) {
+                    layer.add(after);
+                }
+                _results.push(this.findView('#' + layer.get('id')));
+            }
+            return _results;
+        };
+        onchangeselections = function (after, before, added, removed) {
+            return console.log('selection-changed', after);
+        };
+        onchange = function (component, before, after) {
+        };
+        controller = {
+            '#application': {
+                'change-model': onchangemodel,
+                'change-selections': onchangeselections
+            },
+            'content-edit-layer': {
+                'added': onadded,
+                'removed': onremoved,
+                'change': onchange
+            }
+        };
+        component_listener = { 'change': onchange };
+        view_listener = {
+            dragstart: function (e) {
+            },
+            dragmove: function (e) {
+            },
+            dragend: function (e) {
+                var cmd, component, id, node;
+                node = e.targetNode;
+                id = e.targetNode.getAttr('id');
+                component = this.findComponent('#' + id)[0];
+                if (!component) {
+                    return;
+                }
+                cmd = new CommandPropertyChange({
+                    changes: [{
+                            component: component,
+                            before: {
+                                x: component.get('x'),
+                                y: component.get('y')
+                            },
+                            after: {
+                                x: node.x(),
+                                y: node.y()
+                            }
+                        }]
+                });
+                return this.execute(cmd);
+            },
+            click: function (e) {
+                var node;
+                node = e.targetNode;
+                return this.selectionManager.select(node);
+            },
+            mouseover: function (e) {
+            },
+            mousemove: function (e) {
+            },
+            mouseout: function (e) {
+            },
+            mouseenter: function (e) {
+            },
+            mouseleave: function (e) {
+            }
+        };
+        return {
+            type: 'content-edit-layer',
+            name: 'content-edit-layer',
+            containable: true,
+            container_type: 'layer',
+            description: 'Selection Edit Layer Specification',
+            defaults: {
+                listening: true,
+                draggable: false
+            },
+            controller: controller,
+            component_listener: component_listener,
+            view_listener: view_listener,
+            view_factory_fn: createView,
+            toolbox_image: 'images/toolbox_content_edit_layer.png'
+        };
+    });
+}.call(this));
+(function () {
+    define('build/spec/SpecGuideLayer', ['KineticJS'], function (kin) {
+        'use strict';
+        var controller, createView, guide_handler, onadded, onchange, onchangemodel, onremoved, view_listener;
+        createView = function (attributes) {
+            return new kin.Layer(attributes);
+        };
+        onchange = function (component, before, after) {
+            var layer, msg, self;
+            self = this;
+            layer = this.layer;
+            this.changes = (this.changes || 0) + 1;
+            if (!this.text) {
+                this.text = new kin.Text({
+                    x: 10,
+                    y: 10,
+                    listening: false,
+                    fontSize: 12,
+                    fontFamily: 'Calibri',
+                    fill: 'green'
+                });
+                layer.add(this.text);
+            }
+            msg = '[ PropertyChange ] ' + component.type + ' : ' + component.get('id') + '\n[ Before ] ' + JSON.stringify(before) + '\n[ After ] ' + JSON.stringify(after);
+            this.text.setAttr('text', msg);
+            layer.draw();
+            return setTimeout(function () {
+                var tween;
+                if (--self.changes > 0) {
+                    return;
+                }
+                tween = new Kinetic.Tween({
+                    node: self.text,
+                    opacity: 0,
+                    duration: 1,
+                    easing: kin.Easings.EaseOut
+                });
+                tween.play();
+                return setTimeout(function () {
+                    if (self.changes > 0) {
+                        tween.reset();
+                        tween.destroy();
+                        return;
+                    }
+                    tween.finish();
+                    tween.destroy();
+                    self.text.remove();
+                    delete self.text;
+                    return layer.draw();
+                }, 1000);
+            }, 5000);
+        };
+        onchangemodel = function (after, before) {
+            var appcontext, layer, screen, _i, _len, _ref, _results;
+            appcontext = this;
+            _ref = this.findComponent('guide-layer');
+            _results = [];
+            for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+                screen = _ref[_i];
+                layer = appcontext.findViewByComponent(screen)[0];
+                if (before) {
+                    before.off('change', onchange);
+                }
+                if (after) {
+                    _results.push(after.on('change', onchange, { layer: layer }));
+                } else {
+                    _results.push(void 0);
+                }
+            }
+            return _results;
+        };
+        guide_handler = {
+            dragstart: function (e) {
+                var layer, layer_offset, node, offset_x, offset_y, textx, texty;
+                this.mouse_origin = {
+                    x: e.x,
+                    y: e.y
+                };
+                node = e.targetNode;
+                this.node_origin = node.getAbsolutePosition();
+                layer_offset = this.layer.offset();
+                offset_x = this.node_origin.x + layer_offset.x;
+                offset_y = this.node_origin.y + layer_offset.y;
+                this.vert = new kin.Line({
+                    stroke: 'red',
+                    tension: 1,
+                    points: [
+                        offset_x,
+                        0,
+                        offset_x,
+                        this.height
+                    ]
+                });
+                this.hori = new kin.Line({
+                    stroke: 'red',
+                    tension: 1,
+                    points: [
+                        0,
+                        offset_y,
+                        this.width,
+                        offset_y
+                    ]
+                });
+                this.text = new kin.Text({
+                    listening: false,
+                    fontSize: 12,
+                    fontFamily: 'Calibri',
+                    fill: 'green'
+                });
+                this.text.setAttr('text', '[ ' + offset_x + '(' + node.x() + '), ' + offset_y + '(' + node.y() + ') ]');
+                textx = Math.max(offset_x, 0) > this.text.width() + 10 ? offset_x - (this.text.width() + 10) : Math.max(offset_x + 10, 10);
+                texty = Math.max(offset_y, 0) > this.text.height() + 10 ? offset_y - (this.text.height() + 10) : Math.max(offset_y + 10, 10);
+                this.text.setAttrs({
+                    x: textx,
+                    y: texty
+                });
+                layer = this.layer;
+                layer.add(this.vert);
+                layer.add(this.hori);
+                layer.add(this.text);
+                return layer.draw();
+            },
+            dragmove: function (e) {
+                var layer_offset, node, node_new_pos, offset_x, offset_y, textx, texty, x, y;
+                node_new_pos = {
+                    x: e.x - this.mouse_origin.x + this.node_origin.x,
+                    y: e.y - this.mouse_origin.y + this.node_origin.y
+                };
+                x = Math.round(node_new_pos.x / 10) * 10;
+                y = Math.round(node_new_pos.y / 10) * 10;
+                node = e.targetNode;
+                node.setAbsolutePosition({
+                    x: x,
+                    y: y
+                });
+                layer_offset = this.layer.offset();
+                offset_x = x + layer_offset.x;
+                offset_y = y + layer_offset.y;
+                this.vert.setAttrs({
+                    points: [
+                        offset_x,
+                        0,
+                        offset_x,
+                        this.height
+                    ]
+                });
+                this.hori.setAttrs({
+                    points: [
+                        0,
+                        offset_y,
+                        this.width,
+                        offset_y
+                    ]
+                });
+                this.text.setAttr('text', '[ ' + offset_x + '(' + node.x() + '), ' + offset_y + '(' + node.y() + ') ]');
+                textx = Math.max(offset_x, 0) > this.text.width() + 10 ? offset_x - (this.text.width() + 10) : Math.max(offset_x + 10, 10);
+                texty = Math.max(offset_y, 0) > this.text.height() + 10 ? offset_y - (this.text.height() + 10) : Math.max(offset_y + 10, 10);
+                this.text.setAttrs({
+                    x: textx,
+                    y: texty
+                });
+                return this.layer.draw();
+            },
+            dragend: function (e) {
+                this.vert.remove();
+                this.hori.remove();
+                this.text.remove();
+                return this.layer.draw();
+            }
+        };
+        onadded = function (container, component, index, e) {
+            var height, layer, stage, width;
+            layer = this.findView('#' + component.get('id'))[0];
+            stage = this.getView().getStage();
+            width = stage.getWidth();
+            height = stage.getHeight();
+            return this.getEventTracker().on(this.getView(), guide_handler, {
+                layer: layer,
+                width: width,
+                height: height
+            });
+        };
+        onremoved = function (container, component, e) {
+            var app;
+            app = this.getView();
+            return this.getEventHandler().off(app, guide_handler);
+        };
+        controller = {
+            '#application': { 'change-model': onchangemodel },
+            'guide-layer': {
+                'added': onadded,
+                'removed': onremoved
+            }
+        };
+        view_listener = {
+            dragmove: function (e) {
+                var node;
+                return node = e.targetNode;
+            }
+        };
+        return {
+            type: 'guide-layer',
+            name: 'guide-layer',
+            containable: true,
+            container_type: 'layer',
+            description: 'Editing Guide Specification',
+            defaults: { draggable: false },
+            controller: controller,
+            view_listener: view_listener,
+            view_factory_fn: createView,
+            toolbox_image: 'images/toolbox_guide_layer.png'
+        };
+    });
+}.call(this));
+(function () {
+    define('build/spec/SpecRulerLayer', [
+        'dou',
+        'KineticJS'
+    ], function (dou, kin) {
+        'use strict';
+        var createView;
+        createView = function (attributes) {
+            return new kin.Layer(attributes);
+        };
+        return {
+            type: 'ruler-layer',
+            name: 'ruler-layer',
+            containable: true,
+            container_type: 'layer',
+            description: 'Ruler Layer Specification',
+            defaults: { draggable: false },
+            view_factory_fn: createView,
+            components: [
+                {
+                    type: 'ruler',
+                    attrs: {
+                        direction: 'horizontal',
+                        margin: [
+                            20,
+                            0
+                        ],
+                        opacity: 0.8,
+                        x: 0,
+                        y: 0,
+                        width: 1000,
+                        height: 20,
+                        zeropos: 20
+                    }
+                },
+                {
+                    type: 'ruler',
+                    attrs: {
+                        direction: 'vertical',
+                        margin: [
+                            20,
+                            0
+                        ],
+                        opacity: 0.8,
+                        x: 0,
+                        y: 0,
+                        width: 20,
+                        height: 1000,
+                        zeropos: 20
+                    }
+                }
+            ],
+            toolbox_image: 'images/toolbox_ruler_layer.png'
+        };
+    });
+}.call(this));
+(function () {
+    define('build/spec/SpecGroup', [
+        'dou',
+        'KineticJS'
+    ], function (dou, kin) {
+        'use strict';
+        var createHandle, createView, drag_handler;
+        drag_handler = function (e) {
+            if (!e.targetNode || e.targetNode === this.__background__) {
+                return e.targetNode = this;
+            }
+        };
+        createView = function (attributes) {
+            var background, group;
+            group = new kin.Group(attributes);
+            background = new kin.Rect(dou.util.shallow_merge({}, attributes, {
+                draggable: false,
+                listening: true,
+                x: 0,
+                y: 0,
+                id: void 0
+            }));
+            group.add(background);
+            if (attributes.draggable) {
+                group.on('dragstart dragmove dragend', drag_handler);
+                group.__background__ = background;
+            }
+            return group;
+        };
+        createHandle = function (attributes) {
+            return new Kin.Group(attributes);
+        };
+        return {
+            type: 'group',
+            name: 'group',
+            containable: true,
+            container_type: 'container',
+            description: 'Group Specification',
+            defaults: {
+                width: 100,
+                height: 50,
+                stroke: 'black',
+                strokeWidth: 4,
+                draggable: true,
+                listening: true,
+                opacity: 1
+            },
+            view_factory_fn: createView,
+            handle_factory_fn: createHandle,
+            toolbox_image: 'images/toolbox_group.png'
+        };
+    });
+}.call(this));
+(function () {
+    define('build/spec/SpecRect', ['KineticJS'], function (kin) {
+        'use strict';
+        var createHandle, createView;
+        createView = function (attributes) {
+            return new kin.Rect(attributes);
+        };
+        createHandle = function (attributes) {
+            return new Kin.Rect(attributes);
+        };
+        return {
+            type: 'rectangle',
+            name: 'rectangle',
+            description: 'Rectangle Specification',
+            defaults: {
+                width: 100,
+                height: 50,
+                fill: 'green',
+                stroke: 'black',
+                strokeWidth: 4
+            },
+            view_factory_fn: createView,
+            handle_factory_fn: createHandle,
+            toolbox_image: 'images/toolbox_rectangle.png'
+        };
+    });
+}.call(this));
+(function () {
+    define('build/spec/SpecRing', ['KineticJS'], function (kin) {
+        'use strict';
+        var createHandle, createView;
+        createView = function (attributes) {
+            return new kin.Ring(attributes);
+        };
+        createHandle = function (attributes) {
+            return new Kin.Ring(attributes);
+        };
+        return {
+            type: 'ring',
+            name: 'ring',
+            description: 'Ring Specification',
+            defaults: {
+                innerRadius: 40,
+                outerRadius: 80,
+                fill: 'red',
+                stroke: 'black',
+                strokeWidth: 5
+            },
+            view_factory_fn: createView,
+            handle_factory_fn: createHandle,
+            toolbox_image: 'images/toolbox_ring.png'
+        };
+    });
+}.call(this));
+(function () {
+    define('build/spec/SpecRuler', ['KineticJS'], function (kin) {
+        'use strict';
+        var PIXEL_PER_MM, createHandle, createView, drawFunc, drawHorizontal, drawVertical;
+        PIXEL_PER_MM = 3.779527559;
+        drawHorizontal = function (context) {
+            var baseY, bottomY, i, marginLeft, marginRight, minusCount, minusWidth, plusCount, plusWidth, startX, x, _i, _j, _k, _l, _ref, _ref1, _ref2, _ref3, _results;
+            startX = parseInt(this.getAttr('zeropos'));
+            marginLeft = this.getAttr('margin')[0];
+            marginRight = this.width() - this.getAttr('margin')[1];
+            baseY = this.height() - 15;
+            bottomY = this.height();
+            context.beginPath();
+            context.moveTo(0, 0);
+            context.lineTo(0, this.height());
+            context.lineTo(this.width(), this.height());
+            context.lineTo(this.width(), 0);
+            context.lineTo(0, 0);
+            plusWidth = this.width() - startX;
+            plusCount = Math.ceil(plusWidth / PIXEL_PER_MM);
+            for (i = _i = 0, _ref = plusCount - 1; 0 <= _ref ? _i <= _ref : _i >= _ref; i = 0 <= _ref ? ++_i : --_i) {
+                x = startX + i * PIXEL_PER_MM;
+                if (x > marginRight) {
+                    break;
+                }
+                if (x < marginLeft) {
+                    continue;
+                }
+                if (i % 10 === 0) {
+                    context.moveTo(x, baseY);
+                    context.lineTo(x, bottomY);
+                } else if (i % 5 === 0) {
+                    context.moveTo(x, baseY + 8);
+                    context.lineTo(x, bottomY);
+                } else {
+                    context.moveTo(x, baseY + 11);
+                    context.lineTo(x, bottomY);
+                }
+            }
+            minusWidth = startX;
+            minusCount = Math.floor(minusWidth / PIXEL_PER_MM);
+            for (i = _j = 1, _ref1 = minusCount - 1; 1 <= _ref1 ? _j <= _ref1 : _j >= _ref1; i = 1 <= _ref1 ? ++_j : --_j) {
+                x = startX - i * PIXEL_PER_MM;
+                if (x < marginLeft) {
+                    break;
+                }
+                if (x > marginRight) {
+                    continue;
+                }
+                if (i % 10 === 0) {
+                    context.moveTo(x, baseY);
+                    context.lineTo(x, bottomY);
+                } else if (i % 5 === 0) {
+                    context.moveTo(x, baseY + 8);
+                    context.lineTo(x, bottomY);
+                } else {
+                    context.moveTo(x, baseY + 11);
+                    context.lineTo(x, bottomY);
+                }
+            }
+            context.closePath();
+            context.fillStrokeShape(this);
+            for (i = _k = 0, _ref2 = plusCount - 1; _k <= _ref2; i = _k += 10) {
+                x = startX + i * PIXEL_PER_MM;
+                if (x > marginRight) {
+                    break;
+                }
+                if (x < marginLeft) {
+                    continue;
+                }
+                context.strokeText('' + i / 10, x + 2, baseY + 10);
+            }
+            _results = [];
+            for (i = _l = 10, _ref3 = minusCount - 1; _l <= _ref3; i = _l += 10) {
+                x = startX - i * PIXEL_PER_MM;
+                if (x < marginLeft) {
+                    break;
+                }
+                if (x > marginRight) {
+                    continue;
+                }
+                _results.push(context.strokeText('-' + i / 10, x + 2, baseY + 10));
+            }
+            return _results;
+        };
+        drawVertical = function (context) {
+            var baseX, endX, i, marginBottom, marginTop, minusArea, minusCount, plusArea, plusCount, startY, y, _i, _j, _k, _l, _ref, _ref1, _ref2, _ref3, _results;
+            startY = parseInt(this.getAttr('zeropos'));
+            marginTop = this.getAttr('margin')[0];
+            marginBottom = this.height() - this.getAttr('margin')[1];
+            baseX = this.width() - 15;
+            endX = this.width();
+            context.beginPath();
+            context.moveTo(0, 0);
+            context.lineTo(0, this.height());
+            context.lineTo(this.width(), this.height());
+            context.lineTo(this.width(), 0);
+            context.lineTo(0, 0);
+            plusArea = this.height() - startY;
+            plusCount = Math.ceil(plusArea / PIXEL_PER_MM);
+            for (i = _i = 0, _ref = plusCount - 1; 0 <= _ref ? _i <= _ref : _i >= _ref; i = 0 <= _ref ? ++_i : --_i) {
+                y = startY + i * PIXEL_PER_MM;
+                if (y > marginBottom) {
+                    break;
+                }
+                if (y < marginTop) {
+                    continue;
+                }
+                if (i % 10 === 0) {
+                    context.moveTo(baseX, y);
+                    context.lineTo(endX, y);
+                } else if (i % 5 === 0) {
+                    context.moveTo(baseX + 8, y);
+                    context.lineTo(endX, y);
+                } else {
+                    context.moveTo(baseX + 11, y);
+                    context.lineTo(endX, y);
+                }
+            }
+            minusArea = startY;
+            minusCount = Math.floor(minusArea / PIXEL_PER_MM);
+            for (i = _j = 1, _ref1 = minusCount - 1; 1 <= _ref1 ? _j <= _ref1 : _j >= _ref1; i = 1 <= _ref1 ? ++_j : --_j) {
+                y = startY - i * PIXEL_PER_MM;
+                if (y > marginBottom) {
+                    continue;
+                }
+                if (y < marginTop) {
+                    break;
+                }
+                if (i % 10 === 0) {
+                    context.moveTo(baseX, y);
+                    context.lineTo(endX, y);
+                } else if (i % 5 === 0) {
+                    context.moveTo(baseX + 8, y);
+                    context.lineTo(endX, y);
+                } else {
+                    context.moveTo(baseX + 11, y);
+                    context.lineTo(endX, y);
+                }
+            }
+            context.closePath();
+            context.fillStrokeShape(this);
+            for (i = _k = 0, _ref2 = plusCount - 1; _k <= _ref2; i = _k += 10) {
+                y = startY + i * PIXEL_PER_MM;
+                if (y > marginBottom) {
+                    break;
+                }
+                if (y < marginTop) {
+                    continue;
+                }
+                context.strokeText('' + i / 10, 1, y + 10);
+            }
+            _results = [];
+            for (i = _l = 10, _ref3 = minusCount - 1; _l <= _ref3; i = _l += 10) {
+                y = startY - i * PIXEL_PER_MM;
+                if (y < marginTop) {
+                    break;
+                }
+                if (y > marginBottom) {
+                    continue;
+                }
+                _results.push(context.strokeText('-' + i / 10, 1, y + 10));
+            }
+            return _results;
+        };
+        drawFunc = function (context) {
+            if (this.getAttr('direction') !== 'vertical') {
+                return drawHorizontal.apply(this, arguments);
+            } else {
+                return drawVertical.apply(this, arguments);
+            }
+        };
+        createView = function (attributes) {
+            return new Kinetic.Shape(attributes);
+        };
+        createHandle = function (attributes) {
+            return new Kin.Rect(attributes);
+        };
+        return {
+            type: 'ruler',
+            name: 'ruler',
+            description: 'Ruler Specification',
+            defaults: {
+                drawFunc: drawFunc,
+                fill: '#848586',
+                stroke: '#C2C3C5',
+                strokeWidth: 0.5,
+                width: 100,
+                height: 50,
+                margin: [
+                    15,
+                    15
+                ],
+                zeropos: 15,
+                direction: 'horizontal',
+                font: '8px Verdana'
+            },
+            view_factory_fn: createView,
+            handle_factory_fn: createHandle,
+            toolbox_image: 'images/toolbox_ruler.png'
+        };
+    });
+}.call(this));
+(function () {
+    define('build/spec/SpecPainter', [
+        'KineticJS',
+        './SpecInfographic',
+        './SpecContentEditLayer',
+        './SpecGuideLayer',
+        './SpecRulerLayer',
+        './SpecGroup',
+        './SpecRect',
+        './SpecRing',
+        './SpecRuler'
+    ], function (kin, SpecInfographic, SpecContentEditLayer, SpecGuideLayer, SpecRulerLayer, SpecGroup, SpecRect, SpecRing, SpecRuler) {
+        'use strict';
+        var controller, createView;
+        createView = function (attributes) {
+            return new kin.Stage(attributes);
+        };
+        return controller = {
+            type: 'painter-app',
+            name: 'painter-app',
+            containable: true,
+            container_type: 'application',
+            description: 'Painter Application Specification',
+            defaults: {},
+            controller: controller,
+            view_factory_fn: createView,
+            dependencies: {
+                'infographic': SpecInfographic,
+                'content-edit-layer': SpecContentEditLayer,
+                'guide-layer': SpecGuideLayer,
+                'ruler-layer': SpecRulerLayer,
+                'group': SpecGroup,
+                'rect': SpecRect,
+                'ring': SpecRing,
+                'ruler': SpecRuler
+            },
+            layers: [
+                {
+                    type: 'content-edit-layer',
+                    attrs: {
+                        offset: {
+                            x: -20,
+                            y: -20
+                        }
+                    }
+                },
+                {
+                    type: 'guide-layer',
+                    attrs: {
+                        offset: {
+                            x: -20,
+                            y: -20
+                        }
+                    }
+                },
+                {
+                    type: 'ruler-layer',
+                    attrs: {}
+                }
+            ],
+            toolbox_image: 'images/toolbox_painter_app.png'
+        };
+    });
+}.call(this));
+(function () {
+    define('build/spec/SpecContentViewLayer', [
+        'KineticJS',
+        '../EventTracker',
+        '../ComponentSelector',
+        '../command/CommandPropertyChange'
+    ], function (kin, EventTracker, ComponentSelector, CommandPropertyChange) {
+        'use strict';
+        var component_listener, controller, createView, onadded, onchange, onchangemodel, onremoved, view_listener;
+        createView = function (attributes) {
+            return new kin.Layer(attributes);
+        };
+        onadded = function (container, component, index, e) {
+        };
+        onremoved = function (container, component, e) {
+        };
+        onchangemodel = function (after, before) {
+            var layer, _i, _len, _ref, _results;
+            _ref = this.findComponent('content-view-layer');
+            _results = [];
+            for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+                layer = _ref[_i];
+                if (before) {
+                    layer.remove(before);
+                }
+                if (after) {
+                    layer.add(after);
+                }
+                _results.push(this.findView('#' + layer.get('id')));
+            }
+            return _results;
+        };
+        onchange = function (component, before, after) {
+            var view;
+            view = this.findViewByComponent(component);
+            view.setAttrs(after);
+            return this.drawView();
+        };
+        controller = {
+            '#application': { 'change-model': onchangemodel },
+            'content-view-layer': { 'change': onchange }
+        };
+        component_listener = { 'change': onchange };
+        view_listener = {
+            click: function (e) {
+                var node;
+                node = e.targetNode;
+                return this.selectionManager.select(node);
+            }
+        };
+        return {
+            type: 'content-view-layer',
+            name: 'content-view-layer',
+            containable: true,
+            container_type: 'layer',
+            description: 'Content View Layer Specification',
+            defaults: {},
+            controller: controller,
+            component_listener: component_listener,
+            view_listener: view_listener,
+            view_factory_fn: createView,
+            toolbox_image: 'images/toolbox_content_view_layer.png'
+        };
+    });
+}.call(this));
+(function () {
+    define('build/spec/SpecPresenter', [
+        'KineticJS',
+        './SpecInfographic',
+        './SpecContentViewLayer',
+        './SpecGroup',
+        './SpecRect',
+        './SpecRing',
+        './SpecRuler'
+    ], function (kin, SpecInfographic, SpecContentViewLayer, SpecGroup, SpecRect, SpecRing, SpecRuler) {
+        'use strict';
+        var controller, createView;
+        createView = function (attributes) {
+            return new kin.Stage(attributes);
+        };
+        return controller = {
+            type: 'presenter-app',
+            name: 'presenter-app',
+            containable: true,
+            container_type: 'application',
+            description: 'Presenter Application Specification',
+            defaults: {},
+            controller: controller,
+            view_factory_fn: createView,
+            dependencies: {
+                'infographic': SpecInfographic,
+                'content-view-layer': SpecContentViewLayer,
+                'group': SpecGroup,
+                'rect': SpecRect,
+                'ring': SpecRing,
+                'ruler': SpecRuler
+            },
+            layers: [{
+                    type: 'content-view-layer',
+                    attrs: {}
+                }],
+            toolbox_image: 'images/toolbox_presenter_app.png'
+        };
+    });
+}.call(this));
+(function () {
     define('build/ApplicationContext', [
         'dou',
         'KineticJS',
@@ -797,8 +1855,11 @@
         './ComponentRegistry',
         './ComponentSelector',
         './SelectionManager',
-        './ComponentSpec'
-    ], function (dou, kin, Component, Container, EventController, EventTracker, ComponentFactory, Command, CommandManager, ComponentRegistry, ComponentSelector, SelectionManager, ComponentSpec) {
+        './ComponentSpec',
+        './spec/SpecPainter',
+        './spec/SpecPresenter',
+        './spec/SpecInfographic'
+    ], function (dou, kin, Component, Container, EventController, EventTracker, ComponentFactory, Command, CommandManager, ComponentRegistry, ComponentSelector, SelectionManager, ComponentSpec, SpecPainter, SpecPresenter, SpecInfographic) {
         'use strict';
         var ApplicationContext;
         ApplicationContext = function () {
@@ -935,5 +1996,5 @@
     });
 }.call(this));
 
-  context.infopik = require('src/infopik');
+  context.infopik = require('build/infopik');
 }(this));

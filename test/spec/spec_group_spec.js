@@ -21,9 +21,9 @@ define([
     var componentFactory;
     var container;
     var stage;
-  	var layer;
+    var layer;
 
-  	beforeEach(function() {
+    beforeEach(function() {
       var componentRegistry = new ComponentRegistry();
 
       componentRegistry.register(SpecGroup);
@@ -46,7 +46,7 @@ define([
       layer = new Kinetic.Layer();
 
       stage.add(layer);
-  	});
+    });
 
     afterEach(function() {
       // stage.destroy();
