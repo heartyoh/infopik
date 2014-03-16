@@ -10,7 +10,7 @@
       for (selector in handler_map) {
         if (!__hasProp.call(handler_map, selector)) continue;
         event_map = handler_map[selector];
-        if (ComponentSelector.match(selector, event.target)) {
+        if (ComponentSelector.match(selector, event.origin)) {
           _results.push((function() {
             var _results1;
             _results1 = [];

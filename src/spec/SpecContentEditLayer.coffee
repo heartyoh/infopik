@@ -64,9 +64,12 @@ define [
             if(mode is 'SELECT')
                 background.setAttrs({x:this.origin_offset.x + 20, y:this.origin_offset.y + 20})
                 this.selectbox.setAttrs({width: e.offsetX - this.start_point.x, height: e.offsetY - this.start_point.y})
+
+                # TODO select components in the area of selectionbox
+
             else if(mode is 'MOVE')
-                x = Math.max(this.origin_offset.x - (e.offsetX - this.start_point.x), -20)
-                y = Math.max(this.origin_offset.y - (e.offsetY - this.start_point.y), -20)
+                x = this.origin_offset.x - (e.offsetX - this.start_point.x)
+                y = this.origin_offset.y - (e.offsetY - this.start_point.y)
 
                 this.layer.offset
                     x: x
@@ -74,6 +77,8 @@ define [
                 this.background.setAttrs
                     x: x + 20
                     y: y + 20
+
+                this.layer.fire('change-offset', {x: x, y: y}, false);
             else
 
             this.layer.draw();
@@ -91,6 +96,17 @@ define [
                 this.selectbox.remove()
                 delete this.selectbox
             else if(mode is 'MOVE')
+                x = Math.max(this.origin_offset.x - (e.offsetX - this.start_point.x), -20)
+                y = Math.max(this.origin_offset.y - (e.offsetY - this.start_point.y), -20)
+
+                this.layer.offset
+                    x: x
+                    y: y
+                this.background.setAttrs
+                    x: x + 20
+                    y: y + 20
+
+                this.layer.fire('change-offset', {x: x, y: y}, false);
             else
 
             this.layer.draw();
@@ -150,11 +166,16 @@ define [
         # layer = this.findViewByComponent component
         # this.getEventTracker().off layer, draghandler
 
-    onchangemodel = (after, before) ->
-        for layer in this.findComponent 'content-edit-layer'
-            layer.remove before if before
-            layer.add after if after
-            this.findView "\##{layer.get('id')}"
+    onchangemodel = (after, before, e) ->
+        layer = e.listener
+        layer.remove before if before
+        layer.add after if after
+        this.findView "\##{layer.get('id')}"
+
+        # for layer in this.findComponent 'content-edit-layer'
+            # layer.remove before if before
+            # layer.add after if after
+            # this.findView "\##{layer.get('id')}"
 
     onchangeselections = (after, before, added, removed) ->
         console.log 'selection-changed', after
@@ -166,17 +187,21 @@ define [
         # this.drawView()
 
     controller =
-        '#application' :
+        '(root)' :
             'change-model' : onchangemodel
             'change-selections' : onchangeselections
-        'content-edit-layer' :
-            'added' : onadded
-            'removed' : onremoved
-            'change' : onchange
+        # '(self)' :
+        #     'added' : onadded
+        #     'removed' : onremoved
+        #     'change' : onchange
 
     # instance listeners
     component_listener = 
-        'change' : onchange
+        '(self)' :
+            'added' : onadded
+            'removed' : onremoved
+            'change' : onchange
+        # 'change' : onchange
 
     view_listener = 
         dragstart : (e) ->

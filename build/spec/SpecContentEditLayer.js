@@ -57,8 +57,8 @@
             height: e.offsetY - this.start_point.y
           });
         } else if (mode === 'MOVE') {
-          x = Math.max(this.origin_offset.x - (e.offsetX - this.start_point.x), -20);
-          y = Math.max(this.origin_offset.y - (e.offsetY - this.start_point.y), -20);
+          x = this.origin_offset.x - (e.offsetX - this.start_point.x);
+          y = this.origin_offset.y - (e.offsetY - this.start_point.y);
           this.layer.offset({
             x: x,
             y: y
@@ -67,6 +67,10 @@
             x: x + 20,
             y: y + 20
           });
+          this.layer.fire('change-offset', {
+            x: x,
+            y: y
+          }, false);
         } else {
 
         }
@@ -74,7 +78,7 @@
         return e.cancelBubble = true;
       },
       dragend: function(e) {
-        var background, mode;
+        var background, mode, x, y;
         if (e.targetNode && e.targetNode !== this.background) {
           return;
         }
@@ -88,7 +92,20 @@
           this.selectbox.remove();
           delete this.selectbox;
         } else if (mode === 'MOVE') {
-
+          x = Math.max(this.origin_offset.x - (e.offsetX - this.start_point.x), -20);
+          y = Math.max(this.origin_offset.y - (e.offsetY - this.start_point.y), -20);
+          this.layer.offset({
+            x: x,
+            y: y
+          });
+          this.background.setAttrs({
+            x: x + 20,
+            y: y + 20
+          });
+          this.layer.fire('change-offset', {
+            x: x,
+            y: y
+          }, false);
         } else {
 
         }
@@ -123,39 +140,33 @@
     };
     onadded = function(container, component, index, e) {};
     onremoved = function(container, component, e) {};
-    onchangemodel = function(after, before) {
-      var layer, _i, _len, _ref, _results;
-      _ref = this.findComponent('content-edit-layer');
-      _results = [];
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        layer = _ref[_i];
-        if (before) {
-          layer.remove(before);
-        }
-        if (after) {
-          layer.add(after);
-        }
-        _results.push(this.findView("\#" + (layer.get('id'))));
+    onchangemodel = function(after, before, e) {
+      var layer;
+      layer = e.listener;
+      if (before) {
+        layer.remove(before);
       }
-      return _results;
+      if (after) {
+        layer.add(after);
+      }
+      return this.findView("\#" + (layer.get('id')));
     };
     onchangeselections = function(after, before, added, removed) {
       return console.log('selection-changed', after);
     };
     onchange = function(component, before, after) {};
     controller = {
-      '#application': {
+      '(root)': {
         'change-model': onchangemodel,
         'change-selections': onchangeselections
-      },
-      'content-edit-layer': {
+      }
+    };
+    component_listener = {
+      '(self)': {
         'added': onadded,
         'removed': onremoved,
         'change': onchange
       }
-    };
-    component_listener = {
-      'change': onchange
     };
     view_listener = {
       dragstart: function(e) {},

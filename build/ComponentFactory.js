@@ -1,16 +1,20 @@
 (function() {
-  define(['dou', './Component', './Container', './EventTracker'], function(dou, Component, Container, EventTracker) {
+  define(['dou', './Component', './Container', './EventTracker', './EventPump'], function(dou, Component, Container, EventTracker, EventPump) {
     "use strict";
     var ComponentFactory;
     ComponentFactory = (function() {
-      function ComponentFactory(componentRegistry, eventTracker) {
+      function ComponentFactory(componentRegistry, eventTracker, eventPump) {
         this.componentRegistry = componentRegistry;
         this.eventTracker = eventTracker;
+        this.eventPump = eventPump;
         this.seed = 1;
       }
 
       ComponentFactory.prototype.despose = function() {
-        return this.componentRegistry = null;
+        this.componentRegistry = null;
+        if (this.eventPump) {
+          return this.eventPump.despose();
+        }
       };
 
       ComponentFactory.prototype.uniqueId = function() {
@@ -37,7 +41,7 @@
       };
 
       ComponentFactory.prototype.createComponent = function(obj, context) {
-        var child, component, spec, _i, _j, _len, _len1, _ref, _ref1;
+        var child, component, eventPump, spec, _i, _j, _len, _len1, _ref, _ref1;
         spec = this.componentRegistry.get(obj.type);
         if (!spec) {
           throw new Error("Component Spec Not Found for type '" + obj.type + "'");
@@ -66,7 +70,13 @@
           component.set('id', this.uniqueId());
         }
         if (spec.component_listener) {
-          this.eventTracker.on(component, spec.component_listener, context);
+          eventPump = new EventPump(component);
+          eventPump.on(component, spec.component_listener);
+          component.eventPump = eventPump;
+          eventPump.start(context);
+        }
+        if (spec.controller) {
+          this.eventPump.on(component, spec.controller);
         }
         return component;
       };

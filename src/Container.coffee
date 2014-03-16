@@ -27,6 +27,7 @@ define [
 
     remove_component = (container, component) ->
         idx = container.__components__.indexOf component
+
         return if idx is -1
 
         container.__components__.splice(idx, 1) if idx > -1

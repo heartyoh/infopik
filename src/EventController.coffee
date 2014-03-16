@@ -12,7 +12,7 @@ define [
     "use strict"
 
     control = (handler_map, event, args)->
-        for own selector, event_map of handler_map when ComponentSelector.match(selector, event.target)
+        for own selector, event_map of handler_map when ComponentSelector.match(selector, event.origin)
             for own event_name, handler of event_map when event_name is event.name
                 (handler.apply this, args)
 

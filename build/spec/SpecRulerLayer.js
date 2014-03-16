@@ -3,7 +3,24 @@
     "use strict";
     var createView;
     createView = function(attributes) {
-      return new kin.Layer(attributes);
+      var layer, target_comp, target_view;
+      layer = new kin.Layer(attributes);
+      if (attributes.offset_monitor_target) {
+        target_comp = this.findComponent(attributes.offset_monitor_target)[0];
+        target_view = this.findViewByComponent(target_comp);
+        target_view.on('change-offset', function(e) {
+          var children;
+          if (!layer.__hori__) {
+            children = layer.getChildren().toArray();
+            layer.__hori__ = children[0];
+            layer.__vert__ = children[1];
+          }
+          layer.__hori__.setAttr('zeropos', -e.x);
+          layer.__vert__.setAttr('zeropos', -e.y);
+          return layer.draw();
+        });
+      }
+      return layer;
     };
     return {
       type: 'ruler-layer',

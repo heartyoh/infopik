@@ -41,16 +41,17 @@ define [
         this.drawView()
 
     controller =
-        '#application' :
+        '(root)' :
             'change-model' : onchangemodel
-        'content-view-layer' :
-            # 'added' : onadded
-            # 'removed' : onremoved
-            'change' : onchange
 
     # instance listeners
     component_listener = 
-        'change' : onchange
+        '(all)':
+            'change' : onchange
+        '(self)' :
+            # 'added' : onadded
+            # 'removed' : onremoved
+            'change' : onchange
 
     view_listener =
         click : (e) ->

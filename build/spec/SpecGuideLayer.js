@@ -1,17 +1,24 @@
 (function() {
   define(['KineticJS'], function(kin) {
     "use strict";
-    var controller, createView, guide_handler, onadded, onchange, onchangemodel, onremoved, view_listener;
+    var component_listener, controller, createView, guide_handler, onadded, onchange, onremoved, view_listener;
     createView = function(attributes) {
       return new kin.Layer(attributes);
     };
-    onchange = function(component, before, after) {
-      var layer, msg, self;
-      self = this;
-      layer = this.layer;
-      this.changes = (this.changes || 0) + 1;
-      if (!this.text) {
-        this.text = new kin.Text({
+    onchange = function(component, before, after, e) {
+      var guideLayer, layer, msg, self;
+      guideLayer = e.listener;
+      if (!guideLayer._track) {
+        guideLayer._track = {};
+      }
+      self = guideLayer._track;
+      if (!self.view) {
+        self.view = (this.findViewByComponent(e.listener))[0];
+      }
+      layer = self.view;
+      self.changes = (self.changes || 0) + 1;
+      if (!self.text) {
+        self.text = new kin.Text({
           x: 10,
           y: 10,
           listening: false,
@@ -19,10 +26,10 @@
           fontFamily: 'Calibri',
           fill: 'green'
         });
-        layer.add(this.text);
+        layer.add(self.text);
       }
       msg = "[ PropertyChange ] " + component.type + " : " + (component.get('id')) + "\n[ Before ] " + (JSON.stringify(before)) + "\n[ After ] " + (JSON.stringify(after));
-      this.text.setAttr('text', msg);
+      self.text.setAttr('text', msg);
       layer.draw();
       return setTimeout(function() {
         var tween;
@@ -49,27 +56,6 @@
           return layer.draw();
         }, 1000);
       }, 5000);
-    };
-    onchangemodel = function(after, before) {
-      var appcontext, layer, screen, _i, _len, _ref, _results;
-      appcontext = this;
-      _ref = this.findComponent('guide-layer');
-      _results = [];
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        screen = _ref[_i];
-        layer = (appcontext.findViewByComponent(screen))[0];
-        if (before) {
-          before.off('change', onchange);
-        }
-        if (after) {
-          _results.push(after.on('change', onchange, {
-            layer: layer
-          }));
-        } else {
-          _results.push(void 0);
-        }
-      }
-      return _results;
     };
     guide_handler = {
       dragstart: function(e) {
@@ -168,10 +154,12 @@
       return this.getEventHandler().off(app, guide_handler);
     };
     controller = {
-      '#application': {
-        'change-model': onchangemodel
-      },
-      'guide-layer': {
+      '(all)': {
+        'change': onchange
+      }
+    };
+    component_listener = {
+      '(self)': {
         'added': onadded,
         'removed': onremoved
       }
@@ -192,6 +180,7 @@
         draggable: false
       },
       controller: controller,
+      component_listener: component_listener,
       view_listener: view_listener,
       view_factory_fn: createView,
       toolbox_image: 'images/toolbox_guide_layer.png'

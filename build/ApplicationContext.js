@@ -1,5 +1,5 @@
 (function() {
-  define(['dou', 'KineticJS', './Component', './Container', './EventController', './EventTracker', './ComponentFactory', './Command', './CommandManager', './ComponentRegistry', './ComponentSelector', './SelectionManager', './ComponentSpec', './spec/SpecPainter', './spec/SpecPresenter', './spec/SpecInfographic'], function(dou, kin, Component, Container, EventController, EventTracker, ComponentFactory, Command, CommandManager, ComponentRegistry, ComponentSelector, SelectionManager, ComponentSpec, SpecPainter, SpecPresenter, SpecInfographic) {
+  define(['dou', 'KineticJS', './Component', './Container', './EventController', './EventPump', './EventTracker', './ComponentFactory', './Command', './CommandManager', './ComponentRegistry', './ComponentSelector', './SelectionManager', './ComponentSpec', './spec/SpecPainter', './spec/SpecPresenter', './spec/SpecInfographic'], function(dou, kin, Component, Container, EventController, EventPump, EventTracker, ComponentFactory, Command, CommandManager, ComponentRegistry, ComponentSelector, SelectionManager, ComponentSpec, SpecPainter, SpecPresenter, SpecInfographic) {
     "use strict";
     var ApplicationContext;
     ApplicationContext = (function() {
@@ -19,18 +19,11 @@
         });
         this.eventTracker = new EventTracker();
         this.eventController = new EventController();
+        this.eventPump = new EventPump();
         this.componentRegistry = new ComponentRegistry();
-        this.componentRegistry.setRegisterCallback(function(spec) {
-          if (spec.controller) {
-            return this.eventController.append(spec.controller);
-          }
-        }, this);
-        this.componentRegistry.setUnregisterCallback(function(spec) {
-          if (spec.controller) {
-            return this.eventController.remove(spec.controller);
-          }
-        }, this);
-        this.componentFactory = new ComponentFactory(this.componentRegistry, this.eventTracker);
+        this.componentRegistry.setRegisterCallback(function(spec) {}, this);
+        this.componentRegistry.setUnregisterCallback(function(spec) {}, this);
+        this.componentFactory = new ComponentFactory(this.componentRegistry, this.eventTracker, this.eventPump);
         this.componentRegistry.register(this.application_spec);
         attributes = {
           id: 'application',
@@ -45,6 +38,8 @@
         this.view = this.componentFactory.createView(this.application, this);
         this.eventController.setTarget(this.application);
         this.eventController.start(this);
+        this.eventPump.setDeliverer(this.application);
+        this.eventPump.start(this);
         this.application.on('add', this.onadd, this);
         this.application.on('remove', this.onremove, this);
         if (this.application_spec.layers) {
@@ -127,10 +122,11 @@
       };
 
       ApplicationContext.prototype.onremove = function(container, component, e) {
-        var vcomponent, vcontainer;
-        vcontainer = container === this.application ? this.view : this.findViewByComponent(container);
+        var vcomponent;
+        console.log('removed', container, component);
         vcomponent = this.findViewByComponent(component);
-        vcontainer.remove(vcomponent);
+        console.log('found-component', vcomponent);
+        vcomponent.destroy();
         return this.drawView();
       };
 

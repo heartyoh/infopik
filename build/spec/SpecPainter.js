@@ -1,5 +1,5 @@
 (function() {
-  define(['KineticJS', './SpecInfographic', './SpecContentEditLayer', './SpecGuideLayer', './SpecRulerLayer', './SpecGroup', './SpecRect', './SpecRing', './SpecRuler'], function(kin, SpecInfographic, SpecContentEditLayer, SpecGuideLayer, SpecRulerLayer, SpecGroup, SpecRect, SpecRing, SpecRuler) {
+  define(['KineticJS', './SpecInfographic', './SpecContentEditLayer', './SpecGuideLayer', './SpecRulerLayer', './SpecHandleLayer', './SpecGroup', './SpecRect', './SpecRing', './SpecRuler', '../handle/HandleChecker'], function(kin, SpecInfographic, SpecContentEditLayer, SpecGuideLayer, SpecRulerLayer, SpecHandleLayer, SpecGroup, SpecRect, SpecRing, SpecRuler, HandleChecker) {
     "use strict";
     var controller, createView;
     createView = function(attributes) {
@@ -19,15 +19,26 @@
         'content-edit-layer': SpecContentEditLayer,
         'guide-layer': SpecGuideLayer,
         'ruler-layer': SpecRulerLayer,
+        'handle-layer': SpecHandleLayer,
         'group': SpecGroup,
         'rect': SpecRect,
         'ring': SpecRing,
-        'ruler': SpecRuler
+        'ruler': SpecRuler,
+        'handle-checker': HandleChecker
       },
       layers: [
         {
           type: 'content-edit-layer',
           attrs: {
+            offset: {
+              x: -20,
+              y: -20
+            }
+          }
+        }, {
+          type: 'handle-layer',
+          attrs: {
+            offset_monitor_target: 'content-edit-layer',
             offset: {
               x: -20,
               y: -20
@@ -43,7 +54,9 @@
           }
         }, {
           type: 'ruler-layer',
-          attrs: {}
+          attrs: {
+            offset_monitor_target: 'content-edit-layer'
+          }
         }
       ],
       toolbox_image: 'images/toolbox_painter_app.png'

@@ -15,23 +15,28 @@ define [
     createView = (attributes) ->
         new kin.Layer(attributes)
 
-    onchange = (component, before, after) ->
-        self = this
-        layer = this.layer
+    onchange = (component, before, after, e) ->
+        guideLayer = e.listener
+        guideLayer._track = {} if not guideLayer._track
 
-        this.changes = (this.changes || 0) + 1
-        if not this.text
-            this.text = new kin.Text
+        self = guideLayer._track
+
+        self.view = (this.findViewByComponent e.listener)[0] if not self.view
+        layer = self.view
+
+        self.changes = (self.changes || 0) + 1
+        if not self.text
+            self.text = new kin.Text
                 x: 10
                 y: 10
                 listening: false
                 fontSize: 12
                 fontFamily: 'Calibri'
                 fill: 'green'
-            layer.add this.text
+            layer.add self.text
 
         msg = "[ PropertyChange ] #{component.type} : #{component.get('id')}\n[ Before ] #{JSON.stringify(before)}\n[ After ] #{JSON.stringify(after)}"
-        this.text.setAttr 'text', msg
+        self.text.setAttr 'text', msg
 
         layer.draw()
 
@@ -61,16 +66,6 @@ define [
                 layer.draw()
             , 1000
         , 5000
-
-    onchangemodel = (after, before) ->
-        appcontext = this
-
-        for screen in this.findComponent 'guide-layer'
-
-            layer = (appcontext.findViewByComponent screen)[0]
-
-            before.off('change', onchange) if before
-            after.on('change', onchange, {layer:layer}) if after
 
     guide_handler = 
         dragstart : (e) ->
@@ -155,9 +150,14 @@ define [
         this.getEventHandler().off(app, guide_handler)
 
     controller =
-        '#application' :
-            'change-model' : onchangemodel
-        'guide-layer' :
+        '(all)' :
+            'change' : onchange
+        # '(self)' :
+        #     'added' : onadded
+        #     'removed' : onremoved
+
+    component_listener = 
+        '(self)' :
             'added' : onadded
             'removed' : onremoved
 
@@ -175,6 +175,7 @@ define [
             draggable: false
         }
         controller: controller
+        component_listener: component_listener
         view_listener: view_listener
         view_factory_fn: createView
         toolbox_image: 'images/toolbox_guide_layer.png'

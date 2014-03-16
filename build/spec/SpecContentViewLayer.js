@@ -30,15 +30,17 @@
       return this.drawView();
     };
     controller = {
-      '#application': {
+      '(root)': {
         'change-model': onchangemodel
-      },
-      'content-view-layer': {
-        'change': onchange
       }
     };
     component_listener = {
-      'change': onchange
+      '(all)': {
+        'change': onchange
+      },
+      '(self)': {
+        'change': onchange
+      }
     };
     view_listener = {
       click: function(e) {

@@ -194,38 +194,52 @@
         './Container'
     ], function (dou, Component, Container) {
         'use strict';
-        var match, match_by_id, match_by_name, match_by_type, select, select_recurse;
-        match_by_id = function (selector, component) {
+        var match, match_by_id, match_by_name, match_by_special, match_by_type, select, select_recurse;
+        match_by_id = function (selector, component, listener, root) {
             return selector.substr(1) === component.get('id');
         };
-        match_by_name = function (selector, component) {
+        match_by_name = function (selector, component, listener, root) {
             return selector.substr(1) === component.get('name');
         };
-        match_by_type = function (selector, component) {
-            return selector === 'all' || selector === component.type;
-        };
-        match = function (selector, component) {
-            switch (selector.charAt(0)) {
-            case '#':
-                return match_by_id(selector, component);
-            case '.':
-                return match_by_name(selector, component);
+        match_by_special = function (selector, component, listener, root) {
+            switch (selector) {
+            case '(all)':
+                return true;
+            case '(self)':
+                return listener === component;
+            case '(root)':
+                return root === component;
             default:
-                return match_by_type(selector, component);
+                return false;
             }
         };
-        select_recurse = function (matcher, selector, component, result) {
-            if (matcher(selector, component)) {
+        match_by_type = function (selector, component, listener, root) {
+            return selector === 'all' || selector === component.type;
+        };
+        match = function (selector, component, listener, root) {
+            switch (selector.charAt(0)) {
+            case '#':
+                return match_by_id(selector, component, listener, root);
+            case '.':
+                return match_by_name(selector, component, listener, root);
+            case '(':
+                return match_by_special(selector, component, listener, root);
+            default:
+                return match_by_type(selector, component, listener, root);
+            }
+        };
+        select_recurse = function (matcher, selector, component, listener, root, result) {
+            if (matcher(selector, component, listener, root)) {
                 result.push(component);
             }
             if (component instanceof Container) {
                 component.forEach(function (child) {
-                    return select_recurse(matcher, selector, child, result);
+                    return select_recurse(matcher, selector, child, listener, root, result);
                 });
             }
             return result;
         };
-        select = function (selector, component) {
+        select = function (selector, component, listener, root) {
             var matcher;
             matcher = function () {
                 switch (selector.charAt(0)) {
@@ -233,11 +247,13 @@
                     return match_by_id;
                 case '.':
                     return match_by_name;
+                case '?':
+                    return match_by_variable;
                 default:
                     return match_by_type;
                 }
             }();
-            return select_recurse(matcher, selector, component, []);
+            return select_recurse(matcher, selector, component, listener, root, []);
         };
         return {
             select: select,
@@ -260,7 +276,7 @@
                 if (!__hasProp.call(handler_map, selector))
                     continue;
                 event_map = handler_map[selector];
-                if (ComponentSelector.match(selector, event.target)) {
+                if (ComponentSelector.match(selector, event.origin)) {
                     _results.push(function () {
                         var _results1;
                         _results1 = [];
@@ -311,6 +327,121 @@
         }();
         dou.mixin(EventController, dou['with'].collection.withList);
         return EventController;
+    });
+}.call(this));
+(function () {
+    var __hasProp = {}.hasOwnProperty;
+    define('build/EventPump', [
+        'dou',
+        './ComponentSelector'
+    ], function (dou, ComponentSelector) {
+        'use strict';
+        var EventPump, control, event_handler_fn;
+        control = function (root, listener, handlers, event, args) {
+            var event_map, event_name, handler, selector, _results;
+            _results = [];
+            for (selector in handlers) {
+                if (!__hasProp.call(handlers, selector))
+                    continue;
+                event_map = handlers[selector];
+                if (ComponentSelector.match(selector, event.origin, listener, root)) {
+                    _results.push(function () {
+                        var _results1;
+                        _results1 = [];
+                        for (event_name in event_map) {
+                            if (!__hasProp.call(event_map, event_name))
+                                continue;
+                            handler = event_map[event_name];
+                            if (!(event_name === event.name)) {
+                                continue;
+                            }
+                            event.listener = listener;
+                            _results1.push(handler.apply(this, args));
+                        }
+                        return _results1;
+                    }.call(this));
+                }
+            }
+            return _results;
+        };
+        event_handler_fn = function () {
+            var args, e, eventPump, item, _i, _len, _ref, _results;
+            args = arguments;
+            e = args[args.length - 1];
+            eventPump = this.eventPump;
+            _ref = eventPump.listeners;
+            _results = [];
+            for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+                item = _ref[_i];
+                _results.push(control.call(this.context, eventPump.deliverer, item.listener, item.clonedHandlers, e, args));
+            }
+            return _results;
+        };
+        EventPump = function () {
+            function EventPump(deliverer) {
+                this.setDeliverer(deliverer);
+                this.listeners = [];
+            }
+            EventPump.prototype.setDeliverer = function (deliverer) {
+                return this.deliverer = deliverer;
+            };
+            EventPump.prototype.start = function (context) {
+                return this.deliverer.on('all', event_handler_fn, {
+                    context: context || null,
+                    eventPump: this
+                });
+            };
+            EventPump.prototype.stop = function () {
+                return this.deliverer.off('all', event_handler_fn);
+            };
+            EventPump.prototype.on = function (listener, handlers) {
+                var clonedHandlers, handler, selector, selectors, value, variable, _i, _len;
+                clonedHandlers = dou.util.clone(handlers);
+                selectors = Object.keys(clonedHandlers);
+                for (_i = 0, _len = selectors.length; _i < _len; _i++) {
+                    selector = selectors[_i];
+                    if (!(selector.indexOf('?') === 0)) {
+                        continue;
+                    }
+                    handler = clonedHandlers[selector];
+                    variable = selector.substr(1);
+                    value = listener.get(variable);
+                    delete clonedHandlers[selector];
+                    if (value) {
+                        clonedHandlers[value] = handler;
+                    } else {
+                        console.log('EventPump#on', 'variable ' + selector + ' is not evaluated on listener');
+                    }
+                }
+                return this.listeners.push({
+                    listener: listener,
+                    handlers: handlers,
+                    clonedHandlers: clonedHandlers
+                });
+            };
+            EventPump.prototype.off = function (listener, handlers) {
+                var index, item, _i, _len, _ref, _results;
+                _ref = this.listeners;
+                _results = [];
+                for (index = _i = 0, _len = _ref.length; _i < _len; index = ++_i) {
+                    item = _ref[index];
+                    if (item.listener === listener && (!handlers || item.handlers === handlers)) {
+                        _results.push(this.listeners.splice(index, 1));
+                    } else {
+                        _results.push(void 0);
+                    }
+                }
+                return _results;
+            };
+            EventPump.prototype.clear = EventPump.listeners = [];
+            EventPump.prototype.despose = function () {
+                this.stop();
+                this.clear();
+                return this.deliverer = null;
+            };
+            return EventPump;
+        }();
+        return EventPump;
     });
 }.call(this));
 (function () {
@@ -425,18 +556,23 @@
         'dou',
         './Component',
         './Container',
-        './EventTracker'
-    ], function (dou, Component, Container, EventTracker) {
+        './EventTracker',
+        './EventPump'
+    ], function (dou, Component, Container, EventTracker, EventPump) {
         'use strict';
         var ComponentFactory;
         ComponentFactory = function () {
-            function ComponentFactory(componentRegistry, eventTracker) {
+            function ComponentFactory(componentRegistry, eventTracker, eventPump) {
                 this.componentRegistry = componentRegistry;
                 this.eventTracker = eventTracker;
+                this.eventPump = eventPump;
                 this.seed = 1;
             }
             ComponentFactory.prototype.despose = function () {
-                return this.componentRegistry = null;
+                this.componentRegistry = null;
+                if (this.eventPump) {
+                    return this.eventPump.despose();
+                }
             };
             ComponentFactory.prototype.uniqueId = function () {
                 return 'noid-' + this.seed++;
@@ -460,7 +596,7 @@
                 return view;
             };
             ComponentFactory.prototype.createComponent = function (obj, context) {
-                var child, component, spec, _i, _j, _len, _len1, _ref, _ref1;
+                var child, component, eventPump, spec, _i, _j, _len, _len1, _ref, _ref1;
                 spec = this.componentRegistry.get(obj.type);
                 if (!spec) {
                     throw new Error('Component Spec Not Found for type \'' + obj.type + '\'');
@@ -489,7 +625,13 @@
                     component.set('id', this.uniqueId());
                 }
                 if (spec.component_listener) {
-                    this.eventTracker.on(component, spec.component_listener, context);
+                    eventPump = new EventPump(component);
+                    eventPump.on(component, spec.component_listener);
+                    component.eventPump = eventPump;
+                    eventPump.start(context);
+                }
+                if (spec.controller) {
+                    this.eventPump.on(component, spec.controller);
                 }
                 return component;
             };
@@ -932,8 +1074,8 @@
                         height: e.offsetY - this.start_point.y
                     });
                 } else if (mode === 'MOVE') {
-                    x = Math.max(this.origin_offset.x - (e.offsetX - this.start_point.x), -20);
-                    y = Math.max(this.origin_offset.y - (e.offsetY - this.start_point.y), -20);
+                    x = this.origin_offset.x - (e.offsetX - this.start_point.x);
+                    y = this.origin_offset.y - (e.offsetY - this.start_point.y);
                     this.layer.offset({
                         x: x,
                         y: y
@@ -942,13 +1084,17 @@
                         x: x + 20,
                         y: y + 20
                     });
+                    this.layer.fire('change-offset', {
+                        x: x,
+                        y: y
+                    }, false);
                 } else {
                 }
                 this.layer.draw();
                 return e.cancelBubble = true;
             },
             dragend: function (e) {
-                var background, mode;
+                var background, mode, x, y;
                 if (e.targetNode && e.targetNode !== this.background) {
                     return;
                 }
@@ -962,6 +1108,20 @@
                     this.selectbox.remove();
                     delete this.selectbox;
                 } else if (mode === 'MOVE') {
+                    x = Math.max(this.origin_offset.x - (e.offsetX - this.start_point.x), -20);
+                    y = Math.max(this.origin_offset.y - (e.offsetY - this.start_point.y), -20);
+                    this.layer.offset({
+                        x: x,
+                        y: y
+                    });
+                    this.background.setAttrs({
+                        x: x + 20,
+                        y: y + 20
+                    });
+                    this.layer.fire('change-offset', {
+                        x: x,
+                        y: y
+                    }, false);
                 } else {
                 }
                 this.layer.draw();
@@ -997,21 +1157,16 @@
         };
         onremoved = function (container, component, e) {
         };
-        onchangemodel = function (after, before) {
-            var layer, _i, _len, _ref, _results;
-            _ref = this.findComponent('content-edit-layer');
-            _results = [];
-            for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-                layer = _ref[_i];
-                if (before) {
-                    layer.remove(before);
-                }
-                if (after) {
-                    layer.add(after);
-                }
-                _results.push(this.findView('#' + layer.get('id')));
+        onchangemodel = function (after, before, e) {
+            var layer;
+            layer = e.listener;
+            if (before) {
+                layer.remove(before);
             }
-            return _results;
+            if (after) {
+                layer.add(after);
+            }
+            return this.findView('#' + layer.get('id'));
         };
         onchangeselections = function (after, before, added, removed) {
             return console.log('selection-changed', after);
@@ -1019,17 +1174,18 @@
         onchange = function (component, before, after) {
         };
         controller = {
-            '#application': {
+            '(root)': {
                 'change-model': onchangemodel,
                 'change-selections': onchangeselections
-            },
-            'content-edit-layer': {
+            }
+        };
+        component_listener = {
+            '(self)': {
                 'added': onadded,
                 'removed': onremoved,
                 'change': onchange
             }
         };
-        component_listener = { 'change': onchange };
         view_listener = {
             dragstart: function (e) {
             },
@@ -1095,17 +1251,24 @@
 (function () {
     define('build/spec/SpecGuideLayer', ['KineticJS'], function (kin) {
         'use strict';
-        var controller, createView, guide_handler, onadded, onchange, onchangemodel, onremoved, view_listener;
+        var component_listener, controller, createView, guide_handler, onadded, onchange, onremoved, view_listener;
         createView = function (attributes) {
             return new kin.Layer(attributes);
         };
-        onchange = function (component, before, after) {
-            var layer, msg, self;
-            self = this;
-            layer = this.layer;
-            this.changes = (this.changes || 0) + 1;
-            if (!this.text) {
-                this.text = new kin.Text({
+        onchange = function (component, before, after, e) {
+            var guideLayer, layer, msg, self;
+            guideLayer = e.listener;
+            if (!guideLayer._track) {
+                guideLayer._track = {};
+            }
+            self = guideLayer._track;
+            if (!self.view) {
+                self.view = this.findViewByComponent(e.listener)[0];
+            }
+            layer = self.view;
+            self.changes = (self.changes || 0) + 1;
+            if (!self.text) {
+                self.text = new kin.Text({
                     x: 10,
                     y: 10,
                     listening: false,
@@ -1113,10 +1276,10 @@
                     fontFamily: 'Calibri',
                     fill: 'green'
                 });
-                layer.add(this.text);
+                layer.add(self.text);
             }
             msg = '[ PropertyChange ] ' + component.type + ' : ' + component.get('id') + '\n[ Before ] ' + JSON.stringify(before) + '\n[ After ] ' + JSON.stringify(after);
-            this.text.setAttr('text', msg);
+            self.text.setAttr('text', msg);
             layer.draw();
             return setTimeout(function () {
                 var tween;
@@ -1143,25 +1306,6 @@
                     return layer.draw();
                 }, 1000);
             }, 5000);
-        };
-        onchangemodel = function (after, before) {
-            var appcontext, layer, screen, _i, _len, _ref, _results;
-            appcontext = this;
-            _ref = this.findComponent('guide-layer');
-            _results = [];
-            for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-                screen = _ref[_i];
-                layer = appcontext.findViewByComponent(screen)[0];
-                if (before) {
-                    before.off('change', onchange);
-                }
-                if (after) {
-                    _results.push(after.on('change', onchange, { layer: layer }));
-                } else {
-                    _results.push(void 0);
-                }
-            }
-            return _results;
         };
         guide_handler = {
             dragstart: function (e) {
@@ -1279,9 +1423,9 @@
             app = this.getView();
             return this.getEventHandler().off(app, guide_handler);
         };
-        controller = {
-            '#application': { 'change-model': onchangemodel },
-            'guide-layer': {
+        controller = { '(all)': { 'change': onchange } };
+        component_listener = {
+            '(self)': {
                 'added': onadded,
                 'removed': onremoved
             }
@@ -1300,6 +1444,7 @@
             description: 'Editing Guide Specification',
             defaults: { draggable: false },
             controller: controller,
+            component_listener: component_listener,
             view_listener: view_listener,
             view_factory_fn: createView,
             toolbox_image: 'images/toolbox_guide_layer.png'
@@ -1314,7 +1459,24 @@
         'use strict';
         var createView;
         createView = function (attributes) {
-            return new kin.Layer(attributes);
+            var layer, target_comp, target_view;
+            layer = new kin.Layer(attributes);
+            if (attributes.offset_monitor_target) {
+                target_comp = this.findComponent(attributes.offset_monitor_target)[0];
+                target_view = this.findViewByComponent(target_comp);
+                target_view.on('change-offset', function (e) {
+                    var children;
+                    if (!layer.__hori__) {
+                        children = layer.getChildren().toArray();
+                        layer.__hori__ = children[0];
+                        layer.__vert__ = children[1];
+                    }
+                    layer.__hori__.setAttr('zeropos', -e.x);
+                    layer.__vert__.setAttr('zeropos', -e.y);
+                    return layer.draw();
+                });
+            }
+            return layer;
         };
         return {
             type: 'ruler-layer',
@@ -1359,6 +1521,91 @@
                 }
             ],
             toolbox_image: 'images/toolbox_ruler_layer.png'
+        };
+    });
+}.call(this));
+(function () {
+    define('build/spec/SpecHandleLayer', [
+        'dou',
+        'KineticJS'
+    ], function (dou, kin) {
+        'use strict';
+        var controller, createView, onchangeselection;
+        createView = function (attributes) {
+            var layer, target_comp, target_view;
+            layer = new kin.Layer(attributes);
+            layer.handles = {};
+            if (attributes.offset_monitor_target) {
+                target_comp = this.findComponent(attributes.offset_monitor_target)[0];
+                target_view = this.findViewByComponent(target_comp);
+                target_view.on('change-offset', function (e) {
+                    layer.offset({
+                        x: e.x,
+                        y: e.y
+                    });
+                    return layer.draw();
+                });
+                this.getEventTracker().on(target_view, {
+                    dragmove: function (e) {
+                        var handle, id;
+                        id = e.targetNode.getAttr('id');
+                        handle = layer.handles[id];
+                        if (handle) {
+                            handle.setAbsolutePosition(e.targetNode.getAbsolutePosition());
+                            return layer.draw();
+                        }
+                    },
+                    dragend: function (e) {
+                        var handle, id;
+                        id = e.targetNode.getAttr('id');
+                        handle = layer.handles[id];
+                        if (handle) {
+                            handle.setAbsolutePosition(e.targetNode.getAbsolutePosition());
+                            return layer.draw();
+                        }
+                    }
+                }, {});
+            }
+            return layer;
+        };
+        onchangeselection = function (after, before, added, removed, e) {
+            var container, handle, handle_comp, handle_view, id, layer, node, pos, _i, _j, _len, _len1;
+            container = e.listener;
+            layer = this.findViewByComponent(container)[0];
+            for (_i = 0, _len = removed.length; _i < _len; _i++) {
+                node = removed[_i];
+                id = node.getAttr('id');
+                handle = layer.handles[id];
+                handle_comp = this.findComponent('#' + handle.getAttr('id'))[0];
+                container.remove(handle_comp);
+                delete layer.handles[id];
+            }
+            for (_j = 0, _len1 = added.length; _j < _len1; _j++) {
+                node = added[_j];
+                id = node.getAttr('id');
+                pos = node.getAbsolutePosition();
+                handle_comp = this.createComponent({
+                    type: 'handle-checker',
+                    attrs: {}
+                });
+                container.add(handle_comp);
+                handle_view = this.findViewByComponent(handle_comp)[0];
+                handle_view.setAbsolutePosition(pos);
+                layer.handles[id] = handle_view;
+            }
+            return layer.draw();
+        };
+        controller = { '(root)': { 'change-selections': onchangeselection } };
+        return {
+            type: 'handle-layer',
+            name: 'handle-layer',
+            containable: true,
+            container_type: 'layer',
+            description: 'Handle Layer Specification',
+            defaults: { draggable: false },
+            controller: controller,
+            view_factory_fn: createView,
+            toolbox_image: 'images/toolbox_handle_layer.png'
         };
     });
 }.call(this));
@@ -1673,17 +1920,46 @@
     });
 }.call(this));
 (function () {
+    define('build/handle/HandleChecker', ['KineticJS'], function (kin) {
+        'use strict';
+        var createHandle, createView;
+        createView = function (attributes) {
+            return new kin.Rect(attributes);
+        };
+        createHandle = function (attributes) {
+            return new Kin.Rect(attributes);
+        };
+        return {
+            type: 'handle-checker',
+            name: 'handle-checker',
+            description: 'Checker Handle Specification',
+            defaults: {
+                width: 10,
+                height: 10,
+                fill: 'red',
+                stroke: 'black',
+                strokeWidth: 2
+            },
+            view_factory_fn: createView,
+            handle_factory_fn: createHandle,
+            toolbox_image: 'images/toolbox_handle_checker.png'
+        };
+    });
+}.call(this));
+(function () {
     define('build/spec/SpecPainter', [
         'KineticJS',
         './SpecInfographic',
         './SpecContentEditLayer',
         './SpecGuideLayer',
         './SpecRulerLayer',
+        './SpecHandleLayer',
         './SpecGroup',
         './SpecRect',
         './SpecRing',
-        './SpecRuler'
-    ], function (kin, SpecInfographic, SpecContentEditLayer, SpecGuideLayer, SpecRulerLayer, SpecGroup, SpecRect, SpecRing, SpecRuler) {
+        './SpecRuler',
+        '../handle/HandleChecker'
+    ], function (kin, SpecInfographic, SpecContentEditLayer, SpecGuideLayer, SpecRulerLayer, SpecHandleLayer, SpecGroup, SpecRect, SpecRing, SpecRuler, HandleChecker) {
         'use strict';
         var controller, createView;
         createView = function (attributes) {
@@ -1703,15 +1979,27 @@
                 'content-edit-layer': SpecContentEditLayer,
                 'guide-layer': SpecGuideLayer,
                 'ruler-layer': SpecRulerLayer,
+                'handle-layer': SpecHandleLayer,
                 'group': SpecGroup,
                 'rect': SpecRect,
                 'ring': SpecRing,
-                'ruler': SpecRuler
+                'ruler': SpecRuler,
+                'handle-checker': HandleChecker
             },
             layers: [
                 {
                     type: 'content-edit-layer',
                     attrs: {
+                        offset: {
+                            x: -20,
+                            y: -20
+                        }
+                    }
+                },
+                {
+                    type: 'handle-layer',
+                    attrs: {
+                        offset_monitor_target: 'content-edit-layer',
                         offset: {
                             x: -20,
                             y: -20
@@ -1729,7 +2017,7 @@
                 },
                 {
                     type: 'ruler-layer',
-                    attrs: {}
+                    attrs: { offset_monitor_target: 'content-edit-layer' }
                 }
             ],
             toolbox_image: 'images/toolbox_painter_app.png'
@@ -1774,11 +2062,11 @@
             view.setAttrs(after);
             return this.drawView();
         };
-        controller = {
-            '#application': { 'change-model': onchangemodel },
-            'content-view-layer': { 'change': onchange }
+        controller = { '(root)': { 'change-model': onchangemodel } };
+        component_listener = {
+            '(all)': { 'change': onchange },
+            '(self)': { 'change': onchange }
         };
-        component_listener = { 'change': onchange };
         view_listener = {
             click: function (e) {
                 var node;
@@ -1848,6 +2136,7 @@
         './Component',
         './Container',
         './EventController',
+        './EventPump',
         './EventTracker',
         './ComponentFactory',
         './Command',
@@ -1859,7 +2148,7 @@
         './spec/SpecPainter',
         './spec/SpecPresenter',
         './spec/SpecInfographic'
-    ], function (dou, kin, Component, Container, EventController, EventTracker, ComponentFactory, Command, CommandManager, ComponentRegistry, ComponentSelector, SelectionManager, ComponentSpec, SpecPainter, SpecPresenter, SpecInfographic) {
+    ], function (dou, kin, Component, Container, EventController, EventPump, EventTracker, ComponentFactory, Command, CommandManager, ComponentRegistry, ComponentSelector, SelectionManager, ComponentSpec, SpecPainter, SpecPresenter, SpecInfographic) {
         'use strict';
         var ApplicationContext;
         ApplicationContext = function () {
@@ -1879,18 +2168,13 @@
                 });
                 this.eventTracker = new EventTracker();
                 this.eventController = new EventController();
+                this.eventPump = new EventPump();
                 this.componentRegistry = new ComponentRegistry();
                 this.componentRegistry.setRegisterCallback(function (spec) {
-                    if (spec.controller) {
-                        return this.eventController.append(spec.controller);
-                    }
                 }, this);
                 this.componentRegistry.setUnregisterCallback(function (spec) {
-                    if (spec.controller) {
-                        return this.eventController.remove(spec.controller);
-                    }
                 }, this);
-                this.componentFactory = new ComponentFactory(this.componentRegistry, this.eventTracker);
+                this.componentFactory = new ComponentFactory(this.componentRegistry, this.eventTracker, this.eventPump);
                 this.componentRegistry.register(this.application_spec);
                 attributes = {
                     id: 'application',
@@ -1905,6 +2189,8 @@
                 this.view = this.componentFactory.createView(this.application, this);
                 this.eventController.setTarget(this.application);
                 this.eventController.start(this);
+                this.eventPump.setDeliverer(this.application);
+                this.eventPump.start(this);
                 this.application.on('add', this.onadd, this);
                 this.application.on('remove', this.onremove, this);
                 if (this.application_spec.layers) {
@@ -1971,10 +2257,11 @@
                 return this.drawView();
             };
             ApplicationContext.prototype.onremove = function (container, component, e) {
-                var vcomponent, vcontainer;
-                vcontainer = container === this.application ? this.view : this.findViewByComponent(container);
+                var vcomponent;
+                console.log('removed', container, component);
                 vcomponent = this.findViewByComponent(component);
-                vcontainer.remove(vcomponent);
+                console.log('found-component', vcomponent);
+                vcomponent.destroy();
                 return this.drawView();
             };
             ApplicationContext.prototype.onselectionchange = function (changes) {

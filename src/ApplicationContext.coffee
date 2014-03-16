@@ -10,6 +10,7 @@ define [
     './Component'
     './Container'
     './EventController'
+    './EventPump'
     './EventTracker'
     './ComponentFactory'
     './Command'
@@ -26,6 +27,7 @@ define [
     Component
     Container
     EventController
+    EventPump
     EventTracker
     ComponentFactory
     Command
@@ -61,17 +63,20 @@ define [
             @eventTracker = new EventTracker()
 
             @eventController = new EventController()
+            @eventPump = new EventPump()
 
             @componentRegistry = new ComponentRegistry()
 
             @componentRegistry.setRegisterCallback (spec) ->
-                @eventController.append spec.controller if spec.controller
+                ;
+                # @eventController.append spec.controller if spec.controller
             , this
             @componentRegistry.setUnregisterCallback (spec) ->
-                @eventController.remove spec.controller if spec.controller
+                ;
+                # @eventController.remove spec.controller if spec.controller
             , this
 
-            @componentFactory = new ComponentFactory(@componentRegistry, @eventTracker)
+            @componentFactory = new ComponentFactory(@componentRegistry, @eventTracker, @eventPump)
 
             @componentRegistry.register @application_spec
 
@@ -97,8 +102,12 @@ define [
             @eventController.setTarget @application
             @eventController.start this
 
+            @eventPump.setDeliverer @application
+            @eventPump.start this
+
             @application.on 'add', @onadd, this
             @application.on 'remove', @onremove, this
+
 
             # Third. add layers to root container
             if @application_spec.layers
@@ -161,10 +170,13 @@ define [
             this.drawView()
 
         onremove: (container, component, e) ->
-            vcontainer = if container is @application then @view else this.findViewByComponent container
+            console.log 'removed', container, component
+            # vcontainer = if container is @application then @view else this.findViewByComponent container
             vcomponent = this.findViewByComponent component
 
-            vcontainer.remove(vcomponent);
+            console.log 'found-component', vcomponent
+            # vcontainer.remove(vcomponent);
+            vcomponent.destroy()
 
             this.drawView()
 
