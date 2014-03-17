@@ -1,7 +1,7 @@
 (function() {
   define(['dou', 'KineticJS', '../EventTracker', '../ComponentSelector', '../command/CommandPropertyChange'], function(dou, kin, EventTracker, ComponentSelector, CommandPropertyChange) {
     "use strict";
-    var component_listener, controller, createView, draghandler, onadded, onchange, onchangemodel, onchangeselections, onremoved, view_listener;
+    var controller, createView, draghandler, onadded, onchange, onchangemodel, onchangeselections, onremoved, view_listener;
     draghandler = {
       dragstart: function(e) {
         var background, layer_offset, mode, offset;
@@ -157,15 +157,19 @@
     onchange = function(component, before, after) {};
     controller = {
       '(root)': {
-        'change-model': onchangemodel,
-        'change-selections': onchangeselections
-      }
-    };
-    component_listener = {
+        '(root)': {
+          'change-model': onchangemodel,
+          'change-selections': onchangeselections
+        }
+      },
       '(self)': {
-        'added': onadded,
-        'removed': onremoved,
-        'change': onchange
+        '(self)': {
+          'added': onadded,
+          'removed': onremoved
+        },
+        '(all)': {
+          'change': onchange
+        }
       }
     };
     view_listener = {
@@ -218,7 +222,6 @@
         draggable: false
       },
       controller: controller,
-      component_listener: component_listener,
       view_listener: view_listener,
       view_factory_fn: createView,
       toolbox_image: 'images/toolbox_content_edit_layer.png'

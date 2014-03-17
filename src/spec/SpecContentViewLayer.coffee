@@ -42,16 +42,24 @@ define [
 
     controller =
         '(root)' :
-            'change-model' : onchangemodel
+            '(root)' :
+                'change-model' : onchangemodel
+        '(self)' :
+            '(all)':
+                'change' : onchange
+            '(self)' :
+                # 'added' : onadded
+                # 'removed' : onremoved
+                'change' : onchange
 
     # instance listeners
-    component_listener = 
-        '(all)':
-            'change' : onchange
-        '(self)' :
-            # 'added' : onadded
-            # 'removed' : onremoved
-            'change' : onchange
+    # component_listener = 
+        # '(all)':
+        #     'change' : onchange
+        # '(self)' :
+        #     # 'added' : onadded
+        #     # 'removed' : onremoved
+        #     'change' : onchange
 
     view_listener =
         click : (e) ->
@@ -67,7 +75,7 @@ define [
         defaults: {
         }
         controller: controller
-        component_listener: component_listener
+        # component_listener: component_listener
         view_listener: view_listener
         view_factory_fn: createView
         toolbox_image: 'images/toolbox_content_view_layer.png'

@@ -8,22 +8,28 @@ define [
     'dou'
     './Component'
     './Container'
+    './EventEngine'
     './EventTracker'
-    './EventPump'
-], (dou, Component, Container, EventTracker, EventPump) ->
+], (
+    dou
+    Component
+    Container
+    EventEngine
+    EventTracker
+) ->
     
     "use strict"
 
     class ComponentFactory
-        constructor: (componentRegistry, eventTracker, eventPump)->
+        constructor: (componentRegistry, eventEngine, eventTracker)->
             @componentRegistry = componentRegistry
+            @eventEngine = eventEngine
             @eventTracker = eventTracker
-            @eventPump = eventPump
             @seed = 1
 
         despose: ->
             @componentRegistry = null
-            @eventPump.despose() if @eventPump # TO BE REMOVED
+            @eventEngine.despose() if @eventEngine
 
         uniqueId: ->
             "noid-#{@seed++}"
@@ -63,16 +69,7 @@ define [
 
             component.set('id', @uniqueId()) if not component.get('id')
 
-            # EventTracker off 시점을 고민해야한다. 혹은 .. StandAlone을 사용하는 것 고려.
-            # @eventTracker.on(component, spec.component_listener, context) if spec.component_listener
-
-            if spec.component_listener
-                eventPump = new EventPump(component)
-                eventPump.on(component, spec.component_listener)
-                component.eventPump = eventPump
-                eventPump.start(context)
-
-            @eventPump.on(component, spec.controller) if spec.controller
+            @eventEngine.add(component, spec.controller, context) if spec.controller
 
             component
 

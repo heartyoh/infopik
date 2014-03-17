@@ -68,7 +68,9 @@
     };
     controller = {
       '(root)': {
-        'change-selections': onchangeselection
+        '(root)': {
+          'change-selections': onchangeselection
+        }
       }
     };
     return {

@@ -1,7 +1,7 @@
 (function() {
   define(['KineticJS', '../EventTracker', '../ComponentSelector', '../command/CommandPropertyChange'], function(kin, EventTracker, ComponentSelector, CommandPropertyChange) {
     "use strict";
-    var component_listener, controller, createView, onadded, onchange, onchangemodel, onremoved, view_listener;
+    var controller, createView, onadded, onchange, onchangemodel, onremoved, view_listener;
     createView = function(attributes) {
       return new kin.Layer(attributes);
     };
@@ -31,15 +31,17 @@
     };
     controller = {
       '(root)': {
-        'change-model': onchangemodel
-      }
-    };
-    component_listener = {
-      '(all)': {
-        'change': onchange
+        '(root)': {
+          'change-model': onchangemodel
+        }
       },
       '(self)': {
-        'change': onchange
+        '(all)': {
+          'change': onchange
+        },
+        '(self)': {
+          'change': onchange
+        }
       }
     };
     view_listener = {
@@ -57,7 +59,6 @@
       description: 'Content View Layer Specification',
       defaults: {},
       controller: controller,
-      component_listener: component_listener,
       view_listener: view_listener,
       view_factory_fn: createView,
       toolbox_image: 'images/toolbox_content_view_layer.png'

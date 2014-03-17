@@ -1,19 +1,19 @@
 (function() {
-  define(['dou', './Component', './Container', './EventTracker', './EventPump'], function(dou, Component, Container, EventTracker, EventPump) {
+  define(['dou', './Component', './Container', './EventEngine', './EventTracker'], function(dou, Component, Container, EventEngine, EventTracker) {
     "use strict";
     var ComponentFactory;
     ComponentFactory = (function() {
-      function ComponentFactory(componentRegistry, eventTracker, eventPump) {
+      function ComponentFactory(componentRegistry, eventEngine, eventTracker) {
         this.componentRegistry = componentRegistry;
+        this.eventEngine = eventEngine;
         this.eventTracker = eventTracker;
-        this.eventPump = eventPump;
         this.seed = 1;
       }
 
       ComponentFactory.prototype.despose = function() {
         this.componentRegistry = null;
-        if (this.eventPump) {
-          return this.eventPump.despose();
+        if (this.eventEngine) {
+          return this.eventEngine.despose();
         }
       };
 
@@ -41,7 +41,7 @@
       };
 
       ComponentFactory.prototype.createComponent = function(obj, context) {
-        var child, component, eventPump, spec, _i, _j, _len, _len1, _ref, _ref1;
+        var child, component, spec, _i, _j, _len, _len1, _ref, _ref1;
         spec = this.componentRegistry.get(obj.type);
         if (!spec) {
           throw new Error("Component Spec Not Found for type '" + obj.type + "'");
@@ -69,14 +69,8 @@
         if (!component.get('id')) {
           component.set('id', this.uniqueId());
         }
-        if (spec.component_listener) {
-          eventPump = new EventPump(component);
-          eventPump.on(component, spec.component_listener);
-          component.eventPump = eventPump;
-          eventPump.start(context);
-        }
         if (spec.controller) {
-          this.eventPump.on(component, spec.controller);
+          this.eventEngine.add(component, spec.controller, context);
         }
         return component;
       };

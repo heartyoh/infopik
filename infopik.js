@@ -206,6 +206,8 @@
             case '(all)':
                 return true;
             case '(self)':
+                console.log('listener', listener);
+                console.log('component', component);
                 return listener === component;
             case '(root)':
                 return root === component;
@@ -239,94 +241,32 @@
             }
             return result;
         };
-        select = function (selector, component, listener, root) {
+        select = function (selector, component, listener) {
             var matcher;
+            if (selector === '(root)') {
+                return [component];
+            }
+            if (selector === '(self)') {
+                return [listener];
+            }
             matcher = function () {
                 switch (selector.charAt(0)) {
                 case '#':
                     return match_by_id;
                 case '.':
                     return match_by_name;
-                case '?':
-                    return match_by_variable;
+                case '(':
+                    return match_by_special;
                 default:
                     return match_by_type;
                 }
             }();
-            return select_recurse(matcher, selector, component, listener, root, []);
+            return select_recurse(matcher, selector, component, listener, component, []);
         };
         return {
             select: select,
             match: match
         };
-    });
-}.call(this));
-(function () {
-    var __hasProp = {}.hasOwnProperty;
-    define('build/EventController', [
-        'dou',
-        './ComponentSelector'
-    ], function (dou, ComponentSelector) {
-        'use strict';
-        var EventController, control, event_handler_fn;
-        control = function (handler_map, event, args) {
-            var event_map, event_name, handler, selector, _results;
-            _results = [];
-            for (selector in handler_map) {
-                if (!__hasProp.call(handler_map, selector))
-                    continue;
-                event_map = handler_map[selector];
-                if (ComponentSelector.match(selector, event.origin)) {
-                    _results.push(function () {
-                        var _results1;
-                        _results1 = [];
-                        for (event_name in event_map) {
-                            if (!__hasProp.call(event_map, event_name))
-                                continue;
-                            handler = event_map[event_name];
-                            if (event_name === event.name) {
-                                _results1.push(handler.apply(this, args));
-                            }
-                        }
-                        return _results1;
-                    }.call(this));
-                }
-            }
-            return _results;
-        };
-        event_handler_fn = function () {
-            var args, e;
-            args = arguments;
-            e = args[args.length - 1];
-            return this.controllers.forEach(function (handler_map) {
-                return control.call(this, handler_map, e, args);
-            }, this.context);
-        };
-        EventController = function () {
-            function EventController(target) {
-                this.setTarget(target);
-            }
-            EventController.prototype.setTarget = function (target) {
-                return this.target = target;
-            };
-            EventController.prototype.start = function (context) {
-                return this.target.on('all', event_handler_fn, {
-                    context: context || null,
-                    controllers: this
-                });
-            };
-            EventController.prototype.stop = function () {
-                return this.target.off('all', event_handler_fn);
-            };
-            EventController.prototype.despose = function () {
-                this.stop();
-                this.clear();
-                return this.target = null;
-            };
-            return EventController;
-        }();
-        dou.mixin(EventController, dou['with'].collection.withList);
-        return EventController;
     });
 }.call(this));
 (function () {
@@ -446,6 +386,101 @@
 }.call(this));
 (function () {
     var __hasProp = {}.hasOwnProperty;
+    define('build/EventEngine', [
+        'dou',
+        './EventPump',
+        './ComponentSelector'
+    ], function (dou, EventPump, ComponentSelector) {
+        'use strict';
+        var EventEngine;
+        EventEngine = function () {
+            function EventEngine(root) {
+                this.eventPumps = [];
+                this.setRoot(root);
+            }
+            EventEngine.prototype.setRoot = function (root) {
+                return this.root = root;
+            };
+            EventEngine.prototype.stop = function () {
+                var item, _i, _len, _ref, _results;
+                _ref = this.eventPumps;
+                _results = [];
+                for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+                    item = _ref[_i];
+                    _results.push(item.eventPump.stop());
+                }
+                return _results;
+            };
+            EventEngine.prototype.add = function (listener, handlerMap, context) {
+                var eventPump, handlers, selector, target, targets, _results;
+                if (!this.root) {
+                    return;
+                }
+                _results = [];
+                for (selector in handlerMap) {
+                    if (!__hasProp.call(handlerMap, selector))
+                        continue;
+                    handlers = handlerMap[selector];
+                    targets = ComponentSelector.select(selector, this.root, listener);
+                    if (selector === '(self)') {
+                        console.log(listener === targets[0]);
+                        console.log(listener, targets[0]);
+                    }
+                    _results.push(function () {
+                        var _i, _len, _results1;
+                        _results1 = [];
+                        for (_i = 0, _len = targets.length; _i < _len; _i++) {
+                            target = targets[_i];
+                            eventPump = new EventPump(target);
+                            eventPump.on(listener, handlers);
+                            eventPump.start(context);
+                            _results1.push(this.eventPumps.push({
+                                eventPump: eventPump,
+                                listener: listener,
+                                handlerMap: handlerMap,
+                                target: target
+                            }));
+                        }
+                        return _results1;
+                    }.call(this));
+                }
+                return _results;
+            };
+            EventEngine.prototype.remove = function (listener, handlerMap) {
+                var index, item, _i, _len, _ref, _results;
+                _ref = this.eventPumps;
+                _results = [];
+                for (index = _i = 0, _len = _ref.length; _i < _len; index = ++_i) {
+                    item = _ref[index];
+                    if (item.listener === listener && (!handlerMap || item.handlerMap === handlerMap)) {
+                        this.eventPumps.splice(index, 1);
+                        _results.push(item.eventPump.despose());
+                    } else {
+                        _results.push(void 0);
+                    }
+                }
+                return _results;
+            };
+            EventEngine.prototype.clear = function () {
+                var eventPump, _i, _len, _ref;
+                _ref = this.eventPumps;
+                for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+                    eventPump = _ref[_i];
+                    eventPump.despose();
+                }
+                return this.eventPumps = [];
+            };
+            EventEngine.prototype.despose = function () {
+                this.stop();
+                return this.clear();
+            };
+            return EventEngine;
+        }();
+        return EventEngine;
+    });
+}.call(this));
+(function () {
+    var __hasProp = {}.hasOwnProperty;
     define('build/EventTracker', [], function () {
         'use strict';
         var EventTracker, StandAloneTracker;
@@ -556,22 +591,22 @@
         'dou',
         './Component',
         './Container',
-        './EventTracker',
-        './EventPump'
-    ], function (dou, Component, Container, EventTracker, EventPump) {
+        './EventEngine',
+        './EventTracker'
+    ], function (dou, Component, Container, EventEngine, EventTracker) {
         'use strict';
         var ComponentFactory;
         ComponentFactory = function () {
-            function ComponentFactory(componentRegistry, eventTracker, eventPump) {
+            function ComponentFactory(componentRegistry, eventEngine, eventTracker) {
                 this.componentRegistry = componentRegistry;
+                this.eventEngine = eventEngine;
                 this.eventTracker = eventTracker;
-                this.eventPump = eventPump;
                 this.seed = 1;
             }
             ComponentFactory.prototype.despose = function () {
                 this.componentRegistry = null;
-                if (this.eventPump) {
-                    return this.eventPump.despose();
+                if (this.eventEngine) {
+                    return this.eventEngine.despose();
                 }
             };
             ComponentFactory.prototype.uniqueId = function () {
@@ -596,7 +631,7 @@
                 return view;
             };
             ComponentFactory.prototype.createComponent = function (obj, context) {
-                var child, component, eventPump, spec, _i, _j, _len, _len1, _ref, _ref1;
+                var child, component, spec, _i, _j, _len, _len1, _ref, _ref1;
                 spec = this.componentRegistry.get(obj.type);
                 if (!spec) {
                     throw new Error('Component Spec Not Found for type \'' + obj.type + '\'');
@@ -624,14 +659,8 @@
                 if (!component.get('id')) {
                     component.set('id', this.uniqueId());
                 }
-                if (spec.component_listener) {
-                    eventPump = new EventPump(component);
-                    eventPump.on(component, spec.component_listener);
-                    component.eventPump = eventPump;
-                    eventPump.start(context);
-                }
                 if (spec.controller) {
-                    this.eventPump.on(component, spec.controller);
+                    this.eventEngine.add(component, spec.controller, context);
                 }
                 return component;
             };
@@ -705,6 +734,74 @@
             return CommandManager;
         }();
         return CommandManager;
+    });
+}.call(this));
+(function () {
+    var __hasProp = {}.hasOwnProperty;
+    define('build/EventController', [
+        'dou',
+        './ComponentSelector'
+    ], function (dou, ComponentSelector) {
+        'use strict';
+        var EventController, control, event_handler_fn;
+        control = function (handler_map, event, args) {
+            var event_map, event_name, handler, selector, _results;
+            _results = [];
+            for (selector in handler_map) {
+                if (!__hasProp.call(handler_map, selector))
+                    continue;
+                event_map = handler_map[selector];
+                if (ComponentSelector.match(selector, event.origin)) {
+                    _results.push(function () {
+                        var _results1;
+                        _results1 = [];
+                        for (event_name in event_map) {
+                            if (!__hasProp.call(event_map, event_name))
+                                continue;
+                            handler = event_map[event_name];
+                            if (event_name === event.name) {
+                                _results1.push(handler.apply(this, args));
+                            }
+                        }
+                        return _results1;
+                    }.call(this));
+                }
+            }
+            return _results;
+        };
+        event_handler_fn = function () {
+            var args, e;
+            args = arguments;
+            e = args[args.length - 1];
+            return this.controllers.forEach(function (handler_map) {
+                return control.call(this, handler_map, e, args);
+            }, this.context);
+        };
+        EventController = function () {
+            function EventController(target) {
+                this.setTarget(target);
+            }
+            EventController.prototype.setTarget = function (target) {
+                return this.target = target;
+            };
+            EventController.prototype.start = function (context) {
+                return this.target.on('all', event_handler_fn, {
+                    context: context || null,
+                    controllers: this
+                });
+            };
+            EventController.prototype.stop = function () {
+                return this.target.off('all', event_handler_fn);
+            };
+            EventController.prototype.despose = function () {
+                this.stop();
+                this.clear();
+                return this.target = null;
+            };
+            return EventController;
+        }();
+        dou.mixin(EventController, dou['with'].collection.withList);
+        return EventController;
     });
 }.call(this));
 (function () {
@@ -1017,7 +1114,7 @@
         '../command/CommandPropertyChange'
     ], function (dou, kin, EventTracker, ComponentSelector, CommandPropertyChange) {
         'use strict';
-        var component_listener, controller, createView, draghandler, onadded, onchange, onchangemodel, onchangeselections, onremoved, view_listener;
+        var controller, createView, draghandler, onadded, onchange, onchangemodel, onchangeselections, onremoved, view_listener;
         draghandler = {
             dragstart: function (e) {
                 var background, layer_offset, mode, offset;
@@ -1175,15 +1272,17 @@
         };
         controller = {
             '(root)': {
-                'change-model': onchangemodel,
-                'change-selections': onchangeselections
-            }
-        };
-        component_listener = {
+                '(root)': {
+                    'change-model': onchangemodel,
+                    'change-selections': onchangeselections
+                }
+            },
             '(self)': {
-                'added': onadded,
-                'removed': onremoved,
-                'change': onchange
+                '(self)': {
+                    'added': onadded,
+                    'removed': onremoved
+                },
+                '(all)': { 'change': onchange }
             }
         };
         view_listener = {
@@ -1241,7 +1340,6 @@
                 draggable: false
             },
             controller: controller,
-            component_listener: component_listener,
             view_listener: view_listener,
             view_factory_fn: createView,
             toolbox_image: 'images/toolbox_content_edit_layer.png'
@@ -1251,7 +1349,7 @@
 (function () {
     define('build/spec/SpecGuideLayer', ['KineticJS'], function (kin) {
         'use strict';
-        var component_listener, controller, createView, guide_handler, onadded, onchange, onremoved, view_listener;
+        var controller, createView, guide_handler, onadded, onchange, onremoved, view_listener;
         createView = function (attributes) {
             return new kin.Layer(attributes);
         };
@@ -1423,11 +1521,13 @@
             app = this.getView();
             return this.getEventHandler().off(app, guide_handler);
         };
-        controller = { '(all)': { 'change': onchange } };
-        component_listener = {
+        controller = {
+            '(root)': { '(all)': { 'change': onchange } },
             '(self)': {
-                'added': onadded,
-                'removed': onremoved
+                '(self)': {
+                    'added': onadded,
+                    'removed': onremoved
+                }
             }
         };
         view_listener = {
@@ -1444,7 +1544,6 @@
             description: 'Editing Guide Specification',
             defaults: { draggable: false },
             controller: controller,
-            component_listener: component_listener,
             view_listener: view_listener,
             view_factory_fn: createView,
             toolbox_image: 'images/toolbox_guide_layer.png'
@@ -1595,7 +1694,7 @@
             }
             return layer.draw();
         };
-        controller = { '(root)': { 'change-selections': onchangeselection } };
+        controller = { '(root)': { '(root)': { 'change-selections': onchangeselection } } };
         return {
             type: 'handle-layer',
             name: 'handle-layer',
@@ -2032,7 +2131,7 @@
         '../command/CommandPropertyChange'
     ], function (kin, EventTracker, ComponentSelector, CommandPropertyChange) {
         'use strict';
-        var component_listener, controller, createView, onadded, onchange, onchangemodel, onremoved, view_listener;
+        var controller, createView, onadded, onchange, onchangemodel, onremoved, view_listener;
         createView = function (attributes) {
             return new kin.Layer(attributes);
         };
@@ -2062,10 +2161,12 @@
             view.setAttrs(after);
             return this.drawView();
         };
-        controller = { '(root)': { 'change-model': onchangemodel } };
-        component_listener = {
-            '(all)': { 'change': onchange },
-            '(self)': { 'change': onchange }
+        controller = {
+            '(root)': { '(root)': { 'change-model': onchangemodel } },
+            '(self)': {
+                '(all)': { 'change': onchange },
+                '(self)': { 'change': onchange }
+            }
         };
         view_listener = {
             click: function (e) {
@@ -2082,7 +2183,6 @@
             description: 'Content View Layer Specification',
             defaults: {},
             controller: controller,
-            component_listener: component_listener,
             view_listener: view_listener,
             view_factory_fn: createView,
             toolbox_image: 'images/toolbox_content_view_layer.png'
@@ -2135,8 +2235,7 @@
         'KineticJS',
         './Component',
         './Container',
-        './EventController',
-        './EventPump',
+        './EventEngine',
         './EventTracker',
         './ComponentFactory',
         './Command',
@@ -2148,7 +2247,7 @@
         './spec/SpecPainter',
         './spec/SpecPresenter',
         './spec/SpecInfographic'
-    ], function (dou, kin, Component, Container, EventController, EventPump, EventTracker, ComponentFactory, Command, CommandManager, ComponentRegistry, ComponentSelector, SelectionManager, ComponentSpec, SpecPainter, SpecPresenter, SpecInfographic) {
+    ], function (dou, kin, Component, Container, EventEngine, EventTracker, ComponentFactory, Command, CommandManager, ComponentRegistry, ComponentSelector, SelectionManager, ComponentSpec, SpecPainter, SpecPresenter, SpecInfographic) {
         'use strict';
         var ApplicationContext;
         ApplicationContext = function () {
@@ -2167,14 +2266,13 @@
                     context: this
                 });
                 this.eventTracker = new EventTracker();
-                this.eventController = new EventController();
-                this.eventPump = new EventPump();
+                this.eventEngine = new EventEngine();
                 this.componentRegistry = new ComponentRegistry();
                 this.componentRegistry.setRegisterCallback(function (spec) {
                 }, this);
                 this.componentRegistry.setUnregisterCallback(function (spec) {
                 }, this);
-                this.componentFactory = new ComponentFactory(this.componentRegistry, this.eventTracker, this.eventPump);
+                this.componentFactory = new ComponentFactory(this.componentRegistry, this.eventEngine, this.eventTracker, this.eventPump);
                 this.componentRegistry.register(this.application_spec);
                 attributes = {
                     id: 'application',
@@ -2187,10 +2285,7 @@
                     attrs: attributes
                 }, this);
                 this.view = this.componentFactory.createView(this.application, this);
-                this.eventController.setTarget(this.application);
-                this.eventController.start(this);
-                this.eventPump.setDeliverer(this.application);
-                this.eventPump.start(this);
+                this.eventEngine.setRoot(this.application);
                 this.application.on('add', this.onadd, this);
                 this.application.on('remove', this.onremove, this);
                 if (this.application_spec.layers) {

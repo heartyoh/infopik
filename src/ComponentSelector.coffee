@@ -21,7 +21,10 @@ define [
     match_by_special = (selector, component, listener, root) ->
         switch(selector)
             when '(all)' then true
-            when '(self)' then listener is component
+            when '(self)' 
+                console.log('listener', listener) 
+                console.log('component', component)
+                return listener is component
             when '(root)' then root is component
             else false
 
@@ -43,13 +46,16 @@ define [
 
         result
 
-    select = (selector, component, listener, root) ->
+    select = (selector, component, listener) ->
+        return [component] if selector is '(root)'
+        return [listener] if selector is '(self)'
+        
         matcher = switch selector.charAt(0)
             when '#' then match_by_id
             when '.' then match_by_name
-            when '?' then match_by_variable
+            when '(' then match_by_special
             else match_by_type
-        return select_recurse matcher, selector, component, listener, root, []
+        return select_recurse matcher, selector, component, listener, component, []
 
     {
         select: select

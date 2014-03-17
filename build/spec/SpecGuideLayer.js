@@ -1,7 +1,7 @@
 (function() {
   define(['KineticJS'], function(kin) {
     "use strict";
-    var component_listener, controller, createView, guide_handler, onadded, onchange, onremoved, view_listener;
+    var controller, createView, guide_handler, onadded, onchange, onremoved, view_listener;
     createView = function(attributes) {
       return new kin.Layer(attributes);
     };
@@ -154,14 +154,16 @@
       return this.getEventHandler().off(app, guide_handler);
     };
     controller = {
-      '(all)': {
-        'change': onchange
-      }
-    };
-    component_listener = {
+      '(root)': {
+        '(all)': {
+          'change': onchange
+        }
+      },
       '(self)': {
-        'added': onadded,
-        'removed': onremoved
+        '(self)': {
+          'added': onadded,
+          'removed': onremoved
+        }
       }
     };
     view_listener = {
@@ -180,7 +182,6 @@
         draggable: false
       },
       controller: controller,
-      component_listener: component_listener,
       view_listener: view_listener,
       view_factory_fn: createView,
       toolbox_image: 'images/toolbox_guide_layer.png'

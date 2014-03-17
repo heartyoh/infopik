@@ -188,19 +188,26 @@ define [
 
     controller =
         '(root)' :
-            'change-model' : onchangemodel
-            'change-selections' : onchangeselections
+            '(root)' :
+                'change-model' : onchangemodel
+                'change-selections' : onchangeselections
+        '(self)' :
+            '(self)' :
+                'added' : onadded
+                'removed' : onremoved
+            '(all)' :
+                'change' : onchange
         # '(self)' :
         #     'added' : onadded
         #     'removed' : onremoved
         #     'change' : onchange
 
     # instance listeners
-    component_listener = 
-        '(self)' :
-            'added' : onadded
-            'removed' : onremoved
-            'change' : onchange
+    # component_listener = 
+    #     '(self)' :
+    #         'added' : onadded
+    #         'removed' : onremoved
+    #         'change' : onchange
         # 'change' : onchange
 
     view_listener = 
@@ -252,7 +259,7 @@ define [
             draggable: false
         }
         controller: controller
-        component_listener: component_listener
+        # component_listener: component_listener
         view_listener: view_listener
         view_factory_fn: createView
         toolbox_image: 'images/toolbox_content_edit_layer.png'

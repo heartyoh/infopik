@@ -9,8 +9,7 @@ define [
     'KineticJS'
     './Component'
     './Container'
-    './EventController'
-    './EventPump'
+    './EventEngine'
     './EventTracker'
     './ComponentFactory'
     './Command'
@@ -26,8 +25,7 @@ define [
     kin
     Component
     Container
-    EventController
-    EventPump
+    EventEngine
     EventTracker
     ComponentFactory
     Command
@@ -62,8 +60,7 @@ define [
 
             @eventTracker = new EventTracker()
 
-            @eventController = new EventController()
-            @eventPump = new EventPump()
+            @eventEngine = new EventEngine()
 
             @componentRegistry = new ComponentRegistry()
 
@@ -76,7 +73,7 @@ define [
                 # @eventController.remove spec.controller if spec.controller
             , this
 
-            @componentFactory = new ComponentFactory(@componentRegistry, @eventTracker, @eventPump)
+            @componentFactory = new ComponentFactory(@componentRegistry, @eventEngine, @eventTracker, @eventPump)
 
             @componentRegistry.register @application_spec
 
@@ -98,16 +95,10 @@ define [
 
             @view = @componentFactory.createView(@application, this)
 
-            # Second. attach event handlers to root container
-            @eventController.setTarget @application
-            @eventController.start this
-
-            @eventPump.setDeliverer @application
-            @eventPump.start this
+            @eventEngine.setRoot @application
 
             @application.on 'add', @onadd, this
             @application.on 'remove', @onremove, this
-
 
             # Third. add layers to root container
             if @application_spec.layers

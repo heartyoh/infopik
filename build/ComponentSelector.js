@@ -13,6 +13,8 @@
         case '(all)':
           return true;
         case '(self)':
+          console.log('listener', listener);
+          console.log('component', component);
           return listener === component;
         case '(root)':
           return root === component;
@@ -46,21 +48,27 @@
       }
       return result;
     };
-    select = function(selector, component, listener, root) {
+    select = function(selector, component, listener) {
       var matcher;
+      if (selector === '(root)') {
+        return [component];
+      }
+      if (selector === '(self)') {
+        return [listener];
+      }
       matcher = (function() {
         switch (selector.charAt(0)) {
           case '#':
             return match_by_id;
           case '.':
             return match_by_name;
-          case '?':
-            return match_by_variable;
+          case '(':
+            return match_by_special;
           default:
             return match_by_type;
         }
       })();
-      return select_recurse(matcher, selector, component, listener, root, []);
+      return select_recurse(matcher, selector, component, listener, component, []);
     };
     return {
       select: select,
