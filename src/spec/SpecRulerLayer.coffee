@@ -44,7 +44,6 @@ define [
             draggable: false
 
         # controller: controller
-        # component_listener: component_listener
         # view_listener: view_listener
         view_factory_fn: createView
         components: [{

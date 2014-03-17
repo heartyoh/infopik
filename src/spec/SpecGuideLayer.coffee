@@ -158,15 +158,6 @@ define [
                 'added' : onadded
                 'removed' : onremoved
 
-        # '(self)' :
-        #     'added' : onadded
-        #     'removed' : onremoved
-
-    # component_listener = 
-    #     '(self)' :
-    #         'added' : onadded
-    #         'removed' : onremoved
-
     view_listener = 
         dragmove : (e) ->
             node = e.targetNode
@@ -181,7 +172,6 @@ define [
             draggable: false
         }
         controller: controller
-        # component_listener: component_listener
         view_listener: view_listener
         view_factory_fn: createView
         toolbox_image: 'images/toolbox_guide_layer.png'

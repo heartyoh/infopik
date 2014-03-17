@@ -197,18 +197,6 @@ define [
                 'removed' : onremoved
             '(all)' :
                 'change' : onchange
-        # '(self)' :
-        #     'added' : onadded
-        #     'removed' : onremoved
-        #     'change' : onchange
-
-    # instance listeners
-    # component_listener = 
-    #     '(self)' :
-    #         'added' : onadded
-    #         'removed' : onremoved
-    #         'change' : onchange
-        # 'change' : onchange
 
     view_listener = 
         dragstart : (e) ->
@@ -259,7 +247,6 @@ define [
             draggable: false
         }
         controller: controller
-        # component_listener: component_listener
         view_listener: view_listener
         view_factory_fn: createView
         toolbox_image: 'images/toolbox_content_edit_layer.png'

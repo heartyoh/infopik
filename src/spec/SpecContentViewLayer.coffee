@@ -52,15 +52,6 @@ define [
                 # 'removed' : onremoved
                 'change' : onchange
 
-    # instance listeners
-    # component_listener = 
-        # '(all)':
-        #     'change' : onchange
-        # '(self)' :
-        #     # 'added' : onadded
-        #     # 'removed' : onremoved
-        #     'change' : onchange
-
     view_listener =
         click : (e) ->
             node = e.targetNode
@@ -75,7 +66,6 @@ define [
         defaults: {
         }
         controller: controller
-        # component_listener: component_listener
         view_listener: view_listener
         view_factory_fn: createView
         toolbox_image: 'images/toolbox_content_view_layer.png'
