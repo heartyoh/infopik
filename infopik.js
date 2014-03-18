@@ -65,7 +65,21 @@
         Component = function () {
             function Component(type) {
                 this.type = type;
+                this.__views__ = [];
             }
+            Component.prototype.attach = function (view) {
+                return this.__views__.push(view);
+            };
+            Component.prototype.detach = function (view) {
+                var index;
+                index = this.__views__.indexOf(view);
+                if (index > -1) {
+                    return this.__views__.splice(index, 1);
+                }
+            };
+            Component.prototype.attaches = function () {
+                return this.__views__;
+            };
             return Component;
         }();
         return dou.mixin(Component, [
@@ -206,8 +220,6 @@
             case '(all)':
                 return true;
             case '(self)':
-                console.log('listener', listener);
-                console.log('component', component);
                 return listener === component;
             case '(root)':
                 return root === component;
@@ -219,6 +231,9 @@
             return selector === 'all' || selector === component.type;
         };
         match = function (selector, component, listener, root) {
+            if (selector === '(all)') {
+                return true;
+            }
             switch (selector.charAt(0)) {
             case '#':
                 return match_by_id(selector, component, listener, root);
@@ -422,10 +437,6 @@
                         continue;
                     handlers = handlerMap[selector];
                     targets = ComponentSelector.select(selector, this.root, listener);
-                    if (selector === '(self)') {
-                        console.log(listener === targets[0]);
-                        console.log(listener, targets[0]);
-                    }
                     _results.push(function () {
                         var _i, _len, _results1;
                         _results1 = [];
@@ -481,7 +492,7 @@
 }.call(this));
 (function () {
     var __hasProp = {}.hasOwnProperty;
-    define('build/EventTracker', [], function () {
+    define('build/EventTracker', ['dou'], function (dou) {
         'use strict';
         var EventTracker, StandAloneTracker;
         StandAloneTracker = function () {
@@ -534,11 +545,36 @@
             function EventTracker() {
                 this.trackers = [];
             }
-            EventTracker.prototype.on = function (target, handlers, self) {
-                var tracker;
-                tracker = new StandAloneTracker(target, handlers, self);
-                this.trackers.push(tracker);
-                return tracker.on();
+            EventTracker.prototype.setSelector = function (selector) {
+                return this.selector = selector;
+            };
+            EventTracker.prototype.on = function (target, handlers, listener, context) {
+                var deliverer, deliverers, tracker, _i, _len, _results;
+                deliverers = function () {
+                    switch (typeof target) {
+                    case 'object':
+                        return [target];
+                    case 'string':
+                        return this.selector.select(target, listener);
+                    default:
+                        return [];
+                    }
+                }.call(this);
+                if (!(deliverers instanceof Array)) {
+                    deliverers = [deliverers];
+                }
+                _results = [];
+                for (_i = 0, _len = deliverers.length; _i < _len; _i++) {
+                    deliverer = deliverers[_i];
+                    tracker = new StandAloneTracker(deliverer, handlers, {
+                        listener: listener,
+                        deliverer: deliverer,
+                        context: context || deliverer
+                    });
+                    this.trackers.push(tracker);
+                    _results.push(tracker.on());
+                }
+                return _results;
             };
             EventTracker.prototype.off = function (target, handlers) {
                 var i, idx, idxs, tracker, _i, _len, _ref, _results;
@@ -579,7 +615,8 @@
                     tracker = _ref[_i];
                     tracker.off();
                 }
-                return this.trackers = [];
+                this.trackers = [];
+                return this.selector = null;
             };
             EventTracker.StandAlone = StandAloneTracker;
             return EventTracker;
@@ -587,6 +624,7 @@
     });
 }.call(this));
 (function () {
+    var __hasProp = {}.hasOwnProperty;
     define('build/ComponentFactory', [
         'dou',
         './Component',
@@ -613,20 +651,39 @@
                 return 'noid-' + this.seed++;
             };
             ComponentFactory.prototype.createView = function (component, context) {
-                var spec, type, view;
+                var handlers, selector, spec, type, variable, view, _ref;
                 type = component.type;
                 spec = this.componentRegistry.get(type);
                 if (!spec) {
                     throw new Error('Component Spec Not Found for type \'' + type + '\'');
                 }
                 view = spec.view_factory_fn.call(context, component.getAll());
+                view.__component__ = component;
+                component.attach(view);
                 if (component instanceof Container) {
                     component.forEach(function (child) {
                         return view.add(this.createView(child, context));
                     }, this);
                 }
                 if (spec.view_listener) {
-                    this.eventTracker.on(view, spec.view_listener, context);
+                    _ref = spec.view_listener;
+                    for (selector in _ref) {
+                        if (!__hasProp.call(_ref, selector))
+                            continue;
+                        handlers = _ref[selector];
+                        if (selector.indexOf('?') === 0) {
+                            variable = selector.substr(1);
+                            selector = component.get(variable);
+                            if (selector === void 0) {
+                                console.log('ComponentFactory#crateView', 'variable ' + selector + ' is not evaluated on listener');
+                                continue;
+                            }
+                        }
+                        this.eventTracker.on(selector, handlers, view, {
+                            component: component,
+                            application: context
+                        });
+                    }
                 }
                 return view;
             };
@@ -1114,117 +1171,7 @@
         '../command/CommandPropertyChange'
     ], function (dou, kin, EventTracker, ComponentSelector, CommandPropertyChange) {
         'use strict';
-        var controller, createView, draghandler, onadded, onchange, onchangemodel, onchangeselections, onremoved, view_listener;
-        draghandler = {
-            dragstart: function (e) {
-                var background, layer_offset, mode, offset;
-                if (e.targetNode && e.targetNode !== this.background) {
-                    return;
-                }
-                background = this.background;
-                layer_offset = this.layer.offset();
-                background.setAttrs({
-                    x: layer_offset.x + 20,
-                    y: layer_offset.y + 20
-                });
-                this.start_point = {
-                    x: e.offsetX,
-                    y: e.offsetY
-                };
-                this.origin_offset = this.layer.offset();
-                offset = {
-                    x: this.start_point.x + this.origin_offset.x,
-                    y: this.start_point.y + this.origin_offset.y
-                };
-                mode = 'MOVE';
-                if (mode === 'SELECT') {
-                    this.selectbox = new kin.Rect({
-                        stroke: 'black',
-                        strokeWidth: 1,
-                        dash: [
-                            3,
-                            3
-                        ]
-                    });
-                    this.layer.add(this.selectbox);
-                    this.selectbox.setAttrs(offset);
-                } else if (mode === 'MOVE') {
-                } else {
-                }
-                this.layer.draw();
-                return e.cancelBubble = true;
-            },
-            dragmove: function (e) {
-                var background, mode, x, y;
-                if (e.targetNode && e.targetNode !== this.background) {
-                    return;
-                }
-                background = this.background;
-                mode = 'MOVE';
-                if (mode === 'SELECT') {
-                    background.setAttrs({
-                        x: this.origin_offset.x + 20,
-                        y: this.origin_offset.y + 20
-                    });
-                    this.selectbox.setAttrs({
-                        width: e.offsetX - this.start_point.x,
-                        height: e.offsetY - this.start_point.y
-                    });
-                } else if (mode === 'MOVE') {
-                    x = this.origin_offset.x - (e.offsetX - this.start_point.x);
-                    y = this.origin_offset.y - (e.offsetY - this.start_point.y);
-                    this.layer.offset({
-                        x: x,
-                        y: y
-                    });
-                    this.background.setAttrs({
-                        x: x + 20,
-                        y: y + 20
-                    });
-                    this.layer.fire('change-offset', {
-                        x: x,
-                        y: y
-                    }, false);
-                } else {
-                }
-                this.layer.draw();
-                return e.cancelBubble = true;
-            },
-            dragend: function (e) {
-                var background, mode, x, y;
-                if (e.targetNode && e.targetNode !== this.background) {
-                    return;
-                }
-                background = this.background;
-                mode = 'MOVE';
-                if (mode === 'SELECT') {
-                    background.setAttrs({
-                        x: this.origin_offset.x + 20,
-                        y: this.origin_offset.y + 20
-                    });
-                    this.selectbox.remove();
-                    delete this.selectbox;
-                } else if (mode === 'MOVE') {
-                    x = Math.max(this.origin_offset.x - (e.offsetX - this.start_point.x), -20);
-                    y = Math.max(this.origin_offset.y - (e.offsetY - this.start_point.y), -20);
-                    this.layer.offset({
-                        x: x,
-                        y: y
-                    });
-                    this.background.setAttrs({
-                        x: x + 20,
-                        y: y + 20
-                    });
-                    this.layer.fire('change-offset', {
-                        x: x,
-                        y: y
-                    }, false);
-                } else {
-                }
-                this.layer.draw();
-                return e.cancelBubble = true;
-            }
-        };
+        var controller, createView, onadded, onchange, onchangemodel, onchangeselections, onclick, ondragend, ondragmove, ondragstart, onremoved, view_listener;
         createView = function (attributes) {
             var background, layer, offset, stage;
             stage = this.getView().getStage();
@@ -1244,10 +1191,7 @@
                 fill: 'cyan'
             });
             layer.add(background);
-            this.getEventTracker().on(layer, draghandler, {
-                layer: layer,
-                background: background
-            });
+            layer.__background__ = background;
             return layer;
         };
         onadded = function (container, component, index, e) {
@@ -1261,14 +1205,148 @@
                 layer.remove(before);
             }
             if (after) {
-                layer.add(after);
+                return layer.add(after);
             }
-            return this.findView('#' + layer.get('id'));
         };
         onchangeselections = function (after, before, added, removed) {
             return console.log('selection-changed', after);
         };
         onchange = function (component, before, after) {
+        };
+        ondragstart = function (e) {
+            var background, layer, layer_offset, mode, offset;
+            layer = this.listener;
+            background = layer.__background__;
+            if (e.targetNode && e.targetNode !== background) {
+                return;
+            }
+            layer_offset = layer.offset();
+            background.setAttrs({
+                x: layer_offset.x + 20,
+                y: layer_offset.y + 20
+            });
+            this.start_point = {
+                x: e.offsetX,
+                y: e.offsetY
+            };
+            this.origin_offset = layer.offset();
+            offset = {
+                x: this.start_point.x + this.origin_offset.x,
+                y: this.start_point.y + this.origin_offset.y
+            };
+            mode = 'MOVE';
+            if (mode === 'SELECT') {
+                this.selectbox = new kin.Rect({
+                    stroke: 'black',
+                    strokeWidth: 1,
+                    dash: [
+                        3,
+                        3
+                    ]
+                });
+                layer.add(this.selectbox);
+                this.selectbox.setAttrs(offset);
+            } else if (mode === 'MOVE') {
+            } else {
+            }
+            layer.draw();
+            return e.cancelBubble = true;
+        };
+        ondragmove = function (e) {
+            var background, layer, mode, x, y;
+            layer = this.listener;
+            background = layer.__background__;
+            if (e.targetNode && e.targetNode !== background) {
+                return;
+            }
+            mode = 'MOVE';
+            if (mode === 'SELECT') {
+                background.setAttrs({
+                    x: this.origin_offset.x + 20,
+                    y: this.origin_offset.y + 20
+                });
+                this.selectbox.setAttrs({
+                    width: e.offsetX - this.start_point.x,
+                    height: e.offsetY - this.start_point.y
+                });
+            } else if (mode === 'MOVE') {
+                x = this.origin_offset.x - (e.offsetX - this.start_point.x);
+                y = this.origin_offset.y - (e.offsetY - this.start_point.y);
+                layer.offset({
+                    x: x,
+                    y: y
+                });
+                background.setAttrs({
+                    x: x + 20,
+                    y: y + 20
+                });
+                layer.fire('change-offset', {
+                    x: x,
+                    y: y
+                }, false);
+            } else {
+            }
+            layer.draw();
+            return e.cancelBubble = true;
+        };
+        ondragend = function (e) {
+            var application, background, cmd, component, layer, mode, node, x, y;
+            application = this.context.application;
+            node = e.targetNode;
+            component = node.__component__;
+            if (component) {
+                cmd = new CommandPropertyChange({
+                    changes: [{
+                            component: component,
+                            before: {
+                                x: component.get('x'),
+                                y: component.get('y')
+                            },
+                            after: {
+                                x: node.x(),
+                                y: node.y()
+                            }
+                        }]
+                });
+                application.execute(cmd);
+            }
+            layer = this.listener;
+            background = layer.__background__;
+            if (e.targetNode && e.targetNode !== background) {
+                return;
+            }
+            mode = 'MOVE';
+            if (mode === 'SELECT') {
+                background.setAttrs({
+                    x: this.origin_offset.x + 20,
+                    y: this.origin_offset.y + 20
+                });
+                this.selectbox.remove();
+                delete this.selectbox;
+            } else if (mode === 'MOVE') {
+                x = Math.max(this.origin_offset.x - (e.offsetX - this.start_point.x), -20);
+                y = Math.max(this.origin_offset.y - (e.offsetY - this.start_point.y), -20);
+                layer.offset({
+                    x: x,
+                    y: y
+                });
+                background.setAttrs({
+                    x: x + 20,
+                    y: y + 20
+                });
+                layer.fire('change-offset', {
+                    x: x,
+                    y: y
+                }, false);
+            } else {
+            }
+            layer.draw();
+            return e.cancelBubble = true;
+        };
+        onclick = function (e) {
+            var node;
+            node = e.targetNode;
+            return this.context.application.selectionManager.select(node);
         };
         controller = {
             '(root)': {
@@ -1286,47 +1364,11 @@
             }
         };
         view_listener = {
-            dragstart: function (e) {
-            },
-            dragmove: function (e) {
-            },
-            dragend: function (e) {
-                var cmd, component, id, node;
-                node = e.targetNode;
-                id = e.targetNode.getAttr('id');
-                component = this.findComponent('#' + id)[0];
-                if (!component) {
-                    return;
-                }
-                cmd = new CommandPropertyChange({
-                    changes: [{
-                            component: component,
-                            before: {
-                                x: component.get('x'),
-                                y: component.get('y')
-                            },
-                            after: {
-                                x: node.x(),
-                                y: node.y()
-                            }
-                        }]
-                });
-                return this.execute(cmd);
-            },
-            click: function (e) {
-                var node;
-                node = e.targetNode;
-                return this.selectionManager.select(node);
-            },
-            mouseover: function (e) {
-            },
-            mousemove: function (e) {
-            },
-            mouseout: function (e) {
-            },
-            mouseenter: function (e) {
-            },
-            mouseleave: function (e) {
+            '(self)': {
+                dragstart: ondragstart,
+                dragmove: ondragmove,
+                dragend: ondragend,
+                click: onclick
             }
         };
         return {
@@ -1349,7 +1391,7 @@
 (function () {
     define('build/spec/SpecGuideLayer', ['KineticJS'], function (kin) {
         'use strict';
-        var controller, createView, guide_handler, onadded, onchange, onremoved, view_listener;
+        var controller, createView, onadded, onchange, ondragend, ondragmove, ondragstart, onremoved, view_listener;
         createView = function (attributes) {
             return new kin.Layer(attributes);
         };
@@ -1361,7 +1403,7 @@
             }
             self = guideLayer._track;
             if (!self.view) {
-                self.view = this.findViewByComponent(e.listener)[0];
+                self.view = e.listener.attaches()[0];
             }
             layer = self.view;
             self.changes = (self.changes || 0) + 1;
@@ -1405,116 +1447,112 @@
                 }, 1000);
             }, 5000);
         };
-        guide_handler = {
-            dragstart: function (e) {
-                var layer, layer_offset, node, offset_x, offset_y, textx, texty;
-                this.mouse_origin = {
-                    x: e.x,
-                    y: e.y
-                };
-                node = e.targetNode;
-                this.node_origin = node.getAbsolutePosition();
-                layer_offset = this.layer.offset();
-                offset_x = this.node_origin.x + layer_offset.x;
-                offset_y = this.node_origin.y + layer_offset.y;
-                this.vert = new kin.Line({
-                    stroke: 'red',
-                    tension: 1,
-                    points: [
-                        offset_x,
-                        0,
-                        offset_x,
-                        this.height
-                    ]
-                });
-                this.hori = new kin.Line({
-                    stroke: 'red',
-                    tension: 1,
-                    points: [
-                        0,
-                        offset_y,
-                        this.width,
-                        offset_y
-                    ]
-                });
-                this.text = new kin.Text({
-                    listening: false,
-                    fontSize: 12,
-                    fontFamily: 'Calibri',
-                    fill: 'green'
-                });
-                this.text.setAttr('text', '[ ' + offset_x + '(' + node.x() + '), ' + offset_y + '(' + node.y() + ') ]');
-                textx = Math.max(offset_x, 0) > this.text.width() + 10 ? offset_x - (this.text.width() + 10) : Math.max(offset_x + 10, 10);
-                texty = Math.max(offset_y, 0) > this.text.height() + 10 ? offset_y - (this.text.height() + 10) : Math.max(offset_y + 10, 10);
-                this.text.setAttrs({
-                    x: textx,
-                    y: texty
-                });
-                layer = this.layer;
-                layer.add(this.vert);
-                layer.add(this.hori);
-                layer.add(this.text);
-                return layer.draw();
-            },
-            dragmove: function (e) {
-                var layer_offset, node, node_new_pos, offset_x, offset_y, textx, texty, x, y;
-                node_new_pos = {
-                    x: e.x - this.mouse_origin.x + this.node_origin.x,
-                    y: e.y - this.mouse_origin.y + this.node_origin.y
-                };
-                x = Math.round(node_new_pos.x / 10) * 10;
-                y = Math.round(node_new_pos.y / 10) * 10;
-                node = e.targetNode;
-                node.setAbsolutePosition({
-                    x: x,
-                    y: y
-                });
-                layer_offset = this.layer.offset();
-                offset_x = x + layer_offset.x;
-                offset_y = y + layer_offset.y;
-                this.vert.setAttrs({
-                    points: [
-                        offset_x,
-                        0,
-                        offset_x,
-                        this.height
-                    ]
-                });
-                this.hori.setAttrs({
-                    points: [
-                        0,
-                        offset_y,
-                        this.width,
-                        offset_y
-                    ]
-                });
-                this.text.setAttr('text', '[ ' + offset_x + '(' + node.x() + '), ' + offset_y + '(' + node.y() + ') ]');
-                textx = Math.max(offset_x, 0) > this.text.width() + 10 ? offset_x - (this.text.width() + 10) : Math.max(offset_x + 10, 10);
-                texty = Math.max(offset_y, 0) > this.text.height() + 10 ? offset_y - (this.text.height() + 10) : Math.max(offset_y + 10, 10);
-                this.text.setAttrs({
-                    x: textx,
-                    y: texty
-                });
-                return this.layer.draw();
-            },
-            dragend: function (e) {
-                this.vert.remove();
-                this.hori.remove();
-                this.text.remove();
-                return this.layer.draw();
-            }
+        ondragstart = function (e) {
+            var app, layer, layer_offset, node, offset_x, offset_y, stage, textx, texty;
+            layer = this.listener;
+            app = this.context.application;
+            stage = this.context.application.getView();
+            this.width = stage.getWidth();
+            this.height = stage.getHeight();
+            this.mouse_origin = {
+                x: e.x,
+                y: e.y
+            };
+            node = e.targetNode;
+            this.node_origin = node.getAbsolutePosition();
+            layer_offset = layer.offset();
+            offset_x = this.node_origin.x + layer_offset.x;
+            offset_y = this.node_origin.y + layer_offset.y;
+            this.vert = new kin.Line({
+                stroke: 'red',
+                tension: 1,
+                points: [
+                    offset_x,
+                    0,
+                    offset_x,
+                    this.height
+                ]
+            });
+            this.hori = new kin.Line({
+                stroke: 'red',
+                tension: 1,
+                points: [
+                    0,
+                    offset_y,
+                    this.width,
+                    offset_y
+                ]
+            });
+            this.text = new kin.Text({
+                listening: false,
+                fontSize: 12,
+                fontFamily: 'Calibri',
+                fill: 'green'
+            });
+            this.text.setAttr('text', '[ ' + offset_x + '(' + node.x() + '), ' + offset_y + '(' + node.y() + ') ]');
+            textx = Math.max(offset_x, 0) > this.text.width() + 10 ? offset_x - (this.text.width() + 10) : Math.max(offset_x + 10, 10);
+            texty = Math.max(offset_y, 0) > this.text.height() + 10 ? offset_y - (this.text.height() + 10) : Math.max(offset_y + 10, 10);
+            this.text.setAttrs({
+                x: textx,
+                y: texty
+            });
+            layer = layer;
+            layer.add(this.vert);
+            layer.add(this.hori);
+            layer.add(this.text);
+            return layer.draw();
+        };
+        ondragmove = function (e) {
+            var layer, layer_offset, node, node_new_pos, offset_x, offset_y, textx, texty, x, y;
+            layer = this.listener;
+            node_new_pos = {
+                x: e.x - this.mouse_origin.x + this.node_origin.x,
+                y: e.y - this.mouse_origin.y + this.node_origin.y
+            };
+            x = Math.round(node_new_pos.x / 10) * 10;
+            y = Math.round(node_new_pos.y / 10) * 10;
+            node = e.targetNode;
+            node.setAbsolutePosition({
+                x: x,
+                y: y
+            });
+            layer_offset = layer.offset();
+            offset_x = x + layer_offset.x;
+            offset_y = y + layer_offset.y;
+            this.vert.setAttrs({
+                points: [
+                    offset_x,
+                    0,
+                    offset_x,
+                    this.height
+                ]
+            });
+            this.hori.setAttrs({
+                points: [
+                    0,
+                    offset_y,
+                    this.width,
+                    offset_y
+                ]
+            });
+            this.text.setAttr('text', '[ ' + offset_x + '(' + node.x() + '), ' + offset_y + '(' + node.y() + ') ]');
+            textx = Math.max(offset_x, 0) > this.text.width() + 10 ? offset_x - (this.text.width() + 10) : Math.max(offset_x + 10, 10);
+            texty = Math.max(offset_y, 0) > this.text.height() + 10 ? offset_y - (this.text.height() + 10) : Math.max(offset_y + 10, 10);
+            this.text.setAttrs({
+                x: textx,
+                y: texty
+            });
+            return layer.draw();
+        };
+        ondragend = function (e) {
+            var layer;
+            layer = this.listener;
+            this.vert.remove();
+            this.hori.remove();
+            this.text.remove();
+            return layer.draw();
         };
         onadded = function (container, component, index, e) {
-            var height, layer, stage, width;
-            layer = this.findView('#' + component.get('id'))[0];
-            stage = this.getView().getStage();
-            width = stage.getWidth();
-            height = stage.getHeight();
-            return this.getEventTracker().on(this.getView(), guide_handler, {
-                layer: layer,
-                width: width,
-                height: height
-            });
         };
         onremoved = function (container, component, e) {
             var app;
@@ -1531,9 +1569,10 @@
             }
         };
         view_listener = {
-            dragmove: function (e) {
-                var node;
-                return node = e.targetNode;
+            '(root)': {
+                dragstart: ondragstart,
+                dragmove: ondragmove,
+                dragend: ondragend
             }
         };
         return {
@@ -1556,27 +1595,23 @@
         'KineticJS'
     ], function (dou, kin) {
         'use strict';
-        var createView;
+        var createView, onchangeoffset, view_listener;
         createView = function (attributes) {
-            var layer, target_comp, target_view;
-            layer = new kin.Layer(attributes);
-            if (attributes.offset_monitor_target) {
-                target_comp = this.findComponent(attributes.offset_monitor_target)[0];
-                target_view = this.findViewByComponent(target_comp);
-                target_view.on('change-offset', function (e) {
-                    var children;
-                    if (!layer.__hori__) {
-                        children = layer.getChildren().toArray();
-                        layer.__hori__ = children[0];
-                        layer.__vert__ = children[1];
-                    }
-                    layer.__hori__.setAttr('zeropos', -e.x);
-                    layer.__vert__.setAttr('zeropos', -e.y);
-                    return layer.draw();
-                });
-            }
-            return layer;
+            return new kin.Layer(attributes);
         };
+        onchangeoffset = function (e) {
+            var children, layer;
+            layer = this.listener;
+            if (!layer.__hori__) {
+                children = layer.getChildren().toArray();
+                layer.__hori__ = children[0];
+                layer.__vert__ = children[1];
+            }
+            layer.__hori__.setAttr('zeropos', -e.x);
+            layer.__vert__.setAttr('zeropos', -e.y);
+            return layer.draw();
+        };
+        view_listener = { '?offset_monitor_target': { 'change-offset': onchangeoffset } };
         return {
             type: 'ruler-layer',
             name: 'ruler-layer',
@@ -1584,6 +1619,7 @@
             container_type: 'layer',
             description: 'Ruler Layer Specification',
             defaults: { draggable: false },
+            view_listener: view_listener,
             view_factory_fn: createView,
             components: [
                 {
@@ -1629,53 +1665,51 @@
         'KineticJS'
     ], function (dou, kin) {
         'use strict';
-        var controller, createView, onchangeselection;
+        var controller, createView, onchangeoffset, onchangeselection, ondragend, ondragmove, view_listener;
         createView = function (attributes) {
-            var layer, target_comp, target_view;
+            var layer;
             layer = new kin.Layer(attributes);
             layer.handles = {};
-            if (attributes.offset_monitor_target) {
-                target_comp = this.findComponent(attributes.offset_monitor_target)[0];
-                target_view = this.findViewByComponent(target_comp);
-                target_view.on('change-offset', function (e) {
-                    layer.offset({
-                        x: e.x,
-                        y: e.y
-                    });
-                    return layer.draw();
-                });
-                this.getEventTracker().on(target_view, {
-                    dragmove: function (e) {
-                        var handle, id;
-                        id = e.targetNode.getAttr('id');
-                        handle = layer.handles[id];
-                        if (handle) {
-                            handle.setAbsolutePosition(e.targetNode.getAbsolutePosition());
-                            return layer.draw();
-                        }
-                    },
-                    dragend: function (e) {
-                        var handle, id;
-                        id = e.targetNode.getAttr('id');
-                        handle = layer.handles[id];
-                        if (handle) {
-                            handle.setAbsolutePosition(e.targetNode.getAbsolutePosition());
-                            return layer.draw();
-                        }
-                    }
-                }, {});
-            }
             return layer;
+        };
+        onchangeoffset = function (e) {
+            var layer;
+            layer = this.listener;
+            layer.offset({
+                x: e.x,
+                y: e.y
+            });
+            return layer.draw();
+        };
+        ondragmove = function (e) {
+            var handle, id, layer;
+            layer = this.listener;
+            id = e.targetNode.getAttr('id');
+            handle = layer.handles[id];
+            if (handle) {
+                handle.setAbsolutePosition(e.targetNode.getAbsolutePosition());
+                return layer.draw();
+            }
+        };
+        ondragend = function (e) {
+            var handle, id, layer;
+            layer = this.listener;
+            id = e.targetNode.getAttr('id');
+            handle = layer.handles[id];
+            if (handle) {
+                handle.setAbsolutePosition(e.targetNode.getAbsolutePosition());
+                return layer.draw();
+            }
         };
         onchangeselection = function (after, before, added, removed, e) {
             var container, handle, handle_comp, handle_view, id, layer, node, pos, _i, _j, _len, _len1;
             container = e.listener;
-            layer = this.findViewByComponent(container)[0];
+            layer = container.attaches()[0];
             for (_i = 0, _len = removed.length; _i < _len; _i++) {
                 node = removed[_i];
                 id = node.getAttr('id');
                 handle = layer.handles[id];
-                handle_comp = this.findComponent('#' + handle.getAttr('id'))[0];
+                handle_comp = handle.__component__;
                 container.remove(handle_comp);
                 delete layer.handles[id];
             }
@@ -1688,13 +1722,20 @@
                     attrs: {}
                 });
                 container.add(handle_comp);
-                handle_view = this.findViewByComponent(handle_comp)[0];
+                handle_view = handle_comp.attaches()[0];
                 handle_view.setAbsolutePosition(pos);
                 layer.handles[id] = handle_view;
             }
             return layer.draw();
         };
         controller = { '(root)': { '(root)': { 'change-selections': onchangeselection } } };
+        view_listener = {
+            '?offset_monitor_target': {
+                'change-offset': onchangeoffset,
+                dragmove: ondragmove,
+                dragend: ondragend
+            }
+        };
         return {
             type: 'handle-layer',
             name: 'handle-layer',
@@ -1703,6 +1744,7 @@
             description: 'Handle Layer Specification',
             defaults: { draggable: false },
             controller: controller,
+            view_listener: view_listener,
             view_factory_fn: createView,
             toolbox_image: 'images/toolbox_handle_layer.png'
         };
@@ -2252,7 +2294,7 @@
         var ApplicationContext;
         ApplicationContext = function () {
             function ApplicationContext(options) {
-                var attributes, component, container, _i, _len, _ref;
+                var attributes, component, container, rootComponent, rootView, _i, _len, _ref;
                 this.application_spec = options.application_spec, container = options.container;
                 if (typeof container !== 'string') {
                     throw new Error('container is a mandatory string type option.');
@@ -2265,14 +2307,15 @@
                     onselectionchange: this.onselectionchange,
                     context: this
                 });
-                this.eventTracker = new EventTracker();
+                this.compEventTracker = new EventTracker();
+                this.viewEventTracker = new EventTracker();
                 this.eventEngine = new EventEngine();
                 this.componentRegistry = new ComponentRegistry();
                 this.componentRegistry.setRegisterCallback(function (spec) {
                 }, this);
                 this.componentRegistry.setUnregisterCallback(function (spec) {
                 }, this);
-                this.componentFactory = new ComponentFactory(this.componentRegistry, this.eventEngine, this.eventTracker, this.eventPump);
+                this.componentFactory = new ComponentFactory(this.componentRegistry, this.eventEngine, this.viewEventTracker);
                 this.componentRegistry.register(this.application_spec);
                 attributes = {
                     id: 'application',
@@ -2286,6 +2329,35 @@
                 }, this);
                 this.view = this.componentFactory.createView(this.application, this);
                 this.eventEngine.setRoot(this.application);
+                rootView = this.view;
+                rootComponent = this.application;
+                this.compEventTracker.setSelector({
+                    select: function (selector, listener) {
+                        return CompoentSelector.select(selector, rootComponent, listener);
+                    }
+                });
+                this.viewEventTracker.setSelector({
+                    select: function (selector, listener) {
+                        var comp, comps, view, views, _i, _j, _len, _len1, _ref;
+                        if (selector === '(self)') {
+                            return listener;
+                        }
+                        if (selector === '(root)') {
+                            return rootView;
+                        }
+                        comps = ComponentSelector.select(selector, rootComponent);
+                        views = [];
+                        for (_i = 0, _len = comps.length; _i < _len; _i++) {
+                            comp = comps[_i];
+                            _ref = comp.attaches();
+                            for (_j = 0, _len1 = _ref.length; _j < _len1; _j++) {
+                                view = _ref[_j];
+                                views.push(view);
+                            }
+                        }
+                        return views;
+                    }
+                });
                 this.application.on('add', this.onadd, this);
                 this.application.on('remove', this.onremove, this);
                 if (this.application_spec.layers) {
@@ -2297,13 +2369,13 @@
                 }
             }
             ApplicationContext.prototype.despose = function () {
-                this.eventTracker.despose();
+                this.compEventTracker.despose();
                 this.eventController.despose();
                 this.eventRegistry.despose();
                 return this.componentFactory.despose();
             };
             ApplicationContext.prototype.getEventTracker = function () {
-                return this.eventTracker;
+                return this.compEventTracker;
             };
             ApplicationContext.prototype.getView = function () {
                 return this.view;
@@ -2355,7 +2427,6 @@
                 var vcomponent;
                 console.log('removed', container, component);
                 vcomponent = this.findViewByComponent(component);
-                console.log('found-component', vcomponent);
                 vcomponent.destroy();
                 return this.drawView();
             };

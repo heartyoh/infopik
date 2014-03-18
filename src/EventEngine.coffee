@@ -35,10 +35,6 @@ define [
 
                 targets = ComponentSelector.select(selector, @root, listener)
 
-                if(selector is '(self)')
-                    console.log(listener is targets[0])
-                    console.log(listener, targets[0])
-
                 for target in targets
                     eventPump = new EventPump(target)
                     eventPump.on(listener, handlers)

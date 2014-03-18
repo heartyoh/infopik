@@ -15,24 +15,24 @@ define [
     "use strict"
 
     createView = (attributes) ->
-        layer = new kin.Layer(attributes)
+        new kin.Layer(attributes)
 
-        if attributes.offset_monitor_target
-            target_comp = this.findComponent(attributes.offset_monitor_target)[0]
-            target_view = this.findViewByComponent(target_comp)
+    onchangeoffset = (e) ->
+        layer = this.listener
 
-            target_view.on 'change-offset', (e) ->
-                if not layer.__hori__
-                    children = layer.getChildren().toArray()
-                    layer.__hori__ = children[0]
-                    layer.__vert__ = children[1]
+        if not layer.__hori__
+            children = layer.getChildren().toArray()
+            layer.__hori__ = children[0]
+            layer.__vert__ = children[1]
 
-                layer.__hori__.setAttr('zeropos', -e.x)
-                layer.__vert__.setAttr('zeropos', -e.y)
+        layer.__hori__.setAttr('zeropos', -e.x)
+        layer.__vert__.setAttr('zeropos', -e.y)
 
-                layer.draw()
+        layer.draw()
 
-        layer
+    view_listener = 
+        '?offset_monitor_target':
+            'change-offset': onchangeoffset
 
     {
         type: 'ruler-layer'
@@ -44,7 +44,7 @@ define [
             draggable: false
 
         # controller: controller
-        # view_listener: view_listener
+        view_listener: view_listener
         view_factory_fn: createView
         components: [{
             type: 'ruler'

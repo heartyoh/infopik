@@ -35,10 +35,6 @@
           if (!__hasProp.call(handlerMap, selector)) continue;
           handlers = handlerMap[selector];
           targets = ComponentSelector.select(selector, this.root, listener);
-          if (selector === '(self)') {
-            console.log(listener === targets[0]);
-            console.log(listener, targets[0]);
-          }
           _results.push((function() {
             var _i, _len, _results1;
             _results1 = [];

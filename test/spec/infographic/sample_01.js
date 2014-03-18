@@ -49,30 +49,33 @@ define([
         attrs: {
           x: 210,
           y: 210,
+          fill: 'violet',
           draggable: true
         }
       }, {
         type: 'ruler',
         attrs: {
-          x: 310,
-          y: 110,
-          width: 500,
-          height: 20,
+          x: 320,
+          y: 20,
+          width: 200,
+          height: 40,
           draggable: true,
           direction: 'horizontal',
-          zeropos: 100,
+          zeropos: 180,
+          fill: 'black',
           margin: [15, 0]
         }
       }, {
         type: 'ruler',
         attrs: {
-          x: 310,
+          x: 410,
           y: 110,
-          width: 20,
-          height: 500,
+          width: 30,
+          height: 150,
           draggable: true,
           direction: 'vertical',
-          zeropos: 100,
+          zeropos: 15,
+          fill: 'white',
           margin: [15, 0]
         }
       }]

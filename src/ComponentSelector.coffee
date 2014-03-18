@@ -22,8 +22,6 @@ define [
         switch(selector)
             when '(all)' then true
             when '(self)' 
-                console.log('listener', listener) 
-                console.log('component', component)
                 return listener is component
             when '(root)' then root is component
             else false
@@ -32,6 +30,8 @@ define [
         (selector is 'all') or (selector is component.type)
 
     match = (selector, component, listener, root) ->
+        return true if selector is '(all)'
+
         switch selector.charAt(0)
             when '#' then match_by_id(selector, component, listener, root)
             when '.' then match_by_name(selector, component, listener, root)

@@ -1,4 +1,6 @@
 (function() {
+  var __hasProp = {}.hasOwnProperty;
+
   define(['dou', './Component', './Container', './EventEngine', './EventTracker'], function(dou, Component, Container, EventEngine, EventTracker) {
     "use strict";
     var ComponentFactory;
@@ -22,20 +24,38 @@
       };
 
       ComponentFactory.prototype.createView = function(component, context) {
-        var spec, type, view;
+        var handlers, selector, spec, type, variable, view, _ref;
         type = component.type;
         spec = this.componentRegistry.get(type);
         if (!spec) {
           throw new Error("Component Spec Not Found for type '" + type + "'");
         }
         view = spec.view_factory_fn.call(context, component.getAll());
+        view.__component__ = component;
+        component.attach(view);
         if (component instanceof Container) {
           component.forEach(function(child) {
             return view.add(this.createView(child, context));
           }, this);
         }
         if (spec.view_listener) {
-          this.eventTracker.on(view, spec.view_listener, context);
+          _ref = spec.view_listener;
+          for (selector in _ref) {
+            if (!__hasProp.call(_ref, selector)) continue;
+            handlers = _ref[selector];
+            if (selector.indexOf('?') === 0) {
+              variable = selector.substr(1);
+              selector = component.get(variable);
+              if (selector === void 0) {
+                console.log("ComponentFactory#crateView", "variable " + selector + " is not evaluated on listener");
+                continue;
+              }
+            }
+            this.eventTracker.on(selector, handlers, view, {
+              component: component,
+              application: context
+            });
+          }
         }
         return view;
       };

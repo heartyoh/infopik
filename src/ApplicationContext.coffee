@@ -58,7 +58,8 @@ define [
                 context: this
             })
 
-            @eventTracker = new EventTracker()
+            @compEventTracker = new EventTracker()
+            @viewEventTracker = new EventTracker()
 
             @eventEngine = new EventEngine()
 
@@ -73,7 +74,7 @@ define [
                 # @eventController.remove spec.controller if spec.controller
             , this
 
-            @componentFactory = new ComponentFactory(@componentRegistry, @eventEngine, @eventTracker, @eventPump)
+            @componentFactory = new ComponentFactory(@componentRegistry, @eventEngine, @viewEventTracker)
 
             @componentRegistry.register @application_spec
 
@@ -96,6 +97,26 @@ define [
             @view = @componentFactory.createView(@application, this)
 
             @eventEngine.setRoot @application
+            
+            rootView = @view
+            rootComponent = @application
+            
+            @compEventTracker.setSelector
+                select: (selector, listener) ->
+                    CompoentSelector.select(selector, rootComponent, listener)
+
+            @viewEventTracker.setSelector
+                select: (selector, listener) ->
+                    return listener if selector is '(self)'
+                    return rootView if selector is '(root)'
+
+                    comps = ComponentSelector.select(selector, rootComponent)
+
+                    views = []
+                    for comp in comps
+                        views.push view for view in comp.attaches()
+
+                    views
 
             @application.on 'add', @onadd, this
             @application.on 'remove', @onremove, this
@@ -105,13 +126,13 @@ define [
                 (@application.add @componentFactory.createComponent(component, this)) for component in @application_spec.layers
 
         despose: ->
-            @eventTracker.despose()
+            @compEventTracker.despose()
             @eventController.despose()
             @eventRegistry.despose()
             @componentFactory.despose()
 
         getEventTracker: ->
-            @eventTracker
+            @compEventTracker
 
         getView: ->
             @view
@@ -165,7 +186,7 @@ define [
             # vcontainer = if container is @application then @view else this.findViewByComponent container
             vcomponent = this.findViewByComponent component
 
-            console.log 'found-component', vcomponent
+            # console.log 'found-component', vcomponent
             # vcontainer.remove(vcomponent);
             vcomponent.destroy()
 

@@ -1,7 +1,7 @@
 (function() {
   var __hasProp = {}.hasOwnProperty;
 
-  define([], function() {
+  define(['dou'], function(dou) {
     "use strict";
     var EventTracker, StandAloneTracker;
     StandAloneTracker = (function() {
@@ -56,11 +56,37 @@
         this.trackers = [];
       }
 
-      EventTracker.prototype.on = function(target, handlers, self) {
-        var tracker;
-        tracker = new StandAloneTracker(target, handlers, self);
-        this.trackers.push(tracker);
-        return tracker.on();
+      EventTracker.prototype.setSelector = function(selector) {
+        return this.selector = selector;
+      };
+
+      EventTracker.prototype.on = function(target, handlers, listener, context) {
+        var deliverer, deliverers, tracker, _i, _len, _results;
+        deliverers = (function() {
+          switch (typeof target) {
+            case 'object':
+              return [target];
+            case 'string':
+              return this.selector.select(target, listener);
+            default:
+              return [];
+          }
+        }).call(this);
+        if (!(deliverers instanceof Array)) {
+          deliverers = [deliverers];
+        }
+        _results = [];
+        for (_i = 0, _len = deliverers.length; _i < _len; _i++) {
+          deliverer = deliverers[_i];
+          tracker = new StandAloneTracker(deliverer, handlers, {
+            listener: listener,
+            deliverer: deliverer,
+            context: context || deliverer
+          });
+          this.trackers.push(tracker);
+          _results.push(tracker.on());
+        }
+        return _results;
       };
 
       EventTracker.prototype.off = function(target, handlers) {
@@ -104,7 +130,8 @@
           tracker = _ref[_i];
           tracker.off();
         }
-        return this.trackers = [];
+        this.trackers = [];
+        return this.selector = null;
       };
 
       EventTracker.StandAlone = StandAloneTracker;

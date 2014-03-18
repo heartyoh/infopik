@@ -1,53 +1,51 @@
 (function() {
   define(['dou', 'KineticJS'], function(dou, kin) {
     "use strict";
-    var controller, createView, onchangeselection;
+    var controller, createView, onchangeoffset, onchangeselection, ondragend, ondragmove, view_listener;
     createView = function(attributes) {
-      var layer, target_comp, target_view;
+      var layer;
       layer = new kin.Layer(attributes);
       layer.handles = {};
-      if (attributes.offset_monitor_target) {
-        target_comp = this.findComponent(attributes.offset_monitor_target)[0];
-        target_view = this.findViewByComponent(target_comp);
-        target_view.on('change-offset', function(e) {
-          layer.offset({
-            x: e.x,
-            y: e.y
-          });
-          return layer.draw();
-        });
-        this.getEventTracker().on(target_view, {
-          dragmove: function(e) {
-            var handle, id;
-            id = e.targetNode.getAttr('id');
-            handle = layer.handles[id];
-            if (handle) {
-              handle.setAbsolutePosition(e.targetNode.getAbsolutePosition());
-              return layer.draw();
-            }
-          },
-          dragend: function(e) {
-            var handle, id;
-            id = e.targetNode.getAttr('id');
-            handle = layer.handles[id];
-            if (handle) {
-              handle.setAbsolutePosition(e.targetNode.getAbsolutePosition());
-              return layer.draw();
-            }
-          }
-        }, {});
-      }
       return layer;
+    };
+    onchangeoffset = function(e) {
+      var layer;
+      layer = this.listener;
+      layer.offset({
+        x: e.x,
+        y: e.y
+      });
+      return layer.draw();
+    };
+    ondragmove = function(e) {
+      var handle, id, layer;
+      layer = this.listener;
+      id = e.targetNode.getAttr('id');
+      handle = layer.handles[id];
+      if (handle) {
+        handle.setAbsolutePosition(e.targetNode.getAbsolutePosition());
+        return layer.draw();
+      }
+    };
+    ondragend = function(e) {
+      var handle, id, layer;
+      layer = this.listener;
+      id = e.targetNode.getAttr('id');
+      handle = layer.handles[id];
+      if (handle) {
+        handle.setAbsolutePosition(e.targetNode.getAbsolutePosition());
+        return layer.draw();
+      }
     };
     onchangeselection = function(after, before, added, removed, e) {
       var container, handle, handle_comp, handle_view, id, layer, node, pos, _i, _j, _len, _len1;
       container = e.listener;
-      layer = this.findViewByComponent(container)[0];
+      layer = container.attaches()[0];
       for (_i = 0, _len = removed.length; _i < _len; _i++) {
         node = removed[_i];
         id = node.getAttr('id');
         handle = layer.handles[id];
-        handle_comp = this.findComponent("\#" + (handle.getAttr('id')))[0];
+        handle_comp = handle.__component__;
         container.remove(handle_comp);
         delete layer.handles[id];
       }
@@ -60,7 +58,7 @@
           attrs: {}
         });
         container.add(handle_comp);
-        handle_view = this.findViewByComponent(handle_comp)[0];
+        handle_view = handle_comp.attaches()[0];
         handle_view.setAbsolutePosition(pos);
         layer.handles[id] = handle_view;
       }
@@ -73,6 +71,13 @@
         }
       }
     };
+    view_listener = {
+      '?offset_monitor_target': {
+        'change-offset': onchangeoffset,
+        dragmove: ondragmove,
+        dragend: ondragend
+      }
+    };
     return {
       type: 'handle-layer',
       name: 'handle-layer',
@@ -83,6 +88,7 @@
         draggable: false
       },
       controller: controller,
+      view_listener: view_listener,
       view_factory_fn: createView,
       toolbox_image: 'images/toolbox_handle_layer.png'
     };

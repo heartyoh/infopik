@@ -5,7 +5,8 @@
 # ==========================================
 
 define [
-], () ->
+    'dou'
+], (dou) ->
     
     "use strict"
 
@@ -37,10 +38,25 @@ define [
         constructor: ->
             @trackers = []
 
-        on: (target, handlers, self) ->
-            tracker = new StandAloneTracker(target, handlers, self)
-            @trackers.push tracker
-            tracker.on()
+
+        setSelector: (selector) ->
+            @selector = selector
+
+        on: (target, handlers, listener, context) ->
+            deliverers = switch(typeof target)
+                when 'object' then [target]
+                when 'string' then @selector.select(target, listener)
+                else []
+
+            deliverers = [deliverers] if not (deliverers instanceof Array)
+
+            for deliverer in deliverers
+                tracker = new StandAloneTracker deliverer, handlers,
+                    listener: listener
+                    deliverer: deliverer
+                    context: context || deliverer
+                @trackers.push tracker
+                tracker.on()
 
         off: (target, handlers) ->
             idxs = (i for tracker, i in @trackers when target is tracker.target and ((not handlers) or (handlers is tracker.handlers)))
@@ -53,5 +69,6 @@ define [
         despose: ->
             tracker.off() for tracker in @trackers
             @trackers = []
+            @selector = null
 
         @StandAlone: StandAloneTracker

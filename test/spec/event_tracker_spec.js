@@ -64,29 +64,29 @@ define(['dou', 'build/EventTracker'], function (dou, EventTracker) {
         endcount.should.equal(2);
       });
 
-      it('should bind on the specified object when handlers call-backed', function () {
+      it('should bind on the specified object self when handlers call-backed', function () {
         var self = {
           a: 'a'
         };
 
         var handlers = {
           dragstart: function(e) {
-            this.a = 'A';
+            this.context.a = 'A';
           }
         };
 
-        eventTracker.on(evsource, handlers, self);
+        eventTracker.on(evsource, handlers, {}, self);
         evsource.test();
 
         self.a.should.equal('A');
       });
 
-      it('should bind target object when handlers call-backed if bind object is not specified', function () {
+      it('should bind target object self member when handlers call-backed if bind object is not specified', function () {
         var calc = 1;
 
         var handlers = {
           dragstart: function(e) {
-            calc = this.twice(calc);
+            calc = this.context.twice(calc);
           }
         };
 
@@ -94,6 +94,27 @@ define(['dou', 'build/EventTracker'], function (dou, EventTracker) {
         evsource.test();
 
         calc.should.equal(2);
+      });
+
+      it('should recognize (self) selector', function () {
+        eventTracker.setSelector({
+          select: function(selector, listener) {
+            if(selector === '(self)')
+              return listener;
+          }
+        })
+        var count = 0;
+
+        var handlers = {
+          dragstart: function(e) {
+            count++;
+          }
+        };
+
+        eventTracker.on('(self)', handlers, evsource);
+        evsource.test();
+
+        count.should.equal(1);
       });
 
     });

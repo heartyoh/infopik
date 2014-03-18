@@ -4,7 +4,7 @@
     var ApplicationContext;
     ApplicationContext = (function() {
       function ApplicationContext(options) {
-        var attributes, component, container, _i, _len, _ref;
+        var attributes, component, container, rootComponent, rootView, _i, _len, _ref;
         this.application_spec = options.application_spec, container = options.container;
         if (typeof container !== 'string') {
           throw new Error('container is a mandatory string type option.');
@@ -17,12 +17,13 @@
           onselectionchange: this.onselectionchange,
           context: this
         });
-        this.eventTracker = new EventTracker();
+        this.compEventTracker = new EventTracker();
+        this.viewEventTracker = new EventTracker();
         this.eventEngine = new EventEngine();
         this.componentRegistry = new ComponentRegistry();
         this.componentRegistry.setRegisterCallback(function(spec) {}, this);
         this.componentRegistry.setUnregisterCallback(function(spec) {}, this);
-        this.componentFactory = new ComponentFactory(this.componentRegistry, this.eventEngine, this.eventTracker, this.eventPump);
+        this.componentFactory = new ComponentFactory(this.componentRegistry, this.eventEngine, this.viewEventTracker);
         this.componentRegistry.register(this.application_spec);
         attributes = {
           id: 'application',
@@ -36,6 +37,35 @@
         }, this);
         this.view = this.componentFactory.createView(this.application, this);
         this.eventEngine.setRoot(this.application);
+        rootView = this.view;
+        rootComponent = this.application;
+        this.compEventTracker.setSelector({
+          select: function(selector, listener) {
+            return CompoentSelector.select(selector, rootComponent, listener);
+          }
+        });
+        this.viewEventTracker.setSelector({
+          select: function(selector, listener) {
+            var comp, comps, view, views, _i, _j, _len, _len1, _ref;
+            if (selector === '(self)') {
+              return listener;
+            }
+            if (selector === '(root)') {
+              return rootView;
+            }
+            comps = ComponentSelector.select(selector, rootComponent);
+            views = [];
+            for (_i = 0, _len = comps.length; _i < _len; _i++) {
+              comp = comps[_i];
+              _ref = comp.attaches();
+              for (_j = 0, _len1 = _ref.length; _j < _len1; _j++) {
+                view = _ref[_j];
+                views.push(view);
+              }
+            }
+            return views;
+          }
+        });
         this.application.on('add', this.onadd, this);
         this.application.on('remove', this.onremove, this);
         if (this.application_spec.layers) {
@@ -48,14 +78,14 @@
       }
 
       ApplicationContext.prototype.despose = function() {
-        this.eventTracker.despose();
+        this.compEventTracker.despose();
         this.eventController.despose();
         this.eventRegistry.despose();
         return this.componentFactory.despose();
       };
 
       ApplicationContext.prototype.getEventTracker = function() {
-        return this.eventTracker;
+        return this.compEventTracker;
       };
 
       ApplicationContext.prototype.getView = function() {
@@ -121,7 +151,6 @@
         var vcomponent;
         console.log('removed', container, component);
         vcomponent = this.findViewByComponent(component);
-        console.log('found-component', vcomponent);
         vcomponent.destroy();
         return this.drawView();
       };

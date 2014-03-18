@@ -13,8 +13,6 @@
         case '(all)':
           return true;
         case '(self)':
-          console.log('listener', listener);
-          console.log('component', component);
           return listener === component;
         case '(root)':
           return root === component;
@@ -26,6 +24,9 @@
       return (selector === 'all') || (selector === component.type);
     };
     match = function(selector, component, listener, root) {
+      if (selector === '(all)') {
+        return true;
+      }
       switch (selector.charAt(0)) {
         case '#':
           return match_by_id(selector, component, listener, root);

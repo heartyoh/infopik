@@ -1,26 +1,26 @@
 (function() {
   define(['dou', 'KineticJS'], function(dou, kin) {
     "use strict";
-    var createView;
+    var createView, onchangeoffset, view_listener;
     createView = function(attributes) {
-      var layer, target_comp, target_view;
-      layer = new kin.Layer(attributes);
-      if (attributes.offset_monitor_target) {
-        target_comp = this.findComponent(attributes.offset_monitor_target)[0];
-        target_view = this.findViewByComponent(target_comp);
-        target_view.on('change-offset', function(e) {
-          var children;
-          if (!layer.__hori__) {
-            children = layer.getChildren().toArray();
-            layer.__hori__ = children[0];
-            layer.__vert__ = children[1];
-          }
-          layer.__hori__.setAttr('zeropos', -e.x);
-          layer.__vert__.setAttr('zeropos', -e.y);
-          return layer.draw();
-        });
+      return new kin.Layer(attributes);
+    };
+    onchangeoffset = function(e) {
+      var children, layer;
+      layer = this.listener;
+      if (!layer.__hori__) {
+        children = layer.getChildren().toArray();
+        layer.__hori__ = children[0];
+        layer.__vert__ = children[1];
       }
-      return layer;
+      layer.__hori__.setAttr('zeropos', -e.x);
+      layer.__vert__.setAttr('zeropos', -e.y);
+      return layer.draw();
+    };
+    view_listener = {
+      '?offset_monitor_target': {
+        'change-offset': onchangeoffset
+      }
     };
     return {
       type: 'ruler-layer',
@@ -31,6 +31,7 @@
       defaults: {
         draggable: false
       },
+      view_listener: view_listener,
       view_factory_fn: createView,
       components: [
         {

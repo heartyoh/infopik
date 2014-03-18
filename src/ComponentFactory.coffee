@@ -40,13 +40,29 @@ define [
             throw new Error "Component Spec Not Found for type '#{type}'" if !spec
             view = spec.view_factory_fn.call context, component.getAll()
 
+            view.__component__ = component
+            component.attach view
+
             if component instanceof Container
                 component.forEach (child) ->
                     view.add this.createView child, context
                 , this
 
-            # EventTracker off 시점을 고민해야한다. 혹은 .. StandAlone을 사용하는 것 고려.
-            @eventTracker.on(view, spec.view_listener, context) if spec.view_listener
+            if spec.view_listener
+
+                for own selector, handlers of spec.view_listener
+
+                    if selector.indexOf('?') == 0
+                        variable = selector.substr(1)
+                        selector = component.get(variable)
+
+                        if selector is undefined
+                            console.log("ComponentFactory#crateView", "variable #{selector} is not evaluated on listener")
+                            continue
+
+                    @eventTracker.on selector, handlers, view,
+                        component:component
+                        application: context
                 
             view
 

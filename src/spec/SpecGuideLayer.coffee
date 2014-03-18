@@ -17,11 +17,12 @@ define [
 
     onchange = (component, before, after, e) ->
         guideLayer = e.listener
+
         guideLayer._track = {} if not guideLayer._track
 
         self = guideLayer._track
 
-        self.view = (this.findViewByComponent e.listener)[0] if not self.view
+        self.view = e.listener.attaches()[0] if not self.view
         layer = self.view
 
         self.changes = (self.changes || 0) + 1
@@ -67,83 +68,86 @@ define [
             , 1000
         , 5000
 
-    guide_handler = 
-        dragstart : (e) ->
-            this.mouse_origin =
-                x: e.x
-                y: e.y
+    ondragstart = (e) ->
+        layer = this.listener
+        app = this.context.application
 
-            node = e.targetNode
+        stage = this.context.application.getView()
+        this.width = stage.getWidth()
+        this.height = stage.getHeight()
 
-            this.node_origin = node.getAbsolutePosition()
-            layer_offset = this.layer.offset()
+        this.mouse_origin =
+            x: e.x
+            y: e.y
 
-            offset_x = this.node_origin.x + layer_offset.x
-            offset_y = this.node_origin.y + layer_offset.y
+        node = e.targetNode
 
-            this.vert = new kin.Line({stroke:'red', tension: 1, points:[offset_x, 0, offset_x, this.height]})
-            this.hori = new kin.Line({stroke:'red', tension: 1, points:[0, offset_y, this.width, offset_y]})
+        this.node_origin = node.getAbsolutePosition()
+        layer_offset = layer.offset()
 
-            this.text = new kin.Text
-                listening: false
-                fontSize: 12
-                fontFamily: 'Calibri'
-                fill: 'green'
+        offset_x = this.node_origin.x + layer_offset.x
+        offset_y = this.node_origin.y + layer_offset.y
 
-            this.text.setAttr('text', "[ #{offset_x}(#{node.x()}), #{offset_y}(#{node.y()}) ]")
-            textx = if Math.max(offset_x, 0) > (this.text.width() + 10) then offset_x - (this.text.width() + 10) else Math.max(offset_x + 10, 10)
-            texty = if Math.max(offset_y, 0) > (this.text.height() + 10) then offset_y - (this.text.height() + 10) else Math.max(offset_y + 10, 10)
-            this.text.setAttrs({x: textx, y: texty})
+        this.vert = new kin.Line({stroke:'red', tension: 1, points:[offset_x, 0, offset_x, this.height]})
+        this.hori = new kin.Line({stroke:'red', tension: 1, points:[0, offset_y, this.width, offset_y]})
 
-            layer = this.layer
+        this.text = new kin.Text
+            listening: false
+            fontSize: 12
+            fontFamily: 'Calibri'
+            fill: 'green'
 
-            layer.add(this.vert)
-            layer.add(this.hori)
-            layer.add(this.text)
+        this.text.setAttr('text', "[ #{offset_x}(#{node.x()}), #{offset_y}(#{node.y()}) ]")
+        textx = if Math.max(offset_x, 0) > (this.text.width() + 10) then offset_x - (this.text.width() + 10) else Math.max(offset_x + 10, 10)
+        texty = if Math.max(offset_y, 0) > (this.text.height() + 10) then offset_y - (this.text.height() + 10) else Math.max(offset_y + 10, 10)
+        this.text.setAttrs({x: textx, y: texty})
 
-            layer.draw()
+        layer = layer
 
-        dragmove : (e) ->
-            node_new_pos = {
-                x: (e.x - this.mouse_origin.x) + this.node_origin.x,
-                y: (e.y - this.mouse_origin.y) + this.node_origin.y
-            }
-            x = Math.round(node_new_pos.x / 10) * 10
-            y = Math.round(node_new_pos.y / 10) * 10
+        layer.add(this.vert)
+        layer.add(this.hori)
+        layer.add(this.text)
 
-            node = e.targetNode
-            node.setAbsolutePosition({x: x, y: y})
+        layer.draw()
 
-            layer_offset = this.layer.offset()
+    ondragmove = (e) ->
+        layer = this.listener
 
-            offset_x = x + layer_offset.x
-            offset_y = y + layer_offset.y
+        node_new_pos = {
+            x: (e.x - this.mouse_origin.x) + this.node_origin.x,
+            y: (e.y - this.mouse_origin.y) + this.node_origin.y
+        }
+        x = Math.round(node_new_pos.x / 10) * 10
+        y = Math.round(node_new_pos.y / 10) * 10
 
-            this.vert.setAttrs({points:[offset_x, 0, offset_x, this.height]})
-            this.hori.setAttrs({points:[0, offset_y, this.width, offset_y]})
+        node = e.targetNode
+        node.setAbsolutePosition({x: x, y: y})
 
-            this.text.setAttr('text', "[ #{offset_x}(#{node.x()}), #{offset_y}(#{node.y()}) ]")
-            textx = if Math.max(offset_x, 0) > (this.text.width() + 10) then offset_x - (this.text.width() + 10) else Math.max(offset_x + 10, 10)
-            texty = if Math.max(offset_y, 0) > (this.text.height() + 10) then offset_y - (this.text.height() + 10) else Math.max(offset_y + 10, 10)
-            this.text.setAttrs({x: textx, y: texty})
+        layer_offset = layer.offset()
 
-            this.layer.draw()
+        offset_x = x + layer_offset.x
+        offset_y = y + layer_offset.y
 
-        dragend : (e) ->
-            this.vert.remove()
-            this.hori.remove()
-            this.text.remove()
+        this.vert.setAttrs({points:[offset_x, 0, offset_x, this.height]})
+        this.hori.setAttrs({points:[0, offset_y, this.width, offset_y]})
 
-            this.layer.draw()
+        this.text.setAttr('text', "[ #{offset_x}(#{node.x()}), #{offset_y}(#{node.y()}) ]")
+        textx = if Math.max(offset_x, 0) > (this.text.width() + 10) then offset_x - (this.text.width() + 10) else Math.max(offset_x + 10, 10)
+        texty = if Math.max(offset_y, 0) > (this.text.height() + 10) then offset_y - (this.text.height() + 10) else Math.max(offset_y + 10, 10)
+        this.text.setAttrs({x: textx, y: texty})
+
+        layer.draw()
+
+    ondragend = (e) ->
+        layer = this.listener
+
+        this.vert.remove()
+        this.hori.remove()
+        this.text.remove()
+
+        layer.draw()
 
     onadded = (container, component, index, e) ->
-        layer = (this.findView "\##{component.get('id')}")[0]
-
-        stage = this.getView().getStage()
-        width = stage.getWidth()
-        height = stage.getHeight()
-
-        this.getEventTracker().on(this.getView(), guide_handler, {layer:layer, width:width, height:height})
 
     onremoved = (container, component, e) ->
         app = this.getView()
@@ -159,8 +163,10 @@ define [
                 'removed' : onremoved
 
     view_listener = 
-        dragmove : (e) ->
-            node = e.targetNode
+        '(root)' : 
+            dragstart : ondragstart
+            dragmove : ondragmove
+            dragend : ondragend
 
     {
         type: 'guide-layer'

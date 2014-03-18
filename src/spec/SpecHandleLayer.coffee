@@ -17,70 +17,42 @@ define [
     createView = (attributes) ->
         layer = new kin.Layer(attributes)
         layer.handles = {}
-
-        if attributes.offset_monitor_target
-            target_comp = this.findComponent(attributes.offset_monitor_target)[0]
-            target_view = this.findViewByComponent(target_comp)
-
-            target_view.on 'change-offset', (e) ->
-                layer.offset {x: e.x, y: e.y}
-                layer.draw()
-
-            this.getEventTracker().on(target_view, {
-                dragmove: (e) ->
-                    id = e.targetNode.getAttr('id')
-                    handle = layer.handles[id]
-
-                    if handle
-                        handle.setAbsolutePosition(e.targetNode.getAbsolutePosition())
-                        layer.draw()
-
-                dragend: (e) ->
-                    id = e.targetNode.getAttr('id')
-                    handle = layer.handles[id]
-
-                    if handle
-                        handle.setAbsolutePosition(e.targetNode.getAbsolutePosition())
-                        layer.draw()
-            }, {})
-
         layer
 
-    # view_listener :
-    #     '(.offset_monitor_target)' :
-    #         'change-offset' : (e) ->
-    #             layer = this.subscriber
-    #             layer.offset {x: e.x, y: e.y}
-    #             layer.draw()
-    #     '(.offset_monitor_target) >' :
-    #         'dragmove' : (e) ->
-    #             layer = this.subscriber
+    onchangeoffset = (e) ->
+        layer = this.listener
 
-    #             id = e.targetNode.id()
-    #             handle = layer.handles[id]
+        layer.offset {x: e.x, y: e.y}
+        layer.draw()
 
-    #             if handle
-    #                 handle.setAbsolutePosition(e.targetNode.getAbsolutePosition())
-    #                 layer.draw()
+    ondragmove = (e) ->
+        layer = this.listener
 
-    #         'dragend' : (e) ->
-    #             layer = this.subscriber
+        id = e.targetNode.getAttr('id')
+        handle = layer.handles[id]
 
-    #             id = e.targetNode.getAttr('id')
-    #             handle = layer.handles[id]
+        if handle
+            handle.setAbsolutePosition(e.targetNode.getAbsolutePosition())
+            layer.draw()
 
-    #             if handle
-    #                 handle.setAbsolutePosition(e.targetNode.getAbsolutePosition())
-    #                 layer.draw()
+    ondragend = (e) ->
+        layer = this.listener
+
+        id = e.targetNode.getAttr('id')
+        handle = layer.handles[id]
+
+        if handle
+            handle.setAbsolutePosition(e.targetNode.getAbsolutePosition())
+            layer.draw()
 
     onchangeselection = (after, before, added, removed, e) ->
         container = e.listener
-        layer = this.findViewByComponent(container)[0]
+        layer = container.attaches()[0]
 
         for node in removed
             id = node.getAttr('id')
             handle = layer.handles[id]
-            handle_comp = this.findComponent("\##{handle.getAttr('id')}")[0]
+            handle_comp = handle.__component__
             container.remove(handle_comp)
 
             delete layer.handles[id]
@@ -93,7 +65,7 @@ define [
                 attrs: {}
 
             container.add(handle_comp)
-            handle_view = this.findViewByComponent(handle_comp)[0]
+            handle_view = handle_comp.attaches()[0]
             handle_view.setAbsolutePosition(pos)
 
             layer.handles[id] = handle_view
@@ -105,6 +77,12 @@ define [
             '(root)' :
                 'change-selections' : onchangeselection
 
+    view_listener =
+        '?offset_monitor_target' :
+            'change-offset' : onchangeoffset
+            dragmove : ondragmove
+            dragend : ondragend
+
     {
         type: 'handle-layer'
         name: 'handle-layer'
@@ -115,7 +93,7 @@ define [
             draggable: false
 
         controller: controller
-        # view_listener: view_listener
+        view_listener: view_listener
         view_factory_fn: createView
         toolbox_image: 'images/toolbox_handle_layer.png'
     }

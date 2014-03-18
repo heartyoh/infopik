@@ -20,99 +20,6 @@ define [
 
     "use strict"
 
-    draghandler = 
-        dragstart: (e) ->
-            return if e.targetNode and e.targetNode isnt this.background
-
-            background = this.background
-
-            layer_offset = this.layer.offset()
-            background.setAttrs({x: layer_offset.x + 20, y: layer_offset.y + 20})
-
-            this.start_point =
-                x: e.offsetX
-                y: e.offsetY
-
-            this.origin_offset = this.layer.offset()
-
-            offset = 
-                x: this.start_point.x + this.origin_offset.x
-                y: this.start_point.y + this.origin_offset.y
-
-            mode = 'MOVE'
-            if(mode is 'SELECT')
-                this.selectbox = new kin.Rect
-                    stroke: 'black'
-                    strokeWidth: 1
-                    dash: [3, 3]
-
-                this.layer.add this.selectbox
-                this.selectbox.setAttrs(offset)
-            else if(mode is 'MOVE')
-            else
-
-            this.layer.draw();
-
-            e.cancelBubble = true
-
-        dragmove: (e) ->
-            return if e.targetNode and e.targetNode isnt this.background
-
-            background = this.background
-
-            mode = 'MOVE'
-            if(mode is 'SELECT')
-                background.setAttrs({x:this.origin_offset.x + 20, y:this.origin_offset.y + 20})
-                this.selectbox.setAttrs({width: e.offsetX - this.start_point.x, height: e.offsetY - this.start_point.y})
-
-                # TODO select components in the area of selectionbox
-
-            else if(mode is 'MOVE')
-                x = this.origin_offset.x - (e.offsetX - this.start_point.x)
-                y = this.origin_offset.y - (e.offsetY - this.start_point.y)
-
-                this.layer.offset
-                    x: x
-                    y: y
-                this.background.setAttrs
-                    x: x + 20
-                    y: y + 20
-
-                this.layer.fire('change-offset', {x: x, y: y}, false);
-            else
-
-            this.layer.draw();
-
-            e.cancelBubble = true
-
-        dragend: (e) ->
-            return if e.targetNode and e.targetNode isnt this.background
-
-            background = this.background
-
-            mode = 'MOVE'
-            if(mode is 'SELECT')
-                background.setAttrs({x:this.origin_offset.x + 20, y:this.origin_offset.y + 20})
-                this.selectbox.remove()
-                delete this.selectbox
-            else if(mode is 'MOVE')
-                x = Math.max(this.origin_offset.x - (e.offsetX - this.start_point.x), -20)
-                y = Math.max(this.origin_offset.y - (e.offsetY - this.start_point.y), -20)
-
-                this.layer.offset
-                    x: x
-                    y: y
-                this.background.setAttrs
-                    x: x + 20
-                    y: y + 20
-
-                this.layer.fire('change-offset', {x: x, y: y}, false);
-            else
-
-            this.layer.draw();
-
-            e.cancelBubble = true
-
     createView = (attributes) ->
         stage = this.getView().getStage()
 
@@ -132,59 +39,143 @@ define [
             # id: undefined
 
         layer.add background
-
-        this.getEventTracker().on(layer, draghandler, {layer: layer, background: background})
+        layer.__background__ = background
 
         layer
 
     onadded = (container, component, index, e) ->
-        # stage <= container
-        # layer <= component
-
-        # background = new Kinetic.Rect({
-        #     width: container.get('width')
-        #     height: container.get('height')
-        #     # fill: 'white',
-        #     stroke: 'black',
-        #     strokeWidth: 1,
-        #     name: 'background',
-        #     x : 0,
-        #     y : 0,
-        #     draggable: true,
-        #     dragBoundFunc: function(pos) {
-        #       return {
-        #         x: this.getX(),
-        #         y: this.getY()
-        #       }
-        #     }
-        # });
-
-        # layer = this.findViewByComponent component
-        # this.getEventTracker().on layer, draghandler, this
 
     onremoved = (container, component, e) ->
-        # layer = this.findViewByComponent component
-        # this.getEventTracker().off layer, draghandler
 
     onchangemodel = (after, before, e) ->
         layer = e.listener
         layer.remove before if before
         layer.add after if after
-        this.findView "\##{layer.get('id')}"
-
-        # for layer in this.findComponent 'content-edit-layer'
-            # layer.remove before if before
-            # layer.add after if after
-            # this.findView "\##{layer.get('id')}"
 
     onchangeselections = (after, before, added, removed) ->
         console.log 'selection-changed', after
 
     onchange = (component, before, after) ->
-        # view = this.findViewByComponent component
-        # view.setAttrs after
 
-        # this.drawView()
+    ondragstart = (e) ->
+        layer = this.listener
+        background = layer.__background__
+
+        return if e.targetNode and e.targetNode isnt background
+
+        layer_offset = layer.offset()
+        background.setAttrs({x: layer_offset.x + 20, y: layer_offset.y + 20})
+
+        this.start_point =
+            x: e.offsetX
+            y: e.offsetY
+
+        this.origin_offset = layer.offset()
+
+        offset = 
+            x: this.start_point.x + this.origin_offset.x
+            y: this.start_point.y + this.origin_offset.y
+
+        mode = 'MOVE'
+        if(mode is 'SELECT')
+            this.selectbox = new kin.Rect
+                stroke: 'black'
+                strokeWidth: 1
+                dash: [3, 3]
+
+            layer.add this.selectbox
+            this.selectbox.setAttrs(offset)
+        else if(mode is 'MOVE')
+        else
+
+        layer.draw();
+
+        e.cancelBubble = true
+
+    ondragmove = (e) ->
+        layer = this.listener
+        background = layer.__background__
+
+        return if e.targetNode and e.targetNode isnt background
+
+        mode = 'MOVE'
+        if(mode is 'SELECT')
+            background.setAttrs({x:this.origin_offset.x + 20, y:this.origin_offset.y + 20})
+            this.selectbox.setAttrs({width: e.offsetX - this.start_point.x, height: e.offsetY - this.start_point.y})
+
+            # TODO select components in the area of selectionbox
+
+        else if(mode is 'MOVE')
+            x = this.origin_offset.x - (e.offsetX - this.start_point.x)
+            y = this.origin_offset.y - (e.offsetY - this.start_point.y)
+
+            layer.offset
+                x: x
+                y: y
+            background.setAttrs
+                x: x + 20
+                y: y + 20
+
+            layer.fire('change-offset', {x: x, y: y}, false);
+        else
+
+        layer.draw();
+
+        e.cancelBubble = true
+
+    ondragend = (e) ->
+
+        application = this.context.application
+
+        node = e.targetNode
+        component = node.__component__
+
+        if component
+            cmd = new CommandPropertyChange
+                changes: [
+                    component: component 
+                    before:
+                        x: component.get('x')
+                        y: component.get('y')
+                    after:
+                        x: node.x()
+                        y: node.y()
+                ]
+            application.execute(cmd)
+
+        # ...
+
+        layer = this.listener
+        background = layer.__background__
+
+        return if e.targetNode and e.targetNode isnt background
+
+        mode = 'MOVE'
+        if(mode is 'SELECT')
+            background.setAttrs({x:this.origin_offset.x + 20, y:this.origin_offset.y + 20})
+            this.selectbox.remove()
+            delete this.selectbox
+        else if(mode is 'MOVE')
+            x = Math.max(this.origin_offset.x - (e.offsetX - this.start_point.x), -20)
+            y = Math.max(this.origin_offset.y - (e.offsetY - this.start_point.y), -20)
+
+            layer.offset
+                x: x
+                y: y
+            background.setAttrs
+                x: x + 20
+                y: y + 20
+
+            layer.fire('change-offset', {x: x, y: y}, false);
+        else
+
+        layer.draw();
+
+        e.cancelBubble = true
+
+    onclick = (e) ->
+        node = e.targetNode
+        this.context.application.selectionManager.select(node)
 
     controller =
         '(root)' :
@@ -198,43 +189,12 @@ define [
             '(all)' :
                 'change' : onchange
 
-    view_listener = 
-        dragstart : (e) ->
-            # console.log(e)
-        dragmove : (e) ->
-            # console.log(e)
-        dragend : (e) ->
-            node = e.targetNode
-            id = e.targetNode.getAttr('id')
-            component = this.findComponent("\##{id}")[0]
-
-            return if not component
-
-            cmd = new CommandPropertyChange
-                changes: [
-                    component: component 
-                    before:
-                        x: component.get('x')
-                        y: component.get('y')
-                    after:
-                        x: node.x()
-                        y: node.y()
-                ]
-            this.execute(cmd)
-        click : (e) ->
-            node = e.targetNode
-            this.selectionManager.select(node)
-
-        mouseover: (e) ->
-            # console.log(e.type, e)
-        mousemove: (e) ->
-            # console.log(e.type, e)
-        mouseout: (e) ->
-            # console.log(e.type, e)
-        mouseenter: (e) ->
-            # console.log(e.type, e)
-        mouseleave: (e) ->
-            # console.log(e.type, e)
+    view_listener =
+        '(self)' : 
+            dragstart : ondragstart
+            dragmove : ondragmove
+            dragend : ondragend
+            click : onclick
 
     {
         type: 'content-edit-layer'
