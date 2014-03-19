@@ -11,7 +11,8 @@ define([
       'rectangle' : '*',
       'ring' : '*',
       'ruler' : '*',
-      'image' : '*'
+      'image' : '*',
+      'text' : '*'
     },
     attrs: {
       width: 1000,
@@ -39,8 +40,8 @@ define([
       }, {
         type: 'rectangle',
         attrs: {
-          x: 130,
-          y: 130,
+          x: 190,
+          y: 10,
           width: 100,
           height: 50,
           draggable: true
@@ -48,16 +49,16 @@ define([
       }, {
         type: 'ring',
         attrs: {
-          x: 210,
-          y: 210,
+          x: 150,
+          y: 150,
           fill: 'violet',
           draggable: true
         }
       }, {
         type: 'ruler',
         attrs: {
-          x: 320,
-          y: 20,
+          x: 310,
+          y: 10,
           width: 200,
           height: 40,
           draggable: true,
@@ -69,8 +70,8 @@ define([
       }, {
         type: 'ruler',
         attrs: {
-          x: 410,
-          y: 110,
+          x: 310,
+          y: 150,
           width: 30,
           height: 150,
           draggable: true,
@@ -94,12 +95,18 @@ define([
     }, {
       type: 'image',
       attrs: {
-        x: 70,
-        y: 70,
+        x: 10,
+        y: 240,
         width: 100,
         height: 50,
-        fill: 'black',
         url: 'http://www.baidu.com/img/bdlogo.gif'
+      }
+    }, {
+      type: 'text',
+      attrs: {
+        x: 310,
+        y: 60,
+        text: 'Sample Text 都'
       }
     }],
     links: []

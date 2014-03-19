@@ -1285,7 +1285,7 @@
                 }, false);
             } else {
             }
-            layer.draw();
+            layer.batchDraw();
             return e.cancelBubble = true;
         };
         ondragend = function (e) {
@@ -1499,7 +1499,7 @@
             layer.add(this.vert);
             layer.add(this.hori);
             layer.add(this.text);
-            return layer.draw();
+            return layer.batchDraw();
         };
         ondragmove = function (e) {
             var layer, layer_offset, node, node_new_pos, offset_x, offset_y, textx, texty, x, y;
@@ -1608,7 +1608,7 @@
             }
             layer.__hori__.setAttr('zeropos', -e.x);
             layer.__vert__.setAttr('zeropos', -e.y);
-            return layer.draw();
+            return layer.batchDraw();
         };
         view_listener = { '?offset_monitor_target': { 'change-offset': onchangeoffset } };
         return {
@@ -1678,7 +1678,7 @@
                 x: e.x,
                 y: e.y
             });
-            return layer.draw();
+            return layer.batchDraw();
         };
         ondragmove = function (e) {
             var handle, id, layer;
@@ -1687,7 +1687,7 @@
             handle = layer.handles[id];
             if (handle) {
                 handle.setAbsolutePosition(e.targetNode.getAbsolutePosition());
-                return layer.draw();
+                return layer.batchDraw();
             }
         };
         ondragend = function (e) {
@@ -1725,7 +1725,7 @@
                 handle_view.setAbsolutePosition(pos);
                 layer.handles[id] = handle_view;
             }
-            return layer.draw();
+            return layer.batchDraw();
         };
         controller = { '(root)': { '(root)': { 'change-selections': onchangeselection } } };
         view_listener = {
@@ -2067,11 +2067,11 @@
             var image, imageObj;
             image = new kin.Image(attributes);
             imageObj = new Image();
-            image.setImage(imageObj);
             imageObj.onload = function () {
-                return image.draw();
+                return image.getLayer().draw();
             };
             imageObj.src = attributes['url'];
+            image.setImage(imageObj);
             return image;
         };
         createHandle = function (attributes) {
@@ -2096,9 +2096,9 @@
                 click: function (e) {
                     this.count = this.count ? ++this.count : 1;
                     if (this.count % 2) {
-                        return this.listener.__component__.set('url', 'http://i.cdn.turner.com/cnn/.e/img/3.0/global/header/intl/CNNi_Logo.png');
-                    } else {
                         return this.listener.__component__.set('url', 'http://www.baidu.com/img/bdlogo.gif');
+                    } else {
+                        return this.listener.__component__.set('url', 'http://i.cdn.turner.com/cnn/.e/img/3.0/global/header/intl/CNNi_Logo.png');
                     }
                 }
             }
@@ -2120,6 +2120,39 @@
             view_factory_fn: createView,
             handle_factory_fn: createHandle,
             toolbox_image: 'images/toolbox_image.png'
+        };
+    });
+}.call(this));
+(function () {
+    define('build/spec/SpecText', ['KineticJS'], function (kin) {
+        'use strict';
+        var createHandle, createView;
+        createView = function (attributes) {
+            return new kin.Text(attributes);
+        };
+        createHandle = function (attributes) {
+            return new Kin.Text(attributes);
+        };
+        return {
+            type: 'text',
+            name: 'text',
+            description: 'Text Specification',
+            defaults: {
+                width: 'auto',
+                height: 'auto',
+                draggable: true,
+                strokeWidth: 1,
+                fontSize: 40,
+                fontFamily: 'Arial',
+                fontStyle: 'normal',
+                fill: 'black',
+                stroke: 'black',
+                text: 'TEXT',
+                rotationDeg: 0
+            },
+            view_factory_fn: createView,
+            handle_factory_fn: createHandle,
+            toolbox_image: 'images/toolbox_text.png'
         };
     });
 }.call(this));
@@ -2163,8 +2196,9 @@
         './SpecRing',
         './SpecRuler',
         './SpecImage',
+        './SpecText',
         '../handle/HandleChecker'
-    ], function (kin, SpecInfographic, SpecContentEditLayer, SpecGuideLayer, SpecRulerLayer, SpecHandleLayer, SpecGroup, SpecRect, SpecRing, SpecRuler, SpecImage, HandleChecker) {
+    ], function (kin, SpecInfographic, SpecContentEditLayer, SpecGuideLayer, SpecRulerLayer, SpecHandleLayer, SpecGroup, SpecRect, SpecRing, SpecRuler, SpecImage, SpecText, HandleChecker) {
         'use strict';
         var controller, createView;
         createView = function (attributes) {
@@ -2190,6 +2224,7 @@
                 'ring': SpecRing,
                 'ruler': SpecRuler,
                 'image': SpecImage,
+                'text': SpecText,
                 'handle-checker': HandleChecker
             },
             layers: [

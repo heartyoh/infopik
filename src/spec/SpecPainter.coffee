@@ -16,6 +16,7 @@ define [
     './SpecRing'
     './SpecRuler'
     './SpecImage'
+    './SpecText'
     '../handle/HandleChecker'
 ], (
     kin
@@ -29,6 +30,7 @@ define [
     SpecRing
     SpecRuler
     SpecImage
+    SpecText
     HandleChecker
 ) ->
     
@@ -62,6 +64,7 @@ define [
             'ring' : SpecRing
             'ruler' : SpecRuler
             'image' : SpecImage
+            'text' : SpecText
             'handle-checker' : HandleChecker
         }
         layers : [{

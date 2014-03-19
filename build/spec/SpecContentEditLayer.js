@@ -115,7 +115,7 @@
       } else {
 
       }
-      layer.draw();
+      layer.batchDraw();
       return e.cancelBubble = true;
     };
     ondragend = function(e) {

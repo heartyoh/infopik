@@ -28,7 +28,7 @@ define [
         layer.__hori__.setAttr('zeropos', -e.x)
         layer.__vert__.setAttr('zeropos', -e.y)
 
-        layer.draw()
+        layer.batchDraw()
 
     view_listener = 
         '?offset_monitor_target':

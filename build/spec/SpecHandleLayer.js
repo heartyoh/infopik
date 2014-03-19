@@ -15,7 +15,7 @@
         x: e.x,
         y: e.y
       });
-      return layer.draw();
+      return layer.batchDraw();
     };
     ondragmove = function(e) {
       var handle, id, layer;
@@ -24,7 +24,7 @@
       handle = layer.handles[id];
       if (handle) {
         handle.setAbsolutePosition(e.targetNode.getAbsolutePosition());
-        return layer.draw();
+        return layer.batchDraw();
       }
     };
     ondragend = function(e) {
@@ -62,7 +62,7 @@
         handle_view.setAbsolutePosition(pos);
         layer.handles[id] = handle_view;
       }
-      return layer.draw();
+      return layer.batchDraw();
     };
     controller = {
       '(root)': {

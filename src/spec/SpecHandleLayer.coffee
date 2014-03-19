@@ -23,7 +23,7 @@ define [
         layer = this.listener
 
         layer.offset {x: e.x, y: e.y}
-        layer.draw()
+        layer.batchDraw()
 
     ondragmove = (e) ->
         layer = this.listener
@@ -33,7 +33,7 @@ define [
 
         if handle
             handle.setAbsolutePosition(e.targetNode.getAbsolutePosition())
-            layer.draw()
+            layer.batchDraw()
 
     ondragend = (e) ->
         layer = this.listener
@@ -71,7 +71,7 @@ define [
 
             layer.handles[id] = handle_view
 
-        layer.draw()
+        layer.batchDraw()
 
     controller = 
         '(root)' :

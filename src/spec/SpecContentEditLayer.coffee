@@ -122,7 +122,7 @@ define [
             layer.fire('change-offset', {x: x, y: y}, false);
         else
 
-        layer.draw();
+        layer.batchDraw();
 
         e.cancelBubble = true
 

@@ -6,11 +6,11 @@
       var image, imageObj;
       image = new kin.Image(attributes);
       imageObj = new Image();
-      image.setImage(imageObj);
       imageObj.onload = function() {
-        return image.draw();
+        return image.getLayer().draw();
       };
       imageObj.src = attributes['url'];
+      image.setImage(imageObj);
       return image;
     };
     createHandle = function(attributes) {
@@ -35,9 +35,9 @@
         click: function(e) {
           this.count = this.count ? ++this.count : 1;
           if (this.count % 2) {
-            return this.listener.__component__.set('url', 'http://i.cdn.turner.com/cnn/.e/img/3.0/global/header/intl/CNNi_Logo.png');
-          } else {
             return this.listener.__component__.set('url', 'http://www.baidu.com/img/bdlogo.gif');
+          } else {
+            return this.listener.__component__.set('url', 'http://i.cdn.turner.com/cnn/.e/img/3.0/global/header/intl/CNNi_Logo.png');
           }
         }
       }

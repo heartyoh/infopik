@@ -108,7 +108,7 @@ define [
         layer.add(this.hori)
         layer.add(this.text)
 
-        layer.draw()
+        layer.batchDraw()
 
     ondragmove = (e) ->
         layer = this.listener

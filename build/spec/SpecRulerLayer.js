@@ -15,7 +15,7 @@
       }
       layer.__hori__.setAttr('zeropos', -e.x);
       layer.__vert__.setAttr('zeropos', -e.y);
-      return layer.draw();
+      return layer.batchDraw();
     };
     view_listener = {
       '?offset_monitor_target': {

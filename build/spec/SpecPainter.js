@@ -1,5 +1,5 @@
 (function() {
-  define(['KineticJS', './SpecInfographic', './SpecContentEditLayer', './SpecGuideLayer', './SpecRulerLayer', './SpecHandleLayer', './SpecGroup', './SpecRect', './SpecRing', './SpecRuler', './SpecImage', '../handle/HandleChecker'], function(kin, SpecInfographic, SpecContentEditLayer, SpecGuideLayer, SpecRulerLayer, SpecHandleLayer, SpecGroup, SpecRect, SpecRing, SpecRuler, SpecImage, HandleChecker) {
+  define(['KineticJS', './SpecInfographic', './SpecContentEditLayer', './SpecGuideLayer', './SpecRulerLayer', './SpecHandleLayer', './SpecGroup', './SpecRect', './SpecRing', './SpecRuler', './SpecImage', './SpecText', '../handle/HandleChecker'], function(kin, SpecInfographic, SpecContentEditLayer, SpecGuideLayer, SpecRulerLayer, SpecHandleLayer, SpecGroup, SpecRect, SpecRing, SpecRuler, SpecImage, SpecText, HandleChecker) {
     "use strict";
     var controller, createView;
     createView = function(attributes) {
@@ -25,6 +25,7 @@
         'ring': SpecRing,
         'ruler': SpecRuler,
         'image': SpecImage,
+        'text': SpecText,
         'handle-checker': HandleChecker
       },
       layers: [

@@ -9,6 +9,7 @@ define([
   'build/spec/SpecRing',
   'build/spec/SpecRuler',
   'build/spec/SpecImage',
+  'build/spec/SpecText',
   'build/spec/SpecInfographic',
   'test/spec/infographic/sample_01'
 ], function (
@@ -20,6 +21,7 @@ define([
   SpecRing,
   SpecRuler,
   SpecImage,
+  SpecText,
   SpecInfographic,
   sample_01
 ) {
@@ -93,6 +95,7 @@ define([
         registry.register(SpecRuler);
         registry.register(SpecGroup);
         registry.register(SpecImage);
+        registry.register(SpecText);
         registry.register(SpecInfographic);
       });
 
@@ -101,7 +104,7 @@ define([
         var component = factory.createComponent(sample_01);
 
         component.type.should.equal('infographic');
-        component.size().should.equal(3);
+        component.size().should.equal(4);
       });
 
     });

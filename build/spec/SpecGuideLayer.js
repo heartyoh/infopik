@@ -100,7 +100,7 @@
       layer.add(this.vert);
       layer.add(this.hori);
       layer.add(this.text);
-      return layer.draw();
+      return layer.batchDraw();
     };
     ondragmove = function(e) {
       var layer, layer_offset, node, node_new_pos, offset_x, offset_y, textx, texty, x, y;
