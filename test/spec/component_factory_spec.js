@@ -110,7 +110,7 @@ define([
         var component = factory.createComponent(sample_01);
 
         component.type.should.equal('infographic');
-        component.size().should.equal(6);
+        component.size().should.equal(7);
       });
 
     });
