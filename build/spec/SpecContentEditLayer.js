@@ -123,7 +123,6 @@
       application = this.context;
       node = e.targetNode;
       component = node.__component__;
-      console.log(node.offset());
       if (component) {
         cmd = new CommandPropertyChange({
           changes: [

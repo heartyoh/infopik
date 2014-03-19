@@ -18,6 +18,9 @@ requirejs.config({
 		dou: {
 			exports: 'dou'
 		},
+		bwip: {
+			exports: 'bwip'
+		},
 		KineticJS: {
 			exports: 'Kinetic'
 		},

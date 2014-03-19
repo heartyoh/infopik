@@ -18,6 +18,7 @@ define [
     './SpecImage'
     './SpecText'
     './SpecStar'
+    './SpecBarcode'
     '../handle/HandleChecker'
 ], (
     kin
@@ -33,6 +34,7 @@ define [
     SpecImage
     SpecText
     SpecStar
+    SpecBarcode
     HandleChecker
 ) ->
     
@@ -68,6 +70,7 @@ define [
             'image' : SpecImage
             'text' : SpecText
             'star' : SpecStar
+            'barcode' : SpecBarcode
             'handle-checker' : HandleChecker
         }
         layers : [{

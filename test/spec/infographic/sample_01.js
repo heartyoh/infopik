@@ -115,6 +115,37 @@ define([
         y: 60,
         text: 'Sample Text 都'
       }
+    }, {
+      type: 'barcode',
+      attrs: {
+        x: 310,
+        y: 200,
+        symbol: "code39",
+        text: "1234567890",
+        alttext: "8741493123493123",
+        scale_h: 1,
+        scale_w: 2,
+        rotation: "N",
+        includetext: true,
+        includecheckintext: true,
+        includecheck: true,
+        parsefnc: true,
+        segments: 4,
+        showborder: true,
+        version: "iata",
+        barcolor: "#FF0000",
+        rows: 45,
+        columns: 15,
+        height: 111,
+        backgroundcolor: "DD000011",
+        format: "full",
+        ccversion: "b",
+        cccolumns: 7,
+        numeric: true,
+        guardwhitespace: true,
+        width: 434,
+        draggable: true
+      }
     }],
     links: []
   };

@@ -11,6 +11,7 @@ define([
   'build/spec/SpecImage',
   'build/spec/SpecText',
   'build/spec/SpecStar',
+  'build/spec/SpecBarcode',
   'build/spec/SpecInfographic',
   'test/spec/infographic/sample_01'
 ], function (
@@ -24,6 +25,7 @@ define([
   SpecImage,
   SpecText,
   SpecStar,
+  SpecBarcode,
   SpecInfographic,
   sample_01
 ) {
@@ -99,6 +101,7 @@ define([
         registry.register(SpecImage);
         registry.register(SpecText);
         registry.register(SpecStar);
+        registry.register(SpecBarcode);
         registry.register(SpecInfographic);
       });
 
@@ -107,7 +110,7 @@ define([
         var component = factory.createComponent(sample_01);
 
         component.type.should.equal('infographic');
-        component.size().should.equal(5);
+        component.size().should.equal(6);
       });
 
     });

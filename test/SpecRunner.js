@@ -14,6 +14,9 @@ require.config({
     KineticJS: {
       exports: 'Kinetic'
     },
+    bwip: {
+      exports: 'bwip'
+    },
     mocha: {
       exports: 'mocha'
     }
