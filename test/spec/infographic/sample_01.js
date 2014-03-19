@@ -10,7 +10,8 @@ define([
       'group': '*',
       'rectangle' : '*',
       'ring' : '*',
-      'ruler' : '*'
+      'ruler' : '*',
+      'image' : '*'
     },
     attrs: {
       width: 1000,
@@ -38,8 +39,8 @@ define([
       }, {
         type: 'rectangle',
         attrs: {
-          x: 110,
-          y: 110,
+          x: 130,
+          y: 130,
           width: 100,
           height: 50,
           draggable: true
@@ -89,6 +90,16 @@ define([
         height: 50,
         opacity: 0.1,
         draggable: true
+      }
+    }, {
+      type: 'image',
+      attrs: {
+        x: 70,
+        y: 70,
+        width: 100,
+        height: 50,
+        fill: 'black',
+        url: 'http://www.baidu.com/img/bdlogo.gif'
       }
     }],
     links: []

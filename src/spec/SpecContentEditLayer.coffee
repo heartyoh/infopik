@@ -61,6 +61,9 @@ define [
         layer = this.listener
         background = layer.__background__
 
+        node = e.targetNode
+        this.context.selectionManager.select(node)
+            
         return if e.targetNode and e.targetNode isnt background
 
         layer_offset = layer.offset()
@@ -125,7 +128,7 @@ define [
 
     ondragend = (e) ->
 
-        application = this.context.application
+        application = this.context
 
         node = e.targetNode
         component = node.__component__
@@ -175,7 +178,7 @@ define [
 
     onclick = (e) ->
         node = e.targetNode
-        this.context.application.selectionManager.select(node)
+        this.context.selectionManager.select(node)
 
     controller =
         '(root)' :

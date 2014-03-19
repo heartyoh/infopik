@@ -41,9 +41,11 @@
     };
     onchange = function(component, before, after) {};
     ondragstart = function(e) {
-      var background, layer, layer_offset, mode, offset;
+      var background, layer, layer_offset, mode, node, offset;
       layer = this.listener;
       background = layer.__background__;
+      node = e.targetNode;
+      this.context.selectionManager.select(node);
       if (e.targetNode && e.targetNode !== background) {
         return;
       }
@@ -118,7 +120,7 @@
     };
     ondragend = function(e) {
       var application, background, cmd, component, layer, mode, node, x, y;
-      application = this.context.application;
+      application = this.context;
       node = e.targetNode;
       component = node.__component__;
       if (component) {
@@ -176,7 +178,7 @@
     onclick = function(e) {
       var node;
       node = e.targetNode;
-      return this.context.application.selectionManager.select(node);
+      return this.context.selectionManager.select(node);
     };
     controller = {
       '(root)': {

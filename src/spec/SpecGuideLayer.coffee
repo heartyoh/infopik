@@ -70,9 +70,9 @@ define [
 
     ondragstart = (e) ->
         layer = this.listener
-        app = this.context.application
+        app = this.context
 
-        stage = this.context.application.getView()
+        stage = layer.getStage()
         this.width = stage.getWidth()
         this.height = stage.getHeight()
 

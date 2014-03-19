@@ -60,9 +60,7 @@ define [
                             console.log("ComponentFactory#crateView", "variable #{selector} is not evaluated on listener")
                             continue
 
-                    @eventTracker.on selector, handlers, view,
-                        component:component
-                        application: context
+                    @eventTracker.on selector, handlers, view, context
                 
             view
 

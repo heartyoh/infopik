@@ -679,10 +679,7 @@
                                 continue;
                             }
                         }
-                        this.eventTracker.on(selector, handlers, view, {
-                            component: component,
-                            application: context
-                        });
+                        this.eventTracker.on(selector, handlers, view, context);
                     }
                 }
                 return view;
@@ -1214,9 +1211,11 @@
         onchange = function (component, before, after) {
         };
         ondragstart = function (e) {
-            var background, layer, layer_offset, mode, offset;
+            var background, layer, layer_offset, mode, node, offset;
             layer = this.listener;
             background = layer.__background__;
+            node = e.targetNode;
+            this.context.selectionManager.select(node);
             if (e.targetNode && e.targetNode !== background) {
                 return;
             }
@@ -1291,7 +1290,7 @@
         };
         ondragend = function (e) {
             var application, background, cmd, component, layer, mode, node, x, y;
-            application = this.context.application;
+            application = this.context;
             node = e.targetNode;
             component = node.__component__;
             if (component) {
@@ -1346,7 +1345,7 @@
         onclick = function (e) {
             var node;
             node = e.targetNode;
-            return this.context.application.selectionManager.select(node);
+            return this.context.selectionManager.select(node);
         };
         controller = {
             '(root)': {
@@ -1450,8 +1449,8 @@
         ondragstart = function (e) {
             var app, layer, layer_offset, node, offset_x, offset_y, stage, textx, texty;
             layer = this.listener;
-            app = this.context.application;
-            stage = this.context.application.getView();
+            app = this.context;
+            stage = layer.getStage();
             this.width = stage.getWidth();
             this.height = stage.getHeight();
             this.mouse_origin = {
@@ -2061,6 +2060,70 @@
     });
 }.call(this));
 (function () {
+    define('build/spec/SpecImage', ['KineticJS'], function (kin) {
+        'use strict';
+        var controller, createHandle, createView, view_listener;
+        createView = function (attributes) {
+            var image, imageObj;
+            image = new kin.Image(attributes);
+            imageObj = new Image();
+            image.setImage(imageObj);
+            imageObj.onload = function () {
+                return image.draw();
+            };
+            imageObj.src = attributes['url'];
+            return image;
+        };
+        createHandle = function (attributes) {
+            return new Kin.Image(attributes);
+        };
+        controller = {
+            '(self)': {
+                '(self)': {
+                    change: function (component, before, after) {
+                        var imageObj;
+                        if (!(before['url'] || after['url'])) {
+                            return;
+                        }
+                        imageObj = component.attaches()[0].getImage();
+                        return imageObj.src = after['url'];
+                    }
+                }
+            }
+        };
+        view_listener = {
+            '(self)': {
+                click: function (e) {
+                    this.count = this.count ? ++this.count : 1;
+                    if (this.count % 2) {
+                        return this.listener.__component__.set('url', 'http://i.cdn.turner.com/cnn/.e/img/3.0/global/header/intl/CNNi_Logo.png');
+                    } else {
+                        return this.listener.__component__.set('url', 'http://www.baidu.com/img/bdlogo.gif');
+                    }
+                }
+            }
+        };
+        return {
+            type: 'image',
+            name: 'image',
+            description: 'Image Specification',
+            defaults: {
+                width: 100,
+                height: 50,
+                stroke: 'black',
+                strokeWidth: 1,
+                rotationDeg: 0,
+                draggable: true
+            },
+            controller: controller,
+            view_listener: view_listener,
+            view_factory_fn: createView,
+            handle_factory_fn: createHandle,
+            toolbox_image: 'images/toolbox_image.png'
+        };
+    });
+}.call(this));
+(function () {
     define('build/handle/HandleChecker', ['KineticJS'], function (kin) {
         'use strict';
         var createHandle, createView;
@@ -2099,8 +2162,9 @@
         './SpecRect',
         './SpecRing',
         './SpecRuler',
+        './SpecImage',
         '../handle/HandleChecker'
-    ], function (kin, SpecInfographic, SpecContentEditLayer, SpecGuideLayer, SpecRulerLayer, SpecHandleLayer, SpecGroup, SpecRect, SpecRing, SpecRuler, HandleChecker) {
+    ], function (kin, SpecInfographic, SpecContentEditLayer, SpecGuideLayer, SpecRulerLayer, SpecHandleLayer, SpecGroup, SpecRect, SpecRing, SpecRuler, SpecImage, HandleChecker) {
         'use strict';
         var controller, createView;
         createView = function (attributes) {
@@ -2125,6 +2189,7 @@
                 'rect': SpecRect,
                 'ring': SpecRing,
                 'ruler': SpecRuler,
+                'image': SpecImage,
                 'handle-checker': HandleChecker
             },
             layers: [

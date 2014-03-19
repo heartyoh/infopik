@@ -46,6 +46,7 @@ define [
             layer.draw()
 
     onchangeselection = (after, before, added, removed, e) ->
+
         container = e.listener
         layer = container.attaches()[0]
 

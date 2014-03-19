@@ -60,8 +60,8 @@
     ondragstart = function(e) {
       var app, layer, layer_offset, node, offset_x, offset_y, stage, textx, texty;
       layer = this.listener;
-      app = this.context.application;
-      stage = this.context.application.getView();
+      app = this.context;
+      stage = layer.getStage();
       this.width = stage.getWidth();
       this.height = stage.getHeight();
       this.mouse_origin = {

@@ -3,19 +3,23 @@
 define([
   'build/ComponentFactory',
   'build/ComponentRegistry',
+  'build/EventEngine',
   'build/spec/SpecGroup',
   'build/spec/SpecRect',
   'build/spec/SpecRing',
   'build/spec/SpecRuler',
+  'build/spec/SpecImage',
   'build/spec/SpecInfographic',
   'test/spec/infographic/sample_01'
 ], function (
   ComponentFactory,
   ComponentRegistry,
+  EventEngine,
   SpecGroup,
   SpecRect,
   SpecRing,
   SpecRuler,
+  SpecImage,
   SpecInfographic,
   sample_01
 ) {
@@ -26,7 +30,7 @@ define([
 
     beforeEach(function() {
       registry = new ComponentRegistry();
-      factory = new ComponentFactory(registry);
+      factory = new ComponentFactory(registry, new EventEngine());
     });
 
     describe('createComponent', function() {
@@ -88,6 +92,7 @@ define([
         registry.register(SpecRing);
         registry.register(SpecRuler);
         registry.register(SpecGroup);
+        registry.register(SpecImage);
         registry.register(SpecInfographic);
       });
 
@@ -96,7 +101,7 @@ define([
         var component = factory.createComponent(sample_01);
 
         component.type.should.equal('infographic');
-        component.size().should.equal(2);
+        component.size().should.equal(3);
       });
 
     });

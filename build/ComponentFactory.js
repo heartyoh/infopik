@@ -51,10 +51,7 @@
                 continue;
               }
             }
-            this.eventTracker.on(selector, handlers, view, {
-              component: component,
-              application: context
-            });
+            this.eventTracker.on(selector, handlers, view, context);
           }
         }
         return view;
