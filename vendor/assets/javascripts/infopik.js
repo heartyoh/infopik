@@ -1293,6 +1293,7 @@
             application = this.context;
             node = e.targetNode;
             component = node.__component__;
+            console.log(node.offset());
             if (component) {
                 cmd = new CommandPropertyChange({
                     changes: [{
@@ -2157,6 +2158,36 @@
     });
 }.call(this));
 (function () {
+    define('build/spec/SpecStar', ['KineticJS'], function (kin) {
+        'use strict';
+        var createHandle, createView;
+        createView = function (attributes) {
+            return new kin.Star(attributes);
+        };
+        createHandle = function (attributes) {
+            return new Kin.Star(attributes);
+        };
+        return {
+            type: 'star',
+            name: 'star',
+            description: 'Star Specification',
+            defaults: {
+                width: 100,
+                height: 50,
+                numPoints: 5,
+                innerRadius: 35,
+                outerRadius: 70,
+                fill: 'red',
+                stroke: 'black',
+                strokeWidth: 4
+            },
+            view_factory_fn: createView,
+            handle_factory_fn: createHandle,
+            toolbox_image: 'images/toolbox_star.png'
+        };
+    });
+}.call(this));
+(function () {
     define('build/handle/HandleChecker', ['KineticJS'], function (kin) {
         'use strict';
         var createHandle, createView;
@@ -2197,8 +2228,9 @@
         './SpecRuler',
         './SpecImage',
         './SpecText',
+        './SpecStar',
         '../handle/HandleChecker'
-    ], function (kin, SpecInfographic, SpecContentEditLayer, SpecGuideLayer, SpecRulerLayer, SpecHandleLayer, SpecGroup, SpecRect, SpecRing, SpecRuler, SpecImage, SpecText, HandleChecker) {
+    ], function (kin, SpecInfographic, SpecContentEditLayer, SpecGuideLayer, SpecRulerLayer, SpecHandleLayer, SpecGroup, SpecRect, SpecRing, SpecRuler, SpecImage, SpecText, SpecStar, HandleChecker) {
         'use strict';
         var controller, createView;
         createView = function (attributes) {
@@ -2225,6 +2257,7 @@
                 'ruler': SpecRuler,
                 'image': SpecImage,
                 'text': SpecText,
+                'star': SpecStar,
                 'handle-checker': HandleChecker
             },
             layers: [

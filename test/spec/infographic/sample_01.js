@@ -93,6 +93,13 @@ define([
         draggable: true
       }
     }, {
+      type: 'star',
+      attrs: {
+        x: 430,
+        y: 180,
+        draggable: true
+      }
+    }, {
       type: 'image',
       attrs: {
         x: 10,
