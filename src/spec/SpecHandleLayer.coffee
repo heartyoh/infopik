@@ -48,12 +48,12 @@ define [
     onchangeselection = (after, before, added, removed, e) ->
 
         container = e.listener
-        layer = container.attaches()[0]
+        layer = container.getViews()[0]
 
         for node in removed
             id = node.getAttr('id')
             handle = layer.handles[id]
-            handle_comp = handle.__component__
+            handle_comp = handle.getModel()
             container.remove(handle_comp)
 
             delete layer.handles[id]
@@ -66,7 +66,7 @@ define [
                 attrs: {}
 
             container.add(handle_comp)
-            handle_view = handle_comp.attaches()[0]
+            handle_view = handle_comp.getViews()[0]
             handle_view.setAbsolutePosition(pos)
 
             layer.handles[id] = handle_view

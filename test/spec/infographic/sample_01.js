@@ -12,7 +12,9 @@ define([
       'ring' : '*',
       'ruler' : '*',
       'image' : '*',
-      'text' : '*'
+      'text' : '*',
+      'star' : '*',
+      'barcode' : '*'
     },
     attrs: {
       width: 1000,

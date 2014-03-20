@@ -114,7 +114,7 @@ define [
 
                     views = []
                     for comp in comps
-                        views.push view for view in comp.attaches()
+                        views.push view for view in comp.getViews()
 
                     views
 

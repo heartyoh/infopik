@@ -22,7 +22,7 @@ define [
 
         self = guideLayer._track
 
-        self.view = e.listener.attaches()[0] if not self.view
+        self.view = e.listener.getViews()[0] if not self.view
         layer = self.view
 
         self.changes = (self.changes || 0) + 1

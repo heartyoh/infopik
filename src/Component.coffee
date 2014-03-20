@@ -6,24 +6,28 @@
 
 define [
     'dou'
-], (dou) ->
+    './MVCMixin'
+], (
+    dou
+    MVCMixin
+) ->
     
     "use strict"
 
     class Component
         constructor : (type) ->
             @type = type
-            @__views__ = []
+        #     @__views__ = []
 
-        attach : (view) ->
-            @__views__.push view
+        # attach : (view) ->
+        #     @__views__.push view
 
-        detach : (view) ->
-            index = @__views__.indexOf(view)
-            @__views__.splice(index, 1) if index > -1
+        # detach : (view) ->
+        #     index = @__views__.indexOf(view)
+        #     @__views__.splice(index, 1) if index > -1
 
-        attaches : ->
-            @__views__
+        # attaches : ->
+        #     @__views__
 
     dou.mixin Component, [
         dou.with.advice
@@ -31,4 +35,5 @@ define [
         dou.with.property
         dou.with.lifecycle
         dou.with.serialize
+        MVCMixin.model
     ]

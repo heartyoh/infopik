@@ -57,7 +57,7 @@
             views = [];
             for (_i = 0, _len = comps.length; _i < _len; _i++) {
               comp = comps[_i];
-              _ref = comp.attaches();
+              _ref = comp.getViews();
               for (_j = 0, _len1 = _ref.length; _j < _len1; _j++) {
                 view = _ref[_j];
                 views.push(view);

@@ -13,7 +13,7 @@
       }
       self = guideLayer._track;
       if (!self.view) {
-        self.view = e.listener.attaches()[0];
+        self.view = e.listener.getViews()[0];
       }
       layer = self.view;
       self.changes = (self.changes || 0) + 1;

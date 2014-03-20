@@ -6,12 +6,14 @@
 
 define [
     'dou'
+    './MVCMixin'
     './Component'
     './Container'
     './EventEngine'
     './EventTracker'
 ], (
     dou
+    MVCMixin
     Component
     Container
     EventEngine
@@ -40,8 +42,11 @@ define [
             throw new Error "Component Spec Not Found for type '#{type}'" if !spec
             view = spec.view_factory_fn.call context, component.getAll()
 
-            view.__component__ = component
-            component.attach view
+            dou.mixin view, MVCMixin.view
+            # view.__component__ = component
+            # component.attach view
+            console.log '-----', view if not view.setModel
+            view.setModel(component) # if view.setModel
 
             if component instanceof Container
                 component.forEach (child) ->

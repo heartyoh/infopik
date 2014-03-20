@@ -1,7 +1,7 @@
 (function() {
   var __hasProp = {}.hasOwnProperty;
 
-  define(['dou', './Component', './Container', './EventEngine', './EventTracker'], function(dou, Component, Container, EventEngine, EventTracker) {
+  define(['dou', './MVCMixin', './Component', './Container', './EventEngine', './EventTracker'], function(dou, MVCMixin, Component, Container, EventEngine, EventTracker) {
     "use strict";
     var ComponentFactory;
     ComponentFactory = (function() {
@@ -31,8 +31,11 @@
           throw new Error("Component Spec Not Found for type '" + type + "'");
         }
         view = spec.view_factory_fn.call(context, component.getAll());
-        view.__component__ = component;
-        component.attach(view);
+        dou.mixin(view, MVCMixin.view);
+        if (!view.setModel) {
+          console.log('-----', view);
+        }
+        view.setModel(component);
         if (component instanceof Container) {
           component.forEach(function(child) {
             return view.add(this.createView(child, context));

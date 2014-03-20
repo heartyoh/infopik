@@ -31,7 +31,7 @@ define [
             '(self)' :
                 change : (component, before, after) ->
                     return if not (before['url'] or after['url'])
-                    imageObj = component.attaches()[0].getImage()
+                    imageObj = component.getViews()[0].getImage()
                     imageObj.src = after['url']
 
 
@@ -40,9 +40,9 @@ define [
             click : (e) ->
                 this.count = if this.count then ++this.count else 1
                 if(this.count % 2)
-                    this.listener.__component__.set('url', 'http://www.baidu.com/img/bdlogo.gif')
+                    this.listener.getModel().set('url', 'http://www.baidu.com/img/bdlogo.gif')
                 else
-                    this.listener.__component__.set('url', 'http://i.cdn.turner.com/cnn/.e/img/3.0/global/header/intl/CNNi_Logo.png')
+                    this.listener.getModel().set('url', 'http://i.cdn.turner.com/cnn/.e/img/3.0/global/header/intl/CNNi_Logo.png')
 
     {
         type: 'image'

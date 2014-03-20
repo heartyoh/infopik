@@ -122,7 +122,9 @@
       var application, background, cmd, component, layer, mode, node, x, y;
       application = this.context;
       node = e.targetNode;
-      component = node.__component__;
+      if (node.getModel) {
+        component = node.getModel();
+      }
       if (component) {
         cmd = new CommandPropertyChange({
           changes: [

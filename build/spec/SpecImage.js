@@ -24,7 +24,7 @@
             if (!(before['url'] || after['url'])) {
               return;
             }
-            imageObj = component.attaches()[0].getImage();
+            imageObj = component.getViews()[0].getImage();
             return imageObj.src = after['url'];
           }
         }
@@ -35,9 +35,9 @@
         click: function(e) {
           this.count = this.count ? ++this.count : 1;
           if (this.count % 2) {
-            return this.listener.__component__.set('url', 'http://www.baidu.com/img/bdlogo.gif');
+            return this.listener.getModel().set('url', 'http://www.baidu.com/img/bdlogo.gif');
           } else {
-            return this.listener.__component__.set('url', 'http://i.cdn.turner.com/cnn/.e/img/3.0/global/header/intl/CNNi_Logo.png');
+            return this.listener.getModel().set('url', 'http://i.cdn.turner.com/cnn/.e/img/3.0/global/header/intl/CNNi_Logo.png');
           }
         }
       }

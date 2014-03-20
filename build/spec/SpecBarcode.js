@@ -47,7 +47,7 @@
               scale_w: component.get('scale_w'),
               rotation: component.get('rotation')
             });
-            imageObj = component.attaches()[0].getImage();
+            imageObj = component.getViews()[0].getImage();
             return imageObj.src = url;
           }
         }

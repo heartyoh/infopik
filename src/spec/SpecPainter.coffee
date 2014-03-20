@@ -41,7 +41,7 @@ define [
     "use strict"
 
     createView = (attributes) ->
-        return new kin.Stage(attributes)
+        new kin.Stage(attributes)
 
     controller =
         # 'painter-app':

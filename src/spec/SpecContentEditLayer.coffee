@@ -131,7 +131,7 @@ define [
         application = this.context
 
         node = e.targetNode
-        component = node.__component__
+        component = node.getModel() if node.getModel
 
         if component
             cmd = new CommandPropertyChange

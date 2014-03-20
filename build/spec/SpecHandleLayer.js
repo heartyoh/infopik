@@ -40,12 +40,12 @@
     onchangeselection = function(after, before, added, removed, e) {
       var container, handle, handle_comp, handle_view, id, layer, node, pos, _i, _j, _len, _len1;
       container = e.listener;
-      layer = container.attaches()[0];
+      layer = container.getViews()[0];
       for (_i = 0, _len = removed.length; _i < _len; _i++) {
         node = removed[_i];
         id = node.getAttr('id');
         handle = layer.handles[id];
-        handle_comp = handle.__component__;
+        handle_comp = handle.getModel();
         container.remove(handle_comp);
         delete layer.handles[id];
       }
@@ -58,7 +58,7 @@
           attrs: {}
         });
         container.add(handle_comp);
-        handle_view = handle_comp.attaches()[0];
+        handle_view = handle_comp.getViews()[0];
         handle_view.setAbsolutePosition(pos);
         layer.handles[id] = handle_view;
       }
