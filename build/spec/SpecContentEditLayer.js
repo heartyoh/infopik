@@ -11,6 +11,7 @@
       };
       view = new kin.Layer(attributes);
       background = new kin.Rect({
+        name: 'background for ruler-layer',
         draggable: true,
         listening: true,
         x: 0,
@@ -37,7 +38,9 @@
       }
     };
     onchangeselections = function(after, before, added, removed) {
-      return console.log('selection-changed', after);
+      var controller;
+      controller = this;
+      return console.log('selection-changed', after[0], controller.getAttachedModel(after[0]));
     };
     onchange = function(component, before, after) {};
     ondragstart = function(e) {
@@ -55,8 +58,8 @@
         y: view_offset.y + 20
       });
       this.start_point = {
-        x: e.offsetX,
-        y: e.offsetY
+        x: e.clientX,
+        y: e.clientY
       };
       this.origin_offset = view.offset();
       offset = {
@@ -94,12 +97,12 @@
           y: this.origin_offset.y + 20
         });
         this.selectbox.setAttrs({
-          width: e.offsetX - this.start_point.x,
-          height: e.offsetY - this.start_point.y
+          width: e.clientX - this.start_point.x,
+          height: e.clientY - this.start_point.y
         });
       } else if (mode === 'MOVE') {
-        x = this.origin_offset.x - (e.offsetX - this.start_point.x);
-        y = this.origin_offset.y - (e.offsetY - this.start_point.y);
+        x = this.origin_offset.x - (e.clientX - this.start_point.x);
+        y = this.origin_offset.y - (e.clientY - this.start_point.y);
         view.offset({
           x: x,
           y: y
@@ -155,8 +158,8 @@
         this.selectbox.remove();
         delete this.selectbox;
       } else if (mode === 'MOVE') {
-        x = Math.max(this.origin_offset.x - (e.offsetX - this.start_point.x), -20);
-        y = Math.max(this.origin_offset.y - (e.offsetY - this.start_point.y), -20);
+        x = Math.max(this.origin_offset.x - (e.clientX - this.start_point.x), -20);
+        y = Math.max(this.origin_offset.y - (e.clientY - this.start_point.y), -20);
         view.offset({
           x: x,
           y: y

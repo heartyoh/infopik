@@ -50,6 +50,7 @@ define [
             type: 'ruler'
             attrs:
                 direction: 'horizontal'
+                name: 'horizontal ruler for ruler-layer'
                 margin: [20, 0]
                 opacity: 0.8
                 x: 0
@@ -61,6 +62,7 @@ define [
             type: 'ruler'
             attrs:
                 direction: 'vertical'
+                name: 'vertical ruler for ruler-layer'
                 margin: [20, 0]
                 opacity: 0.8
                 x: 0
