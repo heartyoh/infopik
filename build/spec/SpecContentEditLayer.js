@@ -3,13 +3,13 @@
     "use strict";
     var controller, createView, onadded, onchange, onchangemodel, onchangeselections, onclick, ondragend, ondragmove, ondragstart, onremoved, view_listener;
     createView = function(attributes) {
-      var background, layer, offset, stage;
+      var background, offset, stage, view;
       stage = this.getView().getStage();
       offset = attributes.offset || {
         x: 0,
         y: 0
       };
-      layer = new kin.Layer(attributes);
+      view = new kin.Layer(attributes);
       background = new kin.Rect({
         draggable: true,
         listening: true,
@@ -20,20 +20,20 @@
         stroke: attributes.stroke,
         fill: 'cyan'
       });
-      layer.add(background);
-      layer.__background__ = background;
-      return layer;
+      view.add(background);
+      view.__background__ = background;
+      return view;
     };
     onadded = function(container, component, index, e) {};
     onremoved = function(container, component, e) {};
     onchangemodel = function(after, before, e) {
-      var layer;
-      layer = e.listener;
+      var view;
+      view = e.listener;
       if (before) {
-        layer.remove(before);
+        view.remove(before);
       }
       if (after) {
-        return layer.add(after);
+        return view.add(after);
       }
     };
     onchangeselections = function(after, before, added, removed) {
@@ -41,24 +41,24 @@
     };
     onchange = function(component, before, after) {};
     ondragstart = function(e) {
-      var background, layer, layer_offset, mode, node, offset;
-      layer = this.listener;
-      background = layer.__background__;
+      var background, mode, node, offset, view, view_offset;
+      view = this.listener;
+      background = view.__background__;
       node = e.targetNode;
       this.context.selectionManager.select(node);
       if (e.targetNode && e.targetNode !== background) {
         return;
       }
-      layer_offset = layer.offset();
+      view_offset = view.offset();
       background.setAttrs({
-        x: layer_offset.x + 20,
-        y: layer_offset.y + 20
+        x: view_offset.x + 20,
+        y: view_offset.y + 20
       });
       this.start_point = {
         x: e.offsetX,
         y: e.offsetY
       };
-      this.origin_offset = layer.offset();
+      this.origin_offset = view.offset();
       offset = {
         x: this.start_point.x + this.origin_offset.x,
         y: this.start_point.y + this.origin_offset.y
@@ -70,20 +70,20 @@
           strokeWidth: 1,
           dash: [3, 3]
         });
-        layer.add(this.selectbox);
+        view.add(this.selectbox);
         this.selectbox.setAttrs(offset);
       } else if (mode === 'MOVE') {
 
       } else {
 
       }
-      layer.draw();
+      view.draw();
       return e.cancelBubble = true;
     };
     ondragmove = function(e) {
-      var background, layer, mode, x, y;
-      layer = this.listener;
-      background = layer.__background__;
+      var background, mode, view, x, y;
+      view = this.listener;
+      background = view.__background__;
       if (e.targetNode && e.targetNode !== background) {
         return;
       }
@@ -100,7 +100,7 @@
       } else if (mode === 'MOVE') {
         x = this.origin_offset.x - (e.offsetX - this.start_point.x);
         y = this.origin_offset.y - (e.offsetY - this.start_point.y);
-        layer.offset({
+        view.offset({
           x: x,
           y: y
         });
@@ -108,43 +108,41 @@
           x: x + 20,
           y: y + 20
         });
-        layer.fire('change-offset', {
+        view.fire('change-offset', {
           x: x,
           y: y
         }, false);
       } else {
 
       }
-      layer.batchDraw();
+      view.batchDraw();
       return e.cancelBubble = true;
     };
     ondragend = function(e) {
-      var application, background, cmd, component, layer, mode, node, x, y;
-      application = this.context;
-      node = e.targetNode;
-      if (node.getModel) {
-        component = node.getModel();
-      }
-      if (component) {
+      var background, cmd, controller, dragmodel, dragview, mode, view, x, y;
+      controller = this.context;
+      dragview = e.targetNode;
+      dragmodel = controller.getAttachedModel(dragview);
+      if (dragmodel) {
         cmd = new CommandPropertyChange({
           changes: [
             {
-              component: component,
+              component: dragmodel,
               before: {
-                x: component.get('x'),
-                y: component.get('y')
+                x: dragmodel.get('x'),
+                y: dragmodel.get('y')
               },
               after: {
-                x: node.x(),
-                y: node.y()
+                x: dragview.x(),
+                y: dragview.y()
               }
             }
           ]
         });
-        application.execute(cmd);
+        controller.execute(cmd);
       }
-      layer = this.listener;
-      background = layer.__background__;
+      view = this.listener;
+      background = view.__background__;
       if (e.targetNode && e.targetNode !== background) {
         return;
       }
@@ -159,7 +157,7 @@
       } else if (mode === 'MOVE') {
         x = Math.max(this.origin_offset.x - (e.offsetX - this.start_point.x), -20);
         y = Math.max(this.origin_offset.y - (e.offsetY - this.start_point.y), -20);
-        layer.offset({
+        view.offset({
           x: x,
           y: y
         });
@@ -167,14 +165,14 @@
           x: x + 20,
           y: y + 20
         });
-        layer.fire('change-offset', {
+        view.fire('change-offset', {
           x: x,
           y: y
         }, false);
       } else {
 
       }
-      layer.draw();
+      view.draw();
       return e.cancelBubble = true;
     };
     onclick = function(e) {

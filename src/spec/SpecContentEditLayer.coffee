@@ -25,7 +25,7 @@ define [
 
         offset = attributes.offset || {x:0, y:0}
 
-        layer = new kin.Layer(attributes)
+        view = new kin.Layer(attributes)
 
         background = new kin.Rect
             draggable: true
@@ -38,19 +38,20 @@ define [
             fill: 'cyan'
             # id: undefined
 
-        layer.add background
-        layer.__background__ = background
+        view.add background
+        view.__background__ = background
 
-        layer
+        view
 
     onadded = (container, component, index, e) ->
 
     onremoved = (container, component, e) ->
 
     onchangemodel = (after, before, e) ->
-        layer = e.listener
-        layer.remove before if before
-        layer.add after if after
+        view = e.listener
+        
+        view.remove before if before
+        view.add after if after
 
     onchangeselections = (after, before, added, removed) ->
         console.log 'selection-changed', after
@@ -58,22 +59,23 @@ define [
     onchange = (component, before, after) ->
 
     ondragstart = (e) ->
-        layer = this.listener
-        background = layer.__background__
+        view = this.listener
+
+        background = view.__background__
 
         node = e.targetNode
         this.context.selectionManager.select(node)
             
         return if e.targetNode and e.targetNode isnt background
 
-        layer_offset = layer.offset()
-        background.setAttrs({x: layer_offset.x + 20, y: layer_offset.y + 20})
+        view_offset = view.offset()
+        background.setAttrs({x: view_offset.x + 20, y: view_offset.y + 20})
 
         this.start_point =
             x: e.offsetX
             y: e.offsetY
 
-        this.origin_offset = layer.offset()
+        this.origin_offset = view.offset()
 
         offset = 
             x: this.start_point.x + this.origin_offset.x
@@ -86,18 +88,19 @@ define [
                 strokeWidth: 1
                 dash: [3, 3]
 
-            layer.add this.selectbox
+            view.add this.selectbox
             this.selectbox.setAttrs(offset)
         else if(mode is 'MOVE')
         else
 
-        layer.draw();
+        view.draw();
 
         e.cancelBubble = true
 
     ondragmove = (e) ->
-        layer = this.listener
-        background = layer.__background__
+        view = this.listener
+
+        background = view.__background__
 
         return if e.targetNode and e.targetNode isnt background
 
@@ -112,44 +115,48 @@ define [
             x = this.origin_offset.x - (e.offsetX - this.start_point.x)
             y = this.origin_offset.y - (e.offsetY - this.start_point.y)
 
-            layer.offset
+            view.offset
                 x: x
                 y: y
             background.setAttrs
                 x: x + 20
                 y: y + 20
 
-            layer.fire('change-offset', {x: x, y: y}, false);
+            view.fire('change-offset', {x: x, y: y}, false);
         else
 
-        layer.batchDraw();
+        view.batchDraw();
 
         e.cancelBubble = true
 
     ondragend = (e) ->
+        controller = this.context
+        
+        dragview = e.targetNode
+        dragmodel = controller.getAttachedModel(dragview)
 
-        application = this.context
 
-        node = e.targetNode
-        component = node.getModel() if node.getModel
-
-        if component
+        if dragmodel
             cmd = new CommandPropertyChange
+                
                 changes: [
-                    component: component 
+                    component: dragmodel 
+                    
                     before:
-                        x: component.get('x')
-                        y: component.get('y')
+                        
+                        x: dragmodel.get('x')
+                        y: dragmodel.get('y')
                     after:
-                        x: node.x()
-                        y: node.y()
+                        x: dragview.x()
+                        y: dragview.y()
                 ]
-            application.execute(cmd)
+            controller.execute(cmd)
 
         # ...
 
-        layer = this.listener
-        background = layer.__background__
+        view = this.listener
+
+        background = view.__background__
 
         return if e.targetNode and e.targetNode isnt background
 
@@ -162,17 +169,17 @@ define [
             x = Math.max(this.origin_offset.x - (e.offsetX - this.start_point.x), -20)
             y = Math.max(this.origin_offset.y - (e.offsetY - this.start_point.y), -20)
 
-            layer.offset
+            view.offset
                 x: x
                 y: y
             background.setAttrs
                 x: x + 20
                 y: y + 20
 
-            layer.fire('change-offset', {x: x, y: y}, false);
+            view.fire('change-offset', {x: x, y: y}, false);
         else
 
-        layer.draw();
+        view.draw();
 
         e.cancelBubble = true
 

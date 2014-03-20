@@ -6,16 +6,11 @@
       return new kin.Layer(attributes);
     };
     onchange = function(component, before, after, e) {
-      var guideLayer, layer, msg, self;
-      guideLayer = e.listener;
-      if (!guideLayer._track) {
-        guideLayer._track = {};
-      }
-      self = guideLayer._track;
-      if (!self.view) {
-        self.view = e.listener.getViews()[0];
-      }
-      layer = self.view;
+      var controller, model, msg, self, view;
+      controller = this;
+      model = e.listener;
+      view = controller.getAttachedViews(model)[0];
+      self = model._track = model._track || {};
       self.changes = (self.changes || 0) + 1;
       if (!self.text) {
         self.text = new kin.Text({
@@ -26,11 +21,11 @@
           fontFamily: 'Calibri',
           fill: 'green'
         });
-        layer.add(self.text);
+        view.add(self.text);
       }
       msg = "[ PropertyChange ] " + component.type + " : " + (component.get('id')) + "\n[ Before ] " + (JSON.stringify(before)) + "\n[ After ] " + (JSON.stringify(after));
       self.text.setAttr('text', msg);
-      layer.draw();
+      view.draw();
       return setTimeout(function() {
         var tween;
         if ((--self.changes) > 0) {
@@ -53,15 +48,14 @@
           tween.destroy();
           self.text.remove();
           delete self.text;
-          return layer.draw();
+          return view.draw();
         }, 1000);
       }, 5000);
     };
     ondragstart = function(e) {
-      var app, layer, layer_offset, node, offset_x, offset_y, stage, textx, texty;
-      layer = this.listener;
-      app = this.context;
-      stage = layer.getStage();
+      var node, offset_x, offset_y, stage, textx, texty, view, view_offset;
+      view = this.listener;
+      stage = view.getStage();
       this.width = stage.getWidth();
       this.height = stage.getHeight();
       this.mouse_origin = {
@@ -70,9 +64,9 @@
       };
       node = e.targetNode;
       this.node_origin = node.getAbsolutePosition();
-      layer_offset = layer.offset();
-      offset_x = this.node_origin.x + layer_offset.x;
-      offset_y = this.node_origin.y + layer_offset.y;
+      view_offset = view.offset();
+      offset_x = this.node_origin.x + view_offset.x;
+      offset_y = this.node_origin.y + view_offset.y;
       this.vert = new kin.Line({
         stroke: 'red',
         tension: 1,
@@ -96,15 +90,14 @@
         x: textx,
         y: texty
       });
-      layer = layer;
-      layer.add(this.vert);
-      layer.add(this.hori);
-      layer.add(this.text);
-      return layer.batchDraw();
+      view.add(this.vert);
+      view.add(this.hori);
+      view.add(this.text);
+      return view.batchDraw();
     };
     ondragmove = function(e) {
-      var layer, layer_offset, node, node_new_pos, offset_x, offset_y, textx, texty, x, y;
-      layer = this.listener;
+      var node, node_new_pos, offset_x, offset_y, textx, texty, view, view_offset, x, y;
+      view = this.listener;
       node_new_pos = {
         x: (e.x - this.mouse_origin.x) + this.node_origin.x,
         y: (e.y - this.mouse_origin.y) + this.node_origin.y
@@ -116,9 +109,9 @@
         x: x,
         y: y
       });
-      layer_offset = layer.offset();
-      offset_x = x + layer_offset.x;
-      offset_y = y + layer_offset.y;
+      view_offset = view.offset();
+      offset_x = x + view_offset.x;
+      offset_y = y + view_offset.y;
       this.vert.setAttrs({
         points: [offset_x, 0, offset_x, this.height]
       });
@@ -132,21 +125,22 @@
         x: textx,
         y: texty
       });
-      return layer.draw();
+      return view.draw();
     };
     ondragend = function(e) {
-      var layer;
-      layer = this.listener;
+      var view;
+      view = this.listener;
       this.vert.remove();
       this.hori.remove();
       this.text.remove();
-      return layer.draw();
+      return view.draw();
     };
     onadded = function(container, component, index, e) {};
     onremoved = function(container, component, e) {
-      var app;
-      app = this.getView();
-      return this.getEventHandler().off(app, guide_handler);
+      var controller, view;
+      controller = this;
+      view = controller.getView();
+      return this.getEventHandler().off(view, guide_handler);
     };
     controller = {
       '(root)': {

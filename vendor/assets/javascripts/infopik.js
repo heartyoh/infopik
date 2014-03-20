@@ -59,27 +59,135 @@
   }
 
 (function () {
-    define('build/Component', ['dou'], function (dou) {
+    define('build/MVCMixin', ['dou'], function (dou) {
+        'use strict';
+        var attachView, detachAll, detachView, getModel, getViews, setModel, withController, withModel, withView;
+        attachView = function (model, view, x) {
+            if (!view) {
+                return;
+            }
+            if (!model.__views__) {
+                model.__views__ = [];
+            }
+            model.__views__.push(view);
+            if (x) {
+                return setModel(view, model, false);
+            }
+        };
+        detachView = function (model, view, x) {
+            var index;
+            if (!view || !model.__views__) {
+                return;
+            }
+            index = model.__views__.indexOf(view);
+            if (index === -1) {
+                return;
+            }
+            model.__views__.splice(index, 1);
+            if (x) {
+                return setModel(view, null, false);
+            }
+        };
+        detachAll = function (model) {
+            var view, _i, _len, _ref;
+            if (!model.__views__) {
+                return;
+            }
+            _ref = model.__views__;
+            for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+                view = _ref[_i];
+                setModel(view, null, false);
+            }
+            return model.__views__ = null;
+        };
+        getViews = function (model) {
+            var attaches, view, _i, _len, _ref, _results;
+            attaches = [];
+            if (!model.__views__) {
+                return attaches;
+            }
+            _ref = model.__views__;
+            _results = [];
+            for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+                view = _ref[_i];
+                _results.push(view);
+            }
+            return _results;
+        };
+        setModel = function (view, model, x) {
+            var oldModel;
+            oldModel = view.__model__;
+            if (oldModel === model) {
+                return;
+            }
+            if (oldModel && x) {
+                detachView(oldModel, view, false);
+            }
+            view.__model__ = model;
+            if (model && x) {
+                return attachView(model, view, false);
+            }
+        };
+        getModel = function (view) {
+            return view.__model__;
+        };
+        withModel = function () {
+            this.attachView = function (view) {
+                return attachView(this, view, true);
+            };
+            this.detachView = function (view) {
+                return detachView(this, view, true);
+            };
+            this.detachAll = function () {
+                return detachAll(this);
+            };
+            return this.getViews = function (filter) {
+                return getViews(this);
+            };
+        };
+        withView = function () {
+            this.getModel = function () {
+                return getModel(this);
+            };
+            return this.setModel = function (model) {
+                return setModel(this, model, true);
+            };
+        };
+        withController = function () {
+            this.attach = function (model, view) {
+                return attachView(model, view, true);
+            };
+            this.detach = function (model, view) {
+                return detachView(model, view, true);
+            };
+            this.detachAll = function (model) {
+                return detachAll(model);
+            };
+            this.getAttachedModel = function (view) {
+                return getModel(view);
+            };
+            return this.getAttachedViews = function (model) {
+                return getViews(model);
+            };
+        };
+        return {
+            controller: withController,
+            model: withModel,
+            view: withView
+        };
+    });
+}.call(this));
+(function () {
+    define('build/Component', [
+        'dou',
+        './MVCMixin'
+    ], function (dou, MVCMixin) {
         'use strict';
         var Component;
         Component = function () {
             function Component(type) {
                 this.type = type;
-                this.__views__ = [];
             }
-            Component.prototype.attach = function (view) {
-                return this.__views__.push(view);
-            };
-            Component.prototype.detach = function (view) {
-                var index;
-                index = this.__views__.indexOf(view);
-                if (index > -1) {
-                    return this.__views__.splice(index, 1);
-                }
-            };
-            Component.prototype.attaches = function () {
-                return this.__views__;
-            };
             return Component;
         }();
         return dou.mixin(Component, [
@@ -87,7 +195,8 @@
             dou['with'].event,
             dou['with'].property,
             dou['with'].lifecycle,
-            dou['with'].serialize
+            dou['with'].serialize,
+            MVCMixin.model
         ]);
     });
 }.call(this));
@@ -627,11 +736,12 @@
     var __hasProp = {}.hasOwnProperty;
     define('build/ComponentFactory', [
         'dou',
+        './MVCMixin',
         './Component',
         './Container',
         './EventEngine',
         './EventTracker'
-    ], function (dou, Component, Container, EventEngine, EventTracker) {
+    ], function (dou, MVCMixin, Component, Container, EventEngine, EventTracker) {
         'use strict';
         var ComponentFactory;
         ComponentFactory = function () {
@@ -650,19 +760,18 @@
             ComponentFactory.prototype.uniqueId = function () {
                 return 'noid-' + this.seed++;
             };
-            ComponentFactory.prototype.createView = function (component, context) {
+            ComponentFactory.prototype.createView = function (component, controller) {
                 var handlers, selector, spec, type, variable, view, _ref;
                 type = component.type;
                 spec = this.componentRegistry.get(type);
                 if (!spec) {
                     throw new Error('Component Spec Not Found for type \'' + type + '\'');
                 }
-                view = spec.view_factory_fn.call(context, component.getAll());
-                view.__component__ = component;
-                component.attach(view);
+                view = spec.view_factory_fn.call(controller, component.getAll());
+                controller.attach(component, view);
                 if (component instanceof Container) {
                     component.forEach(function (child) {
-                        return view.add(this.createView(child, context));
+                        return view.add(this.createView(child, controller));
                     }, this);
                 }
                 if (spec.view_listener) {
@@ -679,12 +788,12 @@
                                 continue;
                             }
                         }
-                        this.eventTracker.on(selector, handlers, view, context);
+                        this.eventTracker.on(selector, handlers, view, controller);
                     }
                 }
                 return view;
             };
-            ComponentFactory.prototype.createComponent = function (obj, context) {
+            ComponentFactory.prototype.createComponent = function (obj, controller) {
                 var child, component, spec, _i, _j, _len, _len1, _ref, _ref1;
                 spec = this.componentRegistry.get(obj.type);
                 if (!spec) {
@@ -696,14 +805,14 @@
                         _ref = spec.components;
                         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
                             child = _ref[_i];
-                            component.add(this.createComponent(child, context));
+                            component.add(this.createComponent(child, controller));
                         }
                     }
                     if (obj.components) {
                         _ref1 = obj.components;
                         for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
                             child = _ref1[_j];
-                            component.add(this.createComponent(child, context));
+                            component.add(this.createComponent(child, controller));
                         }
                     }
                 } else {
@@ -714,7 +823,7 @@
                     component.set('id', this.uniqueId());
                 }
                 if (spec.controller) {
-                    this.eventEngine.add(component, spec.controller, context);
+                    this.eventEngine.add(component, spec.controller, controller);
                 }
                 return component;
             };
@@ -1170,13 +1279,13 @@
         'use strict';
         var controller, createView, onadded, onchange, onchangemodel, onchangeselections, onclick, ondragend, ondragmove, ondragstart, onremoved, view_listener;
         createView = function (attributes) {
-            var background, layer, offset, stage;
+            var background, offset, stage, view;
             stage = this.getView().getStage();
             offset = attributes.offset || {
                 x: 0,
                 y: 0
             };
-            layer = new kin.Layer(attributes);
+            view = new kin.Layer(attributes);
             background = new kin.Rect({
                 draggable: true,
                 listening: true,
@@ -1187,22 +1296,22 @@
                 stroke: attributes.stroke,
                 fill: 'cyan'
             });
-            layer.add(background);
-            layer.__background__ = background;
-            return layer;
+            view.add(background);
+            view.__background__ = background;
+            return view;
         };
         onadded = function (container, component, index, e) {
         };
         onremoved = function (container, component, e) {
         };
         onchangemodel = function (after, before, e) {
-            var layer;
-            layer = e.listener;
+            var view;
+            view = e.listener;
             if (before) {
-                layer.remove(before);
+                view.remove(before);
             }
             if (after) {
-                return layer.add(after);
+                return view.add(after);
             }
         };
         onchangeselections = function (after, before, added, removed) {
@@ -1211,24 +1320,24 @@
         onchange = function (component, before, after) {
         };
         ondragstart = function (e) {
-            var background, layer, layer_offset, mode, node, offset;
-            layer = this.listener;
-            background = layer.__background__;
+            var background, mode, node, offset, view, view_offset;
+            view = this.listener;
+            background = view.__background__;
             node = e.targetNode;
             this.context.selectionManager.select(node);
             if (e.targetNode && e.targetNode !== background) {
                 return;
             }
-            layer_offset = layer.offset();
+            view_offset = view.offset();
             background.setAttrs({
-                x: layer_offset.x + 20,
-                y: layer_offset.y + 20
+                x: view_offset.x + 20,
+                y: view_offset.y + 20
             });
             this.start_point = {
                 x: e.offsetX,
                 y: e.offsetY
             };
-            this.origin_offset = layer.offset();
+            this.origin_offset = view.offset();
             offset = {
                 x: this.start_point.x + this.origin_offset.x,
                 y: this.start_point.y + this.origin_offset.y
@@ -1243,18 +1352,18 @@
                         3
                     ]
                 });
-                layer.add(this.selectbox);
+                view.add(this.selectbox);
                 this.selectbox.setAttrs(offset);
             } else if (mode === 'MOVE') {
             } else {
             }
-            layer.draw();
+            view.draw();
             return e.cancelBubble = true;
         };
         ondragmove = function (e) {
-            var background, layer, mode, x, y;
-            layer = this.listener;
-            background = layer.__background__;
+            var background, mode, view, x, y;
+            view = this.listener;
+            background = view.__background__;
             if (e.targetNode && e.targetNode !== background) {
                 return;
             }
@@ -1271,7 +1380,7 @@
             } else if (mode === 'MOVE') {
                 x = this.origin_offset.x - (e.offsetX - this.start_point.x);
                 y = this.origin_offset.y - (e.offsetY - this.start_point.y);
-                layer.offset({
+                view.offset({
                     x: x,
                     y: y
                 });
@@ -1279,38 +1388,38 @@
                     x: x + 20,
                     y: y + 20
                 });
-                layer.fire('change-offset', {
+                view.fire('change-offset', {
                     x: x,
                     y: y
                 }, false);
             } else {
             }
-            layer.batchDraw();
+            view.batchDraw();
             return e.cancelBubble = true;
         };
         ondragend = function (e) {
-            var application, background, cmd, component, layer, mode, node, x, y;
-            application = this.context;
-            node = e.targetNode;
-            component = node.__component__;
-            if (component) {
+            var background, cmd, controller, dragmodel, dragview, mode, view, x, y;
+            controller = this.context;
+            dragview = e.targetNode;
+            dragmodel = controller.getAttachedModel(dragview);
+            if (dragmodel) {
                 cmd = new CommandPropertyChange({
                     changes: [{
-                            component: component,
+                            component: dragmodel,
                             before: {
-                                x: component.get('x'),
-                                y: component.get('y')
+                                x: dragmodel.get('x'),
+                                y: dragmodel.get('y')
                             },
                             after: {
-                                x: node.x(),
-                                y: node.y()
+                                x: dragview.x(),
+                                y: dragview.y()
                             }
                         }]
                 });
-                application.execute(cmd);
+                controller.execute(cmd);
             }
-            layer = this.listener;
-            background = layer.__background__;
+            view = this.listener;
+            background = view.__background__;
             if (e.targetNode && e.targetNode !== background) {
                 return;
             }
@@ -1325,7 +1434,7 @@
             } else if (mode === 'MOVE') {
                 x = Math.max(this.origin_offset.x - (e.offsetX - this.start_point.x), -20);
                 y = Math.max(this.origin_offset.y - (e.offsetY - this.start_point.y), -20);
-                layer.offset({
+                view.offset({
                     x: x,
                     y: y
                 });
@@ -1333,13 +1442,13 @@
                     x: x + 20,
                     y: y + 20
                 });
-                layer.fire('change-offset', {
+                view.fire('change-offset', {
                     x: x,
                     y: y
                 }, false);
             } else {
             }
-            layer.draw();
+            view.draw();
             return e.cancelBubble = true;
         };
         onclick = function (e) {
@@ -1395,16 +1504,11 @@
             return new kin.Layer(attributes);
         };
         onchange = function (component, before, after, e) {
-            var guideLayer, layer, msg, self;
-            guideLayer = e.listener;
-            if (!guideLayer._track) {
-                guideLayer._track = {};
-            }
-            self = guideLayer._track;
-            if (!self.view) {
-                self.view = e.listener.attaches()[0];
-            }
-            layer = self.view;
+            var controller, model, msg, self, view;
+            controller = this;
+            model = e.listener;
+            view = controller.getAttachedViews(model)[0];
+            self = model._track = model._track || {};
             self.changes = (self.changes || 0) + 1;
             if (!self.text) {
                 self.text = new kin.Text({
@@ -1415,11 +1519,11 @@
                     fontFamily: 'Calibri',
                     fill: 'green'
                 });
-                layer.add(self.text);
+                view.add(self.text);
             }
             msg = '[ PropertyChange ] ' + component.type + ' : ' + component.get('id') + '\n[ Before ] ' + JSON.stringify(before) + '\n[ After ] ' + JSON.stringify(after);
             self.text.setAttr('text', msg);
-            layer.draw();
+            view.draw();
             return setTimeout(function () {
                 var tween;
                 if (--self.changes > 0) {
@@ -1442,15 +1546,14 @@
                     tween.destroy();
                     self.text.remove();
                     delete self.text;
-                    return layer.draw();
+                    return view.draw();
                 }, 1000);
             }, 5000);
         };
         ondragstart = function (e) {
-            var app, layer, layer_offset, node, offset_x, offset_y, stage, textx, texty;
-            layer = this.listener;
-            app = this.context;
-            stage = layer.getStage();
+            var node, offset_x, offset_y, stage, textx, texty, view, view_offset;
+            view = this.listener;
+            stage = view.getStage();
             this.width = stage.getWidth();
             this.height = stage.getHeight();
             this.mouse_origin = {
@@ -1459,9 +1562,9 @@
             };
             node = e.targetNode;
             this.node_origin = node.getAbsolutePosition();
-            layer_offset = layer.offset();
-            offset_x = this.node_origin.x + layer_offset.x;
-            offset_y = this.node_origin.y + layer_offset.y;
+            view_offset = view.offset();
+            offset_x = this.node_origin.x + view_offset.x;
+            offset_y = this.node_origin.y + view_offset.y;
             this.vert = new kin.Line({
                 stroke: 'red',
                 tension: 1,
@@ -1495,15 +1598,14 @@
                 x: textx,
                 y: texty
             });
-            layer = layer;
-            layer.add(this.vert);
-            layer.add(this.hori);
-            layer.add(this.text);
-            return layer.batchDraw();
+            view.add(this.vert);
+            view.add(this.hori);
+            view.add(this.text);
+            return view.batchDraw();
         };
         ondragmove = function (e) {
-            var layer, layer_offset, node, node_new_pos, offset_x, offset_y, textx, texty, x, y;
-            layer = this.listener;
+            var node, node_new_pos, offset_x, offset_y, textx, texty, view, view_offset, x, y;
+            view = this.listener;
             node_new_pos = {
                 x: e.x - this.mouse_origin.x + this.node_origin.x,
                 y: e.y - this.mouse_origin.y + this.node_origin.y
@@ -1515,9 +1617,9 @@
                 x: x,
                 y: y
             });
-            layer_offset = layer.offset();
-            offset_x = x + layer_offset.x;
-            offset_y = y + layer_offset.y;
+            view_offset = view.offset();
+            offset_x = x + view_offset.x;
+            offset_y = y + view_offset.y;
             this.vert.setAttrs({
                 points: [
                     offset_x,
@@ -1541,22 +1643,23 @@
                 x: textx,
                 y: texty
             });
-            return layer.draw();
+            return view.draw();
         };
         ondragend = function (e) {
-            var layer;
-            layer = this.listener;
+            var view;
+            view = this.listener;
             this.vert.remove();
             this.hori.remove();
             this.text.remove();
-            return layer.draw();
+            return view.draw();
         };
         onadded = function (container, component, index, e) {
         };
         onremoved = function (container, component, e) {
-            var app;
-            app = this.getView();
-            return this.getEventHandler().off(app, guide_handler);
+            var controller, view;
+            controller = this;
+            view = controller.getView();
+            return this.getEventHandler().off(view, guide_handler);
         };
         controller = {
             '(root)': { '(all)': { 'change': onchange } },
@@ -1666,51 +1769,52 @@
         'use strict';
         var controller, createView, onchangeoffset, onchangeselection, ondragend, ondragmove, view_listener;
         createView = function (attributes) {
-            var layer;
-            layer = new kin.Layer(attributes);
-            layer.handles = {};
-            return layer;
+            var view;
+            view = new kin.Layer(attributes);
+            view.handles = {};
+            return view;
         };
         onchangeoffset = function (e) {
-            var layer;
-            layer = this.listener;
-            layer.offset({
+            var view;
+            view = this.listener;
+            view.offset({
                 x: e.x,
                 y: e.y
             });
-            return layer.batchDraw();
+            return view.batchDraw();
         };
         ondragmove = function (e) {
-            var handle, id, layer;
-            layer = this.listener;
+            var handle, id, view;
+            view = this.listener;
             id = e.targetNode.getAttr('id');
-            handle = layer.handles[id];
+            handle = view.handles[id];
             if (handle) {
                 handle.setAbsolutePosition(e.targetNode.getAbsolutePosition());
-                return layer.batchDraw();
+                return view.batchDraw();
             }
         };
         ondragend = function (e) {
-            var handle, id, layer;
-            layer = this.listener;
+            var handle, id, view;
+            view = this.listener;
             id = e.targetNode.getAttr('id');
-            handle = layer.handles[id];
+            handle = view.handles[id];
             if (handle) {
                 handle.setAbsolutePosition(e.targetNode.getAbsolutePosition());
-                return layer.draw();
+                return view.draw();
             }
         };
         onchangeselection = function (after, before, added, removed, e) {
-            var container, handle, handle_comp, handle_view, id, layer, node, pos, _i, _j, _len, _len1;
-            container = e.listener;
-            layer = container.attaches()[0];
+            var controller, handle, handle_comp, handle_view, id, model, node, pos, view, _i, _j, _len, _len1;
+            controller = this;
+            model = e.listener;
+            view = controller.getAttachedViews(model)[0];
             for (_i = 0, _len = removed.length; _i < _len; _i++) {
                 node = removed[_i];
                 id = node.getAttr('id');
-                handle = layer.handles[id];
-                handle_comp = handle.__component__;
-                container.remove(handle_comp);
-                delete layer.handles[id];
+                handle = view.handles[id];
+                handle_comp = controller.getAttachedModel(handle);
+                model.remove(handle_comp);
+                delete view.handles[id];
             }
             for (_j = 0, _len1 = added.length; _j < _len1; _j++) {
                 node = added[_j];
@@ -1720,12 +1824,12 @@
                     type: 'handle-checker',
                     attrs: {}
                 });
-                container.add(handle_comp);
-                handle_view = handle_comp.attaches()[0];
+                model.add(handle_comp);
+                handle_view = controller.getAttachedViews(handle_comp)[0];
                 handle_view.setAbsolutePosition(pos);
-                layer.handles[id] = handle_view;
+                view.handles[id] = handle_view;
             }
-            return layer.batchDraw();
+            return view.batchDraw();
         };
         controller = { '(root)': { '(root)': { 'change-selections': onchangeselection } } };
         view_listener = {
@@ -2081,11 +2185,13 @@
             '(self)': {
                 '(self)': {
                     change: function (component, before, after) {
-                        var imageObj;
+                        var imageObj, view;
                         if (!(before['url'] || after['url'])) {
                             return;
                         }
-                        imageObj = component.attaches()[0].getImage();
+                        controller = this;
+                        view = controller.getAttachedViews(component)[0];
+                        imageObj = view.getImage();
                         return imageObj.src = after['url'];
                     }
                 }
@@ -2094,11 +2200,15 @@
         view_listener = {
             '(self)': {
                 click: function (e) {
+                    var model, view;
+                    controller = this.context;
+                    view = this.listener;
+                    model = controller.getAttachedModel(view);
                     this.count = this.count ? ++this.count : 1;
                     if (this.count % 2) {
-                        return this.listener.__component__.set('url', 'http://www.baidu.com/img/bdlogo.gif');
+                        return model.set('url', 'http://www.baidu.com/img/bdlogo.gif');
                     } else {
-                        return this.listener.__component__.set('url', 'http://i.cdn.turner.com/cnn/.e/img/3.0/global/header/intl/CNNi_Logo.png');
+                        return model.set('url', 'http://i.cdn.turner.com/cnn/.e/img/3.0/global/header/intl/CNNi_Logo.png');
                     }
                 }
             }
@@ -2194,19 +2304,19 @@
         'use strict';
         var controller, createHandle, createView;
         createView = function (attributes) {
-            var image, imageObj;
-            image = new kin.Image({
+            var imageObj, view;
+            view = new kin.Image({
                 x: attributes.x,
                 y: attributes.y,
                 draggable: true
             });
             imageObj = new Image();
             imageObj.onload = function () {
-                image.setAttrs({
+                view.setAttrs({
                     width: imageObj.width,
                     height: imageObj.height
                 });
-                return image.getLayer().draw();
+                return view.getLayer().draw();
             };
             imageObj.src = bwip.imageUrl({
                 symbol: attributes['symbol'],
@@ -2216,8 +2326,8 @@
                 scale_w: attributes['scale_w'],
                 rotation: attributes['rotation']
             });
-            image.setImage(imageObj);
-            return image;
+            view.setImage(imageObj);
+            return view;
         };
         createHandle = function (attributes) {
             return new Kin.Image(attributes);
@@ -2226,10 +2336,12 @@
             '(self)': {
                 '(self)': {
                     change: function (component, before, after, changed) {
-                        var imageObj, url;
+                        var imageObj, url, view;
                         if (after.x || after.y) {
                             return;
                         }
+                        controller = this;
+                        view = controller.getAttachedViews()[0];
                         url = bwip.imageUrl({
                             symbol: component.get('symbol'),
                             text: component.get('text'),
@@ -2238,7 +2350,7 @@
                             scale_w: component.get('scale_w'),
                             rotation: component.get('rotation')
                         });
-                        imageObj = component.attaches()[0].getImage();
+                        imageObj = view.getImage();
                         return imageObj.src = url;
                     }
                 }
@@ -2486,6 +2598,7 @@
     define('build/ApplicationContext', [
         'dou',
         'KineticJS',
+        './MVCMixin',
         './Component',
         './Container',
         './EventEngine',
@@ -2500,7 +2613,7 @@
         './spec/SpecPainter',
         './spec/SpecPresenter',
         './spec/SpecInfographic'
-    ], function (dou, kin, Component, Container, EventEngine, EventTracker, ComponentFactory, Command, CommandManager, ComponentRegistry, ComponentSelector, SelectionManager, ComponentSpec, SpecPainter, SpecPresenter, SpecInfographic) {
+    ], function (dou, kin, MVCMixin, Component, Container, EventEngine, EventTracker, ComponentFactory, Command, CommandManager, ComponentRegistry, ComponentSelector, SelectionManager, ComponentSpec, SpecPainter, SpecPresenter, SpecInfographic) {
         'use strict';
         var ApplicationContext;
         ApplicationContext = function () {
@@ -2560,7 +2673,7 @@
                         views = [];
                         for (_i = 0, _len = comps.length; _i < _len; _i++) {
                             comp = comps[_i];
-                            _ref = comp.attaches();
+                            _ref = comp.getViews();
                             for (_j = 0, _len1 = _ref.length; _j < _len1; _j++) {
                                 view = _ref[_j];
                                 views.push(view);
@@ -2646,6 +2759,7 @@
             };
             return ApplicationContext;
         }();
+        dou.mixin(ApplicationContext, MVCMixin.controller);
         return ApplicationContext;
     });
 }.call(this));

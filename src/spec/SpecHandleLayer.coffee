@@ -15,48 +15,48 @@ define [
     "use strict"
 
     createView = (attributes) ->
-        layer = new kin.Layer(attributes)
-        layer.handles = {}
-        layer
+        view = new kin.Layer(attributes)
+        view.handles = {}
+        view
 
     onchangeoffset = (e) ->
-        layer = this.listener
+        view = this.listener
 
-        layer.offset {x: e.x, y: e.y}
-        layer.batchDraw()
+        view.offset {x: e.x, y: e.y}
+        view.batchDraw()
 
     ondragmove = (e) ->
-        layer = this.listener
+        view = this.listener
 
         id = e.targetNode.getAttr('id')
-        handle = layer.handles[id]
+        handle = view.handles[id]
 
         if handle
             handle.setAbsolutePosition(e.targetNode.getAbsolutePosition())
-            layer.batchDraw()
+            view.batchDraw()
 
     ondragend = (e) ->
-        layer = this.listener
+        view = this.listener
 
         id = e.targetNode.getAttr('id')
-        handle = layer.handles[id]
+        handle = view.handles[id]
 
         if handle
             handle.setAbsolutePosition(e.targetNode.getAbsolutePosition())
-            layer.draw()
+            view.draw()
 
     onchangeselection = (after, before, added, removed, e) ->
-
-        container = e.listener
-        layer = container.getViews()[0]
+        controller = this
+        model = e.listener
+        view = controller.getAttachedViews(model)[0]
 
         for node in removed
             id = node.getAttr('id')
-            handle = layer.handles[id]
-            handle_comp = handle.getModel()
-            container.remove(handle_comp)
+            handle = view.handles[id]
+            handle_comp = controller.getAttachedModel(handle)
+            model.remove(handle_comp)
 
-            delete layer.handles[id]
+            delete view.handles[id]
 
         for node in added
             id = node.getAttr('id')
@@ -65,13 +65,14 @@ define [
                 type: 'handle-checker'
                 attrs: {}
 
-            container.add(handle_comp)
-            handle_view = handle_comp.getViews()[0]
+            model.add(handle_comp)
+
+            handle_view = controller.getAttachedViews(handle_comp)[0]
             handle_view.setAbsolutePosition(pos)
 
-            layer.handles[id] = handle_view
+            view.handles[id] = handle_view
 
-        layer.batchDraw()
+        view.batchDraw()
 
     controller = 
         '(root)' :

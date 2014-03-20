@@ -31,18 +31,25 @@ define [
             '(self)' :
                 change : (component, before, after) ->
                     return if not (before['url'] or after['url'])
-                    imageObj = component.getViews()[0].getImage()
-                    imageObj.src = after['url']
+                    
+                    controller = this
+                    view = controller.getAttachedViews(component)[0]
 
+                    imageObj = view.getImage()
+                    imageObj.src = after['url']
 
     view_listener = 
         '(self)' : # fot Test only
             click : (e) ->
+                controller = this.context
+                view = this.listener
+                model = controller.getAttachedModel view
+
                 this.count = if this.count then ++this.count else 1
                 if(this.count % 2)
-                    this.listener.getModel().set('url', 'http://www.baidu.com/img/bdlogo.gif')
+                    model.set('url', 'http://www.baidu.com/img/bdlogo.gif')
                 else
-                    this.listener.getModel().set('url', 'http://i.cdn.turner.com/cnn/.e/img/3.0/global/header/intl/CNNi_Logo.png')
+                    model.set('url', 'http://i.cdn.turner.com/cnn/.e/img/3.0/global/header/intl/CNNi_Logo.png')
 
     {
         type: 'image'

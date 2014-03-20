@@ -93,18 +93,27 @@
         return setModel(this, model, true);
       };
     };
-    return withController = {
+    withController = function() {
+      this.attach = function(model, view) {
+        return attachView(model, view, true);
+      };
+      this.detach = function(model, view) {
+        return detachView(model, view, true);
+      };
+      this.detachAll = function(model) {
+        return detachAll(model);
+      };
+      this.getAttachedModel = function(view) {
+        return getModel(view);
+      };
+      return this.getAttachedViews = function(model) {
+        return getViews(model);
+      };
+    };
+    return {
       controller: withController,
       model: withModel,
-      view: withView,
-      view_fns: {
-        getModel: function() {
-          return getModel(this);
-        },
-        setModel: function(model) {
-          return setModel(this, model, true);
-        }
-      }
+      view: withView
     };
   });
 

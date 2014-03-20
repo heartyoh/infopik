@@ -3,6 +3,7 @@
 define([
   'dou',
   'KineticJS',
+  'build/MVCMixin',
   'build/ComponentRegistry',
   'build/ComponentFactory',
   'build/spec/SpecGroup',
@@ -10,6 +11,7 @@ define([
 ], function (
   dou,
   kin,
+  MVCMixin,
   ComponentRegistry,
   ComponentFactory,
   SpecGroup,
@@ -18,6 +20,7 @@ define([
 
   describe('SpecGroup', function () {
 
+    var controller;
     var componentFactory;
     var container;
     var stage;
@@ -25,6 +28,8 @@ define([
 
     beforeEach(function() {
       var componentRegistry = new ComponentRegistry();
+
+      controller = dou.mixin({}, MVCMixin.controller);
 
       componentRegistry.register(SpecGroup);
       componentRegistry.register(SpecRect);
@@ -64,7 +69,7 @@ define([
             width: 200,
             height: 100
           }
-        });
+        }, controller);
 
         var rect1 = componentFactory.createComponent({
           type: SpecRect.type, 
@@ -76,7 +81,7 @@ define([
             width: 100,
             height: 50
           }
-        });
+        }, controller);
 
         var rect2 = componentFactory.createComponent({
           type: SpecRect.type, 
@@ -86,14 +91,14 @@ define([
             width: 100,
             height: 50
           }
-        });
+        }, controller);
 
         group.add(rect1);
         group.add(rect2);
 
-        var vgroup = componentFactory.createView(group);
-        var vrect1 = componentFactory.createView(rect1);
-        var vrect2 = componentFactory.createView(rect2);
+        var vgroup = componentFactory.createView(group, controller);
+        var vrect1 = componentFactory.createView(rect1, controller);
+        var vrect2 = componentFactory.createView(rect2, controller);
 
         vgroup.add(vrect1);
         vgroup.add(vrect2);

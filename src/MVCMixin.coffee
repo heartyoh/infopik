@@ -67,15 +67,25 @@ define [
         this.setModel = (model) ->
             setModel this, model, true
 
-    withController =
+    withController = ->
+        this.attach = (model, view) ->
+            attachView model, view, true
+        this.detach = (model, view) ->
+            detachView model, view, true
+        this.detachAll = (model) ->
+            detachAll model
+        this.getAttachedModel = (view) ->
+            getModel view
+        this.getAttachedViews = (model) ->
+            getViews model
 
     {
         controller: withController
         model: withModel
         view: withView
-        view_fns:
-            getModel: ->
-                getModel this
-            setModel: (model) ->
-                setModel this, model, true
+        # view_fns:
+        #     getModel: ->
+        #         getModel this
+        #     setModel: (model) ->
+        #         setModel this, model, true
     }

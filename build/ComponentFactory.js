@@ -23,22 +23,18 @@
         return "noid-" + (this.seed++);
       };
 
-      ComponentFactory.prototype.createView = function(component, context) {
+      ComponentFactory.prototype.createView = function(component, controller) {
         var handlers, selector, spec, type, variable, view, _ref;
         type = component.type;
         spec = this.componentRegistry.get(type);
         if (!spec) {
           throw new Error("Component Spec Not Found for type '" + type + "'");
         }
-        view = spec.view_factory_fn.call(context, component.getAll());
-        dou.mixin(view, MVCMixin.view);
-        if (!view.setModel) {
-          console.log('-----', view);
-        }
-        view.setModel(component);
+        view = spec.view_factory_fn.call(controller, component.getAll());
+        controller.attach(component, view);
         if (component instanceof Container) {
           component.forEach(function(child) {
-            return view.add(this.createView(child, context));
+            return view.add(this.createView(child, controller));
           }, this);
         }
         if (spec.view_listener) {
@@ -54,13 +50,13 @@
                 continue;
               }
             }
-            this.eventTracker.on(selector, handlers, view, context);
+            this.eventTracker.on(selector, handlers, view, controller);
           }
         }
         return view;
       };
 
-      ComponentFactory.prototype.createComponent = function(obj, context) {
+      ComponentFactory.prototype.createComponent = function(obj, controller) {
         var child, component, spec, _i, _j, _len, _len1, _ref, _ref1;
         spec = this.componentRegistry.get(obj.type);
         if (!spec) {
@@ -72,14 +68,14 @@
             _ref = spec.components;
             for (_i = 0, _len = _ref.length; _i < _len; _i++) {
               child = _ref[_i];
-              component.add(this.createComponent(child, context));
+              component.add(this.createComponent(child, controller));
             }
           }
           if (obj.components) {
             _ref1 = obj.components;
             for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
               child = _ref1[_j];
-              component.add(this.createComponent(child, context));
+              component.add(this.createComponent(child, controller));
             }
           }
         } else {
@@ -90,7 +86,7 @@
           component.set('id', this.uniqueId());
         }
         if (spec.controller) {
-          this.eventEngine.add(component, spec.controller, context);
+          this.eventEngine.add(component, spec.controller, controller);
         }
         return component;
       };

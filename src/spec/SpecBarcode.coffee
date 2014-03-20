@@ -12,17 +12,17 @@ define [
     "use strict"
 
     createView = (attributes) ->
-        image = new kin.Image
+        view = new kin.Image
             x: attributes.x
             y: attributes.y
             draggable: true
 
         imageObj = new Image()
         imageObj.onload = ->
-            image.setAttrs
+            view.setAttrs
                 width : imageObj.width,
                 height : imageObj.height
-            image.getLayer().draw()
+            view.getLayer().draw()
 
         imageObj.src = bwip.imageUrl
             symbol : attributes['symbol']
@@ -32,9 +32,9 @@ define [
             scale_w : attributes['scale_w']
             rotation : attributes['rotation']
 
-        image.setImage(imageObj)
+        view.setImage(imageObj)
 
-        image
+        view
 
     createHandle = (attributes) ->
         new Kin.Image(attributes)
@@ -45,6 +45,9 @@ define [
                 change : (component, before, after, changed) ->
                     return if after.x or after.y
 
+                    controller = this
+                    view = controller.getAttachedViews()[0]
+
                     url = bwip.imageUrl
                         symbol : component.get('symbol'),
                         text : component.get('text'),
@@ -53,7 +56,7 @@ define [
                         scale_w : component.get('scale_w'),
                         rotation : component.get('rotation')
 
-                    imageObj = component.getViews()[0].getImage()
+                    imageObj = view.getImage()
                     imageObj.src = url
 
     {

@@ -2,6 +2,7 @@
 
 define(['dou',
   'KineticJS',
+  'build/MVCMixin',
   'build/ComponentRegistry',
   'build/ComponentFactory',
   'build/Component',
@@ -9,6 +10,7 @@ define(['dou',
 ], function (
   dou,
   kin,
+  MVCMixin,
   ComponentRegistry,
   ComponentFactory,
   Component,
@@ -17,6 +19,7 @@ define(['dou',
 
   describe('SpecRect', function () {
 
+    var controller;
     var componentFactory;
     var container;
     var stage;
@@ -25,8 +28,9 @@ define(['dou',
     beforeEach(function() {
       var componentRegistry = new ComponentRegistry();
 
-      componentRegistry.register(SpecRect);
+      controller = dou.mixin({}, MVCMixin.controller);
 
+      componentRegistry.register(SpecRect);
       componentFactory = new ComponentFactory(componentRegistry);
 
       if(!container) {
@@ -62,9 +66,9 @@ define(['dou',
             width: 100,
             height: 50
           }
-        });
+        }, controller);
 
-        var rect = componentFactory.createView(component);
+        var rect = componentFactory.createView(component, controller);
 
         layer.add(rect);
 

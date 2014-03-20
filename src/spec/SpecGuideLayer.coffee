@@ -16,14 +16,16 @@ define [
         new kin.Layer(attributes)
 
     onchange = (component, before, after, e) ->
-        guideLayer = e.listener
+        controller = this
+        model = e.listener
+        view = controller.getAttachedViews(model)[0]
 
-        guideLayer._track = {} if not guideLayer._track
+        self = model._track = model._track || {} # if not model._track
 
-        self = guideLayer._track
+        # self = model._track
 
-        self.view = e.listener.getViews()[0] if not self.view
-        layer = self.view
+        # self.view = controller.getAttachedViews(model)[0] if not self.view
+        # view = self.view
 
         self.changes = (self.changes || 0) + 1
         if not self.text
@@ -34,12 +36,12 @@ define [
                 fontSize: 12
                 fontFamily: 'Calibri'
                 fill: 'green'
-            layer.add self.text
+            view.add self.text
 
         msg = "[ PropertyChange ] #{component.type} : #{component.get('id')}\n[ Before ] #{JSON.stringify(before)}\n[ After ] #{JSON.stringify(after)}"
         self.text.setAttr 'text', msg
 
-        layer.draw()
+        view.draw()
 
         setTimeout ->
             return if (--self.changes) > 0
@@ -64,15 +66,14 @@ define [
 
                 self.text.remove()
                 delete self.text
-                layer.draw()
+                view.draw()
             , 1000
         , 5000
 
     ondragstart = (e) ->
-        layer = this.listener
-        app = this.context
+        view = this.listener
 
-        stage = layer.getStage()
+        stage = view.getStage()
         this.width = stage.getWidth()
         this.height = stage.getHeight()
 
@@ -83,10 +84,10 @@ define [
         node = e.targetNode
 
         this.node_origin = node.getAbsolutePosition()
-        layer_offset = layer.offset()
+        view_offset = view.offset()
 
-        offset_x = this.node_origin.x + layer_offset.x
-        offset_y = this.node_origin.y + layer_offset.y
+        offset_x = this.node_origin.x + view_offset.x
+        offset_y = this.node_origin.y + view_offset.y
 
         this.vert = new kin.Line({stroke:'red', tension: 1, points:[offset_x, 0, offset_x, this.height]})
         this.hori = new kin.Line({stroke:'red', tension: 1, points:[0, offset_y, this.width, offset_y]})
@@ -102,16 +103,14 @@ define [
         texty = if Math.max(offset_y, 0) > (this.text.height() + 10) then offset_y - (this.text.height() + 10) else Math.max(offset_y + 10, 10)
         this.text.setAttrs({x: textx, y: texty})
 
-        layer = layer
+        view.add(this.vert)
+        view.add(this.hori)
+        view.add(this.text)
 
-        layer.add(this.vert)
-        layer.add(this.hori)
-        layer.add(this.text)
-
-        layer.batchDraw()
+        view.batchDraw()
 
     ondragmove = (e) ->
-        layer = this.listener
+        view = this.listener
 
         node_new_pos = {
             x: (e.x - this.mouse_origin.x) + this.node_origin.x,
@@ -123,10 +122,10 @@ define [
         node = e.targetNode
         node.setAbsolutePosition({x: x, y: y})
 
-        layer_offset = layer.offset()
+        view_offset = view.offset()
 
-        offset_x = x + layer_offset.x
-        offset_y = y + layer_offset.y
+        offset_x = x + view_offset.x
+        offset_y = y + view_offset.y
 
         this.vert.setAttrs({points:[offset_x, 0, offset_x, this.height]})
         this.hori.setAttrs({points:[0, offset_y, this.width, offset_y]})
@@ -136,22 +135,23 @@ define [
         texty = if Math.max(offset_y, 0) > (this.text.height() + 10) then offset_y - (this.text.height() + 10) else Math.max(offset_y + 10, 10)
         this.text.setAttrs({x: textx, y: texty})
 
-        layer.draw()
+        view.draw()
 
     ondragend = (e) ->
-        layer = this.listener
+        view = this.listener
 
         this.vert.remove()
         this.hori.remove()
         this.text.remove()
 
-        layer.draw()
+        view.draw()
 
     onadded = (container, component, index, e) ->
 
     onremoved = (container, component, e) ->
-        app = this.getView()
-        this.getEventHandler().off(app, guide_handler)
+        controller = this
+        view = controller.getView() # root view
+        this.getEventHandler().off(view, guide_handler)
 
     controller =
         '(root)' :

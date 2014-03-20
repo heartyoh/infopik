@@ -1,5 +1,5 @@
 (function() {
-  define(['dou', 'KineticJS', './Component', './Container', './EventEngine', './EventTracker', './ComponentFactory', './Command', './CommandManager', './ComponentRegistry', './ComponentSelector', './SelectionManager', './ComponentSpec', './spec/SpecPainter', './spec/SpecPresenter', './spec/SpecInfographic'], function(dou, kin, Component, Container, EventEngine, EventTracker, ComponentFactory, Command, CommandManager, ComponentRegistry, ComponentSelector, SelectionManager, ComponentSpec, SpecPainter, SpecPresenter, SpecInfographic) {
+  define(['dou', 'KineticJS', './MVCMixin', './Component', './Container', './EventEngine', './EventTracker', './ComponentFactory', './Command', './CommandManager', './ComponentRegistry', './ComponentSelector', './SelectionManager', './ComponentSpec', './spec/SpecPainter', './spec/SpecPresenter', './spec/SpecInfographic'], function(dou, kin, MVCMixin, Component, Container, EventEngine, EventTracker, ComponentFactory, Command, CommandManager, ComponentRegistry, ComponentSelector, SelectionManager, ComponentSpec, SpecPainter, SpecPresenter, SpecInfographic) {
     "use strict";
     var ApplicationContext;
     ApplicationContext = (function() {
@@ -162,6 +162,7 @@
       return ApplicationContext;
 
     })();
+    dou.mixin(ApplicationContext, MVCMixin.controller);
     return ApplicationContext;
   });
 

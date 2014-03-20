@@ -7,6 +7,7 @@
 define [
     'dou'
     'KineticJS'
+    './MVCMixin'
     './Component'
     './Container'
     './EventEngine'
@@ -23,6 +24,7 @@ define [
     './spec/SpecInfographic'
 ], (dou
     kin
+    MVCMixin
     Component
     Container
     EventEngine
@@ -195,4 +197,6 @@ define [
         onselectionchange: (changes) ->
             @application.trigger 'change-selections', changes.after, changes.before, changes.added, changes.removed
 
+    dou.mixin ApplicationContext, MVCMixin.controller
+    
     ApplicationContext

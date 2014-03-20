@@ -102,6 +102,76 @@ define([
 
     });
 
+    describe('controller#attach', function() {
+
+      it('should attach the view to the model.', function() {
+        var controller = dou.mixin({}, MVCMixin.controller);
+
+        controller.attach(model, view1);
+        controller.attach(model, view2);
+
+        controller.getAttachedViews(model).should.have.members([view1, view2]);
+      });
+    });
+
+    describe('controller#detach', function() {
+
+      it('should detach the view from the model.', function() {
+        var controller = dou.mixin({}, MVCMixin.controller);
+
+        controller.attach(model, view1);
+        controller.attach(model, view2);
+
+        controller.getAttachedViews(model).should.have.members([view1, view2]);
+
+        controller.detach(model, view1);
+
+        controller.getAttachedViews(model).should.have.members([view2]);
+
+        controller.detach(model, view2);
+
+        controller.getAttachedViews(model).should.be.empty;
+      });
+
+    });
+
+    describe('controller#detachAll', function() {
+
+      it('should attach all the views from the model.', function() {
+        var controller = dou.mixin({}, MVCMixin.controller);
+
+        controller.attach(model, view1);
+        controller.attach(model, view2);
+
+        controller.getAttachedViews(model).should.have.members([view1, view2]);
+
+        controller.detachAll(model);
+
+        controller.getAttachedViews(model).should.be.empty;
+      });
+
+    });
+
+    describe('controller', function() {
+
+      it('should support views that is not mixed with MVCMixin.view.', function() {
+        view1 = {name: 'view1'};
+        view2 = {name: 'view2'};
+        
+        var controller = dou.mixin({}, MVCMixin.controller);
+
+        controller.attach(model, view1);
+        controller.attach(model, view2);
+
+        controller.getAttachedViews(model).should.have.members([view1, view2]);
+
+        controller.detachAll(model);
+
+        controller.getAttachedViews(model).should.be.empty;
+      });
+
+    });
+
   });
 
 });

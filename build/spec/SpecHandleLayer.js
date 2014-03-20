@@ -3,51 +3,52 @@
     "use strict";
     var controller, createView, onchangeoffset, onchangeselection, ondragend, ondragmove, view_listener;
     createView = function(attributes) {
-      var layer;
-      layer = new kin.Layer(attributes);
-      layer.handles = {};
-      return layer;
+      var view;
+      view = new kin.Layer(attributes);
+      view.handles = {};
+      return view;
     };
     onchangeoffset = function(e) {
-      var layer;
-      layer = this.listener;
-      layer.offset({
+      var view;
+      view = this.listener;
+      view.offset({
         x: e.x,
         y: e.y
       });
-      return layer.batchDraw();
+      return view.batchDraw();
     };
     ondragmove = function(e) {
-      var handle, id, layer;
-      layer = this.listener;
+      var handle, id, view;
+      view = this.listener;
       id = e.targetNode.getAttr('id');
-      handle = layer.handles[id];
+      handle = view.handles[id];
       if (handle) {
         handle.setAbsolutePosition(e.targetNode.getAbsolutePosition());
-        return layer.batchDraw();
+        return view.batchDraw();
       }
     };
     ondragend = function(e) {
-      var handle, id, layer;
-      layer = this.listener;
+      var handle, id, view;
+      view = this.listener;
       id = e.targetNode.getAttr('id');
-      handle = layer.handles[id];
+      handle = view.handles[id];
       if (handle) {
         handle.setAbsolutePosition(e.targetNode.getAbsolutePosition());
-        return layer.draw();
+        return view.draw();
       }
     };
     onchangeselection = function(after, before, added, removed, e) {
-      var container, handle, handle_comp, handle_view, id, layer, node, pos, _i, _j, _len, _len1;
-      container = e.listener;
-      layer = container.getViews()[0];
+      var controller, handle, handle_comp, handle_view, id, model, node, pos, view, _i, _j, _len, _len1;
+      controller = this;
+      model = e.listener;
+      view = controller.getAttachedViews(model)[0];
       for (_i = 0, _len = removed.length; _i < _len; _i++) {
         node = removed[_i];
         id = node.getAttr('id');
-        handle = layer.handles[id];
-        handle_comp = handle.getModel();
-        container.remove(handle_comp);
-        delete layer.handles[id];
+        handle = view.handles[id];
+        handle_comp = controller.getAttachedModel(handle);
+        model.remove(handle_comp);
+        delete view.handles[id];
       }
       for (_j = 0, _len1 = added.length; _j < _len1; _j++) {
         node = added[_j];
@@ -57,12 +58,12 @@
           type: 'handle-checker',
           attrs: {}
         });
-        container.add(handle_comp);
-        handle_view = handle_comp.getViews()[0];
+        model.add(handle_comp);
+        handle_view = controller.getAttachedViews(handle_comp)[0];
         handle_view.setAbsolutePosition(pos);
-        layer.handles[id] = handle_view;
+        view.handles[id] = handle_view;
       }
-      return layer.batchDraw();
+      return view.batchDraw();
     };
     controller = {
       '(root)': {

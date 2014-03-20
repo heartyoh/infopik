@@ -20,11 +20,13 @@
       '(self)': {
         '(self)': {
           change: function(component, before, after) {
-            var imageObj;
+            var imageObj, view;
             if (!(before['url'] || after['url'])) {
               return;
             }
-            imageObj = component.getViews()[0].getImage();
+            controller = this;
+            view = controller.getAttachedViews(component)[0];
+            imageObj = view.getImage();
             return imageObj.src = after['url'];
           }
         }
@@ -33,11 +35,15 @@
     view_listener = {
       '(self)': {
         click: function(e) {
+          var model, view;
+          controller = this.context;
+          view = this.listener;
+          model = controller.getAttachedModel(view);
           this.count = this.count ? ++this.count : 1;
           if (this.count % 2) {
-            return this.listener.getModel().set('url', 'http://www.baidu.com/img/bdlogo.gif');
+            return model.set('url', 'http://www.baidu.com/img/bdlogo.gif');
           } else {
-            return this.listener.getModel().set('url', 'http://i.cdn.turner.com/cnn/.e/img/3.0/global/header/intl/CNNi_Logo.png');
+            return model.set('url', 'http://i.cdn.turner.com/cnn/.e/img/3.0/global/header/intl/CNNi_Logo.png');
           }
         }
       }

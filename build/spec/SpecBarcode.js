@@ -3,19 +3,19 @@
     "use strict";
     var controller, createHandle, createView;
     createView = function(attributes) {
-      var image, imageObj;
-      image = new kin.Image({
+      var imageObj, view;
+      view = new kin.Image({
         x: attributes.x,
         y: attributes.y,
         draggable: true
       });
       imageObj = new Image();
       imageObj.onload = function() {
-        image.setAttrs({
+        view.setAttrs({
           width: imageObj.width,
           height: imageObj.height
         });
-        return image.getLayer().draw();
+        return view.getLayer().draw();
       };
       imageObj.src = bwip.imageUrl({
         symbol: attributes['symbol'],
@@ -25,8 +25,8 @@
         scale_w: attributes['scale_w'],
         rotation: attributes['rotation']
       });
-      image.setImage(imageObj);
-      return image;
+      view.setImage(imageObj);
+      return view;
     };
     createHandle = function(attributes) {
       return new Kin.Image(attributes);
@@ -35,10 +35,12 @@
       '(self)': {
         '(self)': {
           change: function(component, before, after, changed) {
-            var imageObj, url;
+            var imageObj, url, view;
             if (after.x || after.y) {
               return;
             }
+            controller = this;
+            view = controller.getAttachedViews()[0];
             url = bwip.imageUrl({
               symbol: component.get('symbol'),
               text: component.get('text'),
@@ -47,7 +49,7 @@
               scale_w: component.get('scale_w'),
               rotation: component.get('rotation')
             });
-            imageObj = component.getViews()[0].getImage();
+            imageObj = view.getImage();
             return imageObj.src = url;
           }
         }

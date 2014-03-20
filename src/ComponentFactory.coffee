@@ -36,21 +36,17 @@ define [
         uniqueId: ->
             "noid-#{@seed++}"
 
-        createView : (component, context) ->
+        createView : (component, controller) ->
             type = component.type
             spec = @componentRegistry.get type
             throw new Error "Component Spec Not Found for type '#{type}'" if !spec
-            view = spec.view_factory_fn.call context, component.getAll()
+            view = spec.view_factory_fn.call controller, component.getAll()
 
-            dou.mixin view, MVCMixin.view
-            # view.__component__ = component
-            # component.attach view
-            console.log '-----', view if not view.setModel
-            view.setModel(component) # if view.setModel
+            controller.attach component, view
 
             if component instanceof Container
                 component.forEach (child) ->
-                    view.add this.createView child, context
+                    view.add this.createView child, controller
                 , this
 
             if spec.view_listener
@@ -65,11 +61,11 @@ define [
                             console.log("ComponentFactory#crateView", "variable #{selector} is not evaluated on listener")
                             continue
 
-                    @eventTracker.on selector, handlers, view, context
+                    @eventTracker.on selector, handlers, view, controller
                 
             view
 
-        createComponent : (obj, context) ->
+        createComponent : (obj, controller) ->
             spec = @componentRegistry.get obj.type
             throw new Error "Component Spec Not Found for type '#{obj.type}'" if !spec
             
@@ -77,10 +73,10 @@ define [
                 component = new Container(obj.type)
 
                 if spec.components
-                    component.add(@createComponent(child, context)) for child in spec.components
+                    component.add(@createComponent(child, controller)) for child in spec.components
 
                 if obj.components
-                    component.add(@createComponent(child, context)) for child in obj.components
+                    component.add(@createComponent(child, controller)) for child in obj.components
             else
                 component = new Component(obj.type)
 
@@ -88,7 +84,7 @@ define [
 
             component.set('id', @uniqueId()) if not component.get('id')
 
-            @eventEngine.add(component, spec.controller, context) if spec.controller
+            @eventEngine.add(component, spec.controller, controller) if spec.controller
 
             component
 
