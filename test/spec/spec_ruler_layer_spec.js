@@ -28,7 +28,7 @@ define([
 
       app = infopik.app({
         application_spec: SpecPainter,
-        container: 'painter_spec',
+        container: 'spec_ruler_layer_spec',
         width: 1000,
         height: 400
       });
@@ -82,7 +82,7 @@ define([
       }, 20);
     });
 
-    it('should move offset by dragging content-edit-layer background', function (done) {
+    it('should move back to origin when new offset position is below zero', function (done) {
       var contentEditLayer = app.findComponent('content-edit-layer')[0];
       var contentEditLayerView = app.getAttachedViews(contentEditLayer)[0];
       var background = contentEditLayerView.__background__;
