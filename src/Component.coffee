@@ -17,17 +17,6 @@ define [
     class Component
         constructor : (type) ->
             @type = type
-        #     @__views__ = []
-
-        # attach : (view) ->
-        #     @__views__.push view
-
-        # detach : (view) ->
-        #     index = @__views__.indexOf(view)
-        #     @__views__.splice(index, 1) if index > -1
-
-        # attaches : ->
-        #     @__views__
 
     dou.mixin Component, [
         dou.with.advice
