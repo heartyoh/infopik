@@ -1,14 +1,10 @@
 /*! Infopik v0.0.0 | (c) Hatio, Lab. | MIT License */
 (function(context) {
   var factories = {
-    // dou: [[], function() { return context.dou; }],
-    // bwip: [[], function() { return context.bwip; }],
-    // KineticJS: [[], function() { return context.Kinetic; }]
-  }, loaded = {
-    dou: context.dou,
-    bwip: context.bwip,
-    KineticJS: context.KineticJS
-  };
+    dou: [[], function() { return context.dou; }],
+    bwip: [[], function() { return context.bwip; }],
+    KineticJS: [[], function() { return context.Kinetic; }]
+  }, loaded = {};
   var isArray = Array.isArray || function(obj) {
     return obj.constructor == Array;
   };
