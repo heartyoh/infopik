@@ -1,5 +1,9 @@
 (function(context) {
-  var factories = {}, loaded = {};
+  var factories = {
+    dou: [[], function() { return context.dou; }],
+    bwip: [[], function() { return context.bwip; }],
+    Kinetic: [[], function() { return context.Kinetic; }]
+  }, loaded = {};
   var isArray = Array.isArray || function(obj) {
     return obj.constructor == Array;
   };
