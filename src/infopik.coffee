@@ -6,11 +6,17 @@
 
 define [
     './ApplicationContext'
-], (ApplicationContext) ->
+    './spec/SpecPainter'
+], (
+	ApplicationContext
+	SpecPainter
+) ->
     
     "use strict"
 
     {
         app: (options) ->
         	new ApplicationContext(options)
+        spec:
+	        painter: SpecPainter
     }

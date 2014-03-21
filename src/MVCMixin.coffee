@@ -83,9 +83,4 @@ define [
         controller: withController
         model: withModel
         view: withView
-        # view_fns:
-        #     getModel: ->
-        #         getModel this
-        #     setModel: (model) ->
-        #         setModel this, model, true
     }

@@ -1,7 +1,7 @@
 (function() {
   var __hasProp = {}.hasOwnProperty;
 
-  define(['dou', './EventController'], function(dou, EventController) {
+  define(['dou'], function(dou) {
     "use strict";
     var ComponentRegistry;
     return ComponentRegistry = (function() {

@@ -6,10 +6,8 @@
 
 define [
     'dou'
-    './EventController'
 ], (
     dou
-    EventController
 ) ->
     
     "use strict"

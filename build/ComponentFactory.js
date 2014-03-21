@@ -5,11 +5,12 @@
     "use strict";
     var ComponentFactory;
     ComponentFactory = (function() {
+      ComponentFactory.prototype.seed = 1;
+
       function ComponentFactory(componentRegistry, eventEngine, eventTracker) {
         this.componentRegistry = componentRegistry;
         this.eventEngine = eventEngine;
         this.eventTracker = eventTracker;
-        this.seed = 1;
       }
 
       ComponentFactory.prototype.despose = function() {

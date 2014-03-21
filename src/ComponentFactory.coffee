@@ -23,11 +23,12 @@ define [
     "use strict"
 
     class ComponentFactory
+        seed: 1
+
         constructor: (componentRegistry, eventEngine, eventTracker)->
             @componentRegistry = componentRegistry
             @eventEngine = eventEngine
             @eventTracker = eventTracker
-            @seed = 1
 
         despose: ->
             @componentRegistry = null
