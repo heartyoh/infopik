@@ -2699,16 +2699,103 @@
     });
 }.call(this));
 (function () {
+    var __indexOf = [].indexOf || function (item) {
+            for (var i = 0, l = this.length; i < l; i++) {
+                if (i in this && this[i] === item)
+                    return i;
+            }
+            return -1;
+        };
+    define('build/Module', [], function () {
+        var Module, moduleKeywords;
+        moduleKeywords = [
+            'extended',
+            'included'
+        ];
+        return Module = function () {
+            function Module() {
+            }
+            Module.extend = function (obj) {
+                var key, value, _ref;
+                for (key in obj) {
+                    value = obj[key];
+                    if (__indexOf.call(moduleKeywords, key) < 0) {
+                        this[key] = value;
+                    }
+                }
+                if ((_ref = obj.extended) != null) {
+                    _ref.apply(this);
+                }
+                return this;
+            };
+            Module.include = function (obj) {
+                var key, value, _ref;
+                for (key in obj) {
+                    value = obj[key];
+                    if (__indexOf.call(moduleKeywords, key) < 0) {
+                        this.prototype[key] = value;
+                    }
+                }
+                if ((_ref = obj.included) != null) {
+                    _ref.apply(this);
+                }
+                return this;
+            };
+            return Module;
+        }();
+    });
+}.call(this));
+(function () {
     define('build/infopik', [
         './ApplicationContext',
-        './spec/SpecPainter'
-    ], function (ApplicationContext, SpecPainter) {
+        './Command',
+        './CommandManager',
+        './Component',
+        './ComponentFactory',
+        './ComponentRegistry',
+        './ComponentSelector',
+        './ComponentSpec',
+        './Container',
+        './EventEngine',
+        './EventPump',
+        './EventTracker',
+        './Module',
+        './MVCMixin',
+        './SelectionManager',
+        './spec/SpecBarcode',
+        './spec/SpecContentEditLayer',
+        './spec/SpecContentViewLayer',
+        './spec/SpecGroup',
+        './spec/SpecGuideLayer',
+        './spec/SpecHandleLayer',
+        './spec/SpecImage',
+        './spec/SpecInfographic',
+        './spec/SpecPainter',
+        './spec/SpecPresenter',
+        './spec/SpecRect',
+        './spec/SpecRing',
+        './spec/SpecRuler',
+        './spec/SpecRulerLayer',
+        './spec/SpecStar',
+        './spec/SpecText'
+    ], function (ApplicationContext, Command, CommandManager, Component, ComponentFactory, ComponentRegistry, ComponentSelector, ComponentSpec, Container, EventEngine, EventPump, EventTracker, Module, MVCMixin, SelectionManager, SpecBarcode, SpecContentEditLayer, SpecContentViewLayer, SpecGroup, SpecGuideLayer, SpecHandleLayer, SpecImage, SpecInfographic, SpecPainter, SpecPresenter, SpecRect, SpecRing, SpecRuler, SpecRulerLayer, SpecStar, SpecText) {
         'use strict';
         return {
             app: function (options) {
                 return new ApplicationContext(options);
             },
-            spec: { painter: SpecPainter }
+            spec: {
+                painter: SpecPainter,
+                presenter: SpecPresenter,
+                rect: SpecRect,
+                ring: SpecRing,
+                ruler: SpecRuler,
+                star: SpecStar,
+                infographic: SpecInfographic,
+                barcode: SpecBarcode,
+                image: SpecImage,
+                group: SpecGroup
+            }
         };
     });
 }.call(this));
