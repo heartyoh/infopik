@@ -8,6 +8,7 @@ define [
     './ApplicationContext'
     './Command'
     './CommandManager'
+    './command/CommandPropertyChange'
     './Component'
     './ComponentFactory'
     './ComponentRegistry'
@@ -20,6 +21,7 @@ define [
     './Module'
     './MVCMixin'
     './SelectionManager'
+    './handle/HandleChecker'
     './spec/SpecBarcode'
     './spec/SpecContentEditLayer'
     './spec/SpecContentViewLayer'
@@ -40,6 +42,7 @@ define [
     ApplicationContext
     Command
     CommandManager
+    CommandPropertyChange
     Component
     ComponentFactory
     ComponentRegistry
@@ -52,6 +55,7 @@ define [
     Module
     MVCMixin
     SelectionManager
+    HandleChecker
     SpecBarcode
     SpecContentEditLayer
     SpecContentViewLayer

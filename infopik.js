@@ -2750,6 +2750,7 @@
         './ApplicationContext',
         './Command',
         './CommandManager',
+        './command/CommandPropertyChange',
         './Component',
         './ComponentFactory',
         './ComponentRegistry',
@@ -2762,6 +2763,7 @@
         './Module',
         './MVCMixin',
         './SelectionManager',
+        './handle/HandleChecker',
         './spec/SpecBarcode',
         './spec/SpecContentEditLayer',
         './spec/SpecContentViewLayer',
@@ -2778,7 +2780,7 @@
         './spec/SpecRulerLayer',
         './spec/SpecStar',
         './spec/SpecText'
-    ], function (ApplicationContext, Command, CommandManager, Component, ComponentFactory, ComponentRegistry, ComponentSelector, ComponentSpec, Container, EventEngine, EventPump, EventTracker, Module, MVCMixin, SelectionManager, SpecBarcode, SpecContentEditLayer, SpecContentViewLayer, SpecGroup, SpecGuideLayer, SpecHandleLayer, SpecImage, SpecInfographic, SpecPainter, SpecPresenter, SpecRect, SpecRing, SpecRuler, SpecRulerLayer, SpecStar, SpecText) {
+    ], function (ApplicationContext, Command, CommandManager, CommandPropertyChange, Component, ComponentFactory, ComponentRegistry, ComponentSelector, ComponentSpec, Container, EventEngine, EventPump, EventTracker, Module, MVCMixin, SelectionManager, HandleChecker, SpecBarcode, SpecContentEditLayer, SpecContentViewLayer, SpecGroup, SpecGuideLayer, SpecHandleLayer, SpecImage, SpecInfographic, SpecPainter, SpecPresenter, SpecRect, SpecRing, SpecRuler, SpecRulerLayer, SpecStar, SpecText) {
         'use strict';
         return {
             app: function (options) {
