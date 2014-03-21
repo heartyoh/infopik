@@ -1,0 +1,11 @@
+--name       "Infopik"
+--readme     README.md
+--title      "Infopik Developer Documentation"
+--private
+--quiet
+--extension  coffee
+--output     ./doc
+./src
+-
+LICENSE
+CHANGELOG.md

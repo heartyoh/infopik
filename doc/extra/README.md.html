@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <meta charset='UTF-8'>
+  <title>Infopik Developer Documentation</title>
+  <script src='../javascript/application.js'></script>
+  <script src='../javascript/search.js'></script>
+  <link rel='stylesheet' href='../stylesheets/application.css' type='text/css'>
+</head>
+  <body>
+    <div id='base' data-path='../'></div>
+<div id='header'>
+  <div id='menu'>
+    <a href='../extra/README.md.html' title='Infopik'>
+      Infopik
+    </a>
+    &raquo;
+    <a href='../alphabetical_index.html' title='Index'>
+      Index
+    </a>
+    &raquo;
+    <span class='title'>README.md</span>
+  </div>
+</div>
+    <div id='content'>
+      <nav class='toc'>
+        <p class='title'>
+          <a class='hide_toc' href='#'>
+            <strong>Table of Contents</strong>
+          </a>
+          <small>
+            (<a class='float_toc' href='#'>left</a>)
+          </small>
+        </p>
+      </nav>
+      <div id='filecontents'>
+        <h1 id="infopik">infopik</h1><p>Infographic Painter &amp; Presenter</p><h2 id="features">Features</h2>
+<ul>
+<li>Canvas base</li>
+<li>Barcode Symbols</li>
+<li>Rectangle</li>
+<li>Circle</li>
+<li>Line</li>
+<li>Text</li>
+<li>Image</li>
+</ul>
+<h2 id="usage">Usage</h2>
+<pre><code class="lang-js">var infopik = require(&#39;infopik&#39;);
+
+var painter = infopik.painter(canvas, {
+    keydown : onKeyDownHandler,
+    selectionchange : onSelectionChange,
+    propertychange : onPropertyChange
+});
+
+var presenter = infopik.presenter(canvas, {
+    keydown : onKeyDownHandler
+});
+</code></pre>
+<h2 id="api">API</h2>
+<h3 id="objects">Objects</h3>
+<ul>
+<li>painter / presenter</li>
+<li>symbol (model) </li>
+</ul>
+<h3 id="painter-presenter-properties">Painter(Presenter) Properties</h3>
+<ul>
+<li>get / set<ul>
+<li>edit mode</li>
+<li>width</li>
+<li>height</li>
+<li>root model</li>
+</ul>
+</li>
+<li>symbol : get symbol</li>
+</ul>
+<h3 id="symbols-models-manipulation">Symbols (Models) Manipulation</h3>
+<ul>
+<li>add : add symbol(s)</li>
+<li>remove : remove symbol(s)</li>
+<li>select : select children symbol(s)</li>
+</ul>
+<h3 id="selections">Selections</h3>
+<ul>
+<li>selected : get or set selected symbol</li>
+</ul>
+<h3 id="move">Move</h3>
+<ul>
+<li>move : move delta or move to</li>
+</ul>
+<h3 id="editing">Editing</h3>
+<ul>
+<li>undo</li>
+<li>redo</li>
+<li>cut</li>
+<li>copy</li>
+<li>paste</li>
+</ul>
+<h3 id="align">Align</h3>
+<ul>
+<li>align : top, bottom, left, right, vcenter, hcenter</li>
+</ul>
+<h3 id="arrange-z-order">Arrange Z-Order</h3>
+<ul>
+<li>arrange : front, back, forward, backward</li>
+</ul>
+<h3 id="scale">Scale</h3>
+<ul>
+<li>scale : enlarge, reduce or set scale</li>
+</ul>
+<h2 id="events">Events</h2>
+<h3 id="painter-presenter-property-change">Painter(Presenter) Property Change</h3>
+<ul>
+<li>before / after property change</li>
+<li>before / after close</li>
+</ul>
+<h3 id="symbols-structure-change">Symbols Structure Change</h3>
+<ul>
+<li>When symbols structure is changed</li>
+<li>It means some symbol is added, removed or moved on their symbol hierarchy</li>
+</ul>
+<h3 id="symbol-model-property-change">Symbol(Model) Property Change</h3>
+<h2 id="license">License</h2><p>Copyright (c) 2014 Hatio, Lab. Licensed under the MIT license.</p>
+      </div>
+    </div>
+    <div id='footer'>
+  March 21, 14 10:14:24 by
+  <a href='https://github.com/coffeedoc/codo' title='CoffeeScript API documentation generator'>
+    Codo
+  </a>
+  2.0.8
+  &#10034;
+  Press H to see the keyboard shortcuts
+  &#10034;
+  <a href='http://twitter.com/netzpirat' target='_parent'>@netzpirat</a>
+  &#10034;
+  <a href='http://twitter.com/_inossidabile' target='_parent'>@_inossidabile</a>
+</div>
+<iframe id='search_frame'></iframe>
+<div id='fuzzySearch'>
+  <input type='text'>
+  <ol></ol>
+</div>
+<div id='help'>
+  <p>
+    Quickly fuzzy find classes, mixins, methods, file:
+  </p>
+  <ul>
+    <li>
+      <span>T</span>
+      Open fuzzy finder dialog
+    </li>
+  </ul>
+  <p>
+    Control the navigation frame:
+  </p>
+  <ul>
+    <li>
+      <span>L</span>
+      Toggle list view
+    </li>
+    <li>
+      <span>C</span>
+      Show class list
+    </li>
+    <li>
+      <span>I</span>
+      Show mixin list
+    </li>
+    <li>
+      <span>F</span>
+      Show file list
+    </li>
+    <li>
+      <span>M</span>
+      Show method list
+    </li>
+    <li>
+      <span>E</span>
+      Show extras list
+    </li>
+  </ul>
+  <p>
+    You can focus and blur the search input:
+  </p>
+  <ul>
+    <li>
+      <span>S</span>
+      Focus search input
+    </li>
+    <li>
+      <span>Esc</span>
+      Blur search input
+    </li>
+  </ul>
+</div>
+  </body>
+</html>
