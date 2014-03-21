@@ -30,7 +30,19 @@ module.exports = function (grunt) {
         src: '**/*.coffee',
         dest: 'build',
         ext: '.js'
-      }
+      },
+      test: {
+        options: {
+          bare: false,
+          join: false,
+          sourceMap: false
+        },
+        expand: true,
+        cwd: 'test',
+        src: '**/*.coffee',
+        dest: 'test',
+        ext: '.js'
+      }      
     },
     execute: {
       standalone: {
@@ -94,6 +106,10 @@ module.exports = function (grunt) {
       coffee: {
         files: '<%= coffee.build.src %>',
         tasks: ['coffee:build']
+      },
+      coffee_test:{
+        files: '<%= coffee.test.src %>',
+        tasks: ['coffee:test']
       },
       src: {
         files: '<%= jshint.src.src %>',
