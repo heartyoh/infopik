@@ -1,7 +1,7 @@
 (function() {
   define(['dou', 'KineticJS', '../EventTracker', '../ComponentSelector', '../command/CommandPropertyChange'], function(dou, kin, EventTracker, ComponentSelector, CommandPropertyChange) {
     "use strict";
-    var controller, createView, onadded, onchange, onchangemodel, onchangeselections, onclick, ondragend, ondragmove, ondragstart, onremoved, view_listener;
+    var controller, createView, onadded, onchange, onchangemodel, onchangeselections, onclick, ondragend, ondragmove, ondragstart, onremoved, onresize, view_listener;
     createView = function(attributes) {
       var background, offset, stage, view;
       stage = this.getView().getStage();
@@ -183,6 +183,13 @@
       node = e.targetNode;
       return this.context.selectionManager.select(node);
     };
+    onresize = function(e) {
+      var background, view;
+      view = this.listener;
+      background = view.__background__;
+      background.setSize(e.after);
+      return view.batchDraw();
+    };
     controller = {
       '(root)': {
         '(root)': {
@@ -206,6 +213,9 @@
         dragmove: ondragmove,
         dragend: ondragend,
         click: onclick
+      },
+      '(root)': {
+        resize: onresize
       }
     };
     return {

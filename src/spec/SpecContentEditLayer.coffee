@@ -188,6 +188,14 @@ define [
         node = e.targetNode
         this.context.selectionManager.select(node)
 
+    onresize = (e) ->
+        view = this.listener
+
+        background = view.__background__
+        background.setSize(e.after)
+
+        view.batchDraw()
+
     controller =
         '(root)' :
             '(root)' :
@@ -206,6 +214,8 @@ define [
             dragmove : ondragmove
             dragend : ondragend
             click : onclick
+        '(root)' :
+            resize : onresize
 
     {
         type: 'content-edit-layer'

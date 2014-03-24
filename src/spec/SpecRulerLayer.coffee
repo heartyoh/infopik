@@ -18,21 +18,36 @@ define [
         new kin.Layer(attributes)
 
     onchangeoffset = (e) ->
-        layer = this.listener
+        view = this.listener
 
-        if not layer.__hori__
-            children = layer.getChildren().toArray()
-            layer.__hori__ = children[0]
-            layer.__vert__ = children[1]
+        if not view.__hori__
+            children = view.getChildren().toArray()
+            view.__hori__ = children[0]
+            view.__vert__ = children[1]
 
-        layer.__hori__.setAttr('zeropos', -e.x)
-        layer.__vert__.setAttr('zeropos', -e.y)
+        view.__hori__.setAttr('zeropos', -e.x)
+        view.__vert__.setAttr('zeropos', -e.y)
 
-        layer.batchDraw()
+        view.batchDraw()
+
+    onresize = (e) ->
+        view = this.listener
+
+        if not view.__hori__
+            children = view.getChildren().toArray()
+            view.__hori__ = children[0]
+            view.__vert__ = children[1]
+
+        view.__hori__.setSize {width: e.after.width, height: 20}
+        view.__vert__.setSize {width: 20, height: e.after.height}
+
+        view.batchDraw()
 
     view_listener = 
         '?offset_monitor_target':
             'change-offset': onchangeoffset
+        '(root)':
+            'resize' : onresize
 
     {
         type: 'ruler-layer'

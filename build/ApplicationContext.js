@@ -140,9 +140,18 @@
       };
 
       ApplicationContext.prototype.setSize = function(width, height) {
-        return this.view.setSize({
+        var before;
+        before = this.view.getSize();
+        this.view.setSize({
           width: width,
           height: height
+        });
+        return this.view.fire('resize', {
+          before: before,
+          after: {
+            width: width,
+            height: height
+          }
         });
       };
 

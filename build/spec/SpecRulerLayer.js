@@ -1,25 +1,46 @@
 (function() {
   define(['dou', 'KineticJS'], function(dou, kin) {
     "use strict";
-    var createView, onchangeoffset, view_listener;
+    var createView, onchangeoffset, onresize, view_listener;
     createView = function(attributes) {
       return new kin.Layer(attributes);
     };
     onchangeoffset = function(e) {
-      var children, layer;
-      layer = this.listener;
-      if (!layer.__hori__) {
-        children = layer.getChildren().toArray();
-        layer.__hori__ = children[0];
-        layer.__vert__ = children[1];
+      var children, view;
+      view = this.listener;
+      if (!view.__hori__) {
+        children = view.getChildren().toArray();
+        view.__hori__ = children[0];
+        view.__vert__ = children[1];
       }
-      layer.__hori__.setAttr('zeropos', -e.x);
-      layer.__vert__.setAttr('zeropos', -e.y);
-      return layer.batchDraw();
+      view.__hori__.setAttr('zeropos', -e.x);
+      view.__vert__.setAttr('zeropos', -e.y);
+      return view.batchDraw();
+    };
+    onresize = function(e) {
+      var children, view;
+      view = this.listener;
+      if (!view.__hori__) {
+        children = view.getChildren().toArray();
+        view.__hori__ = children[0];
+        view.__vert__ = children[1];
+      }
+      view.__hori__.setSize({
+        width: e.after.width,
+        height: 20
+      });
+      view.__vert__.setSize({
+        width: 20,
+        height: e.after.height
+      });
+      return view.batchDraw();
     };
     view_listener = {
       '?offset_monitor_target': {
         'change-offset': onchangeoffset
+      },
+      '(root)': {
+        'resize': onresize
       }
     };
     return {

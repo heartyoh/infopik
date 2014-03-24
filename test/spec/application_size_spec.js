@@ -25,8 +25,8 @@ define([
       app = infopik.app({
         application_spec: SpecPainter,
         container: 'application_size_spec',
-        width: 1000,
-        height: 400
+        width: 100,
+        height: 100
       });
     });
 
@@ -38,15 +38,16 @@ define([
       var height = 100;
 
       var timeout = function() {
+        if(++count == 11) {
+          done();
+          return;
+        }
         app.setSize(width, height);
 
-        width = width + 20;
-        height = height + 20;
+        width = width + 30;
+        height = height + 30;
 
-        if(++count == 10)
-          done();
-        else
-          setTimeout(timeout, 10);
+        setTimeout(timeout, 10);
       };
 
       setTimeout(timeout, 10);

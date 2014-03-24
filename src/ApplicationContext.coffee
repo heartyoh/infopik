@@ -176,9 +176,15 @@ define [
             @commandManager.execute command
 
         setSize: (width, height) ->
+            before = @view.getSize()
             @view.setSize
                 width: width
                 height: height
+            @view.fire 'resize',
+                before: before
+                after :
+                    width: width
+                    height: height
 
         onadd: (container, component, index, e) ->
             vcontainer = if container is @application then @view else this.findViewByComponent container
