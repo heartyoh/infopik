@@ -1249,10 +1249,13 @@
         _editmodechange = function (after, before, view, model, controller) {
             switch (after) {
             case 'MOVE':
-                return view.__background__.moveToTop();
+                view.__background__.moveToTop();
+                break;
             case 'SELECT':
-                return view.__background__.moveToBottom();
+                view.__background__.moveToBottom();
+                break;
             }
+            return view.batchDraw();
         };
         onadded = function (container, component, index, e) {
             var controller, model, view;

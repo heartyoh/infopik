@@ -52,6 +52,8 @@ define [
             when 'SELECT'
                 view.__background__.moveToBottom()
             else
+                
+        view.batchDraw()
 
     onadded = (container, component, index, e) ->
         controller = this
