@@ -32,6 +32,8 @@ define([
         width: 1000,
         height: 400
       });
+
+      app.setEditMode('MOVE');
     });
 
     it('should move offset by dragging content-edit-layer background', function (done) {

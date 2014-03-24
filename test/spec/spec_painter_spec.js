@@ -37,6 +37,7 @@ define([
     it('should ...', function () {
 
       app.setModel(infographic);
+      app.setEditMode('MOVE')
     });
 
   });

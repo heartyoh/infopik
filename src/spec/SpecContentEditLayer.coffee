@@ -37,6 +37,7 @@ define [
             height: Math.min(stage.height() + offset.y, stage.height())
             stroke: attributes.stroke
             fill: 'cyan'
+            opacity: 0.1
             # id: undefined
 
         view.add background
@@ -45,6 +46,9 @@ define [
         view
 
     onadded = (container, component, index, e) ->
+        # controller = this
+        # model = e.listener
+        # view = controller.getAttachedViews(model)[0]
 
     onremoved = (container, component, e) ->
 
@@ -61,6 +65,7 @@ define [
     onchange = (component, before, after) ->
 
     ondragstart = (e) ->
+        controller = this.context
         view = this.listener
 
         background = view.__background__
@@ -83,49 +88,49 @@ define [
             x: this.start_point.x + this.origin_offset.x
             y: this.start_point.y + this.origin_offset.y
 
-        mode = 'MOVE'
-        if(mode is 'SELECT')
-            this.selectbox = new kin.Rect
-                stroke: 'black'
-                strokeWidth: 1
-                dash: [3, 3]
+        switch(controller.getEditMode())
+            when 'SELECT'
+                this.selectbox = new kin.Rect
+                    stroke: 'black'
+                    strokeWidth: 1
+                    dash: [3, 3]
 
-            view.add this.selectbox
-            this.selectbox.setAttrs(offset)
-        else if(mode is 'MOVE')
-        else
+                view.add this.selectbox
+                this.selectbox.setAttrs(offset)
+            when 'MOVE'
+            else
 
         view.draw();
 
         e.cancelBubble = true
 
     ondragmove = (e) ->
+        controller = this.context
         view = this.listener
 
         background = view.__background__
 
         return if e.targetNode and e.targetNode isnt background
 
-        mode = 'MOVE'
-        if(mode is 'SELECT')
-            background.setAttrs({x:this.origin_offset.x + 20, y:this.origin_offset.y + 20})
-            this.selectbox.setAttrs({width: e.clientX - this.start_point.x, height: e.clientY - this.start_point.y})
+        switch(controller.getEditMode())
+            when 'SELECT'
+                background.setAttrs({x:this.origin_offset.x + 20, y:this.origin_offset.y + 20})
+                this.selectbox.setAttrs({width: e.clientX - this.start_point.x, height: e.clientY - this.start_point.y})
 
-            # TODO select components in the area of selectionbox
+                # TODO select components in the area of selectionbox
+            when 'MOVE'
+                x = this.origin_offset.x - (e.clientX - this.start_point.x)
+                y = this.origin_offset.y - (e.clientY - this.start_point.y)
 
-        else if(mode is 'MOVE')
-            x = this.origin_offset.x - (e.clientX - this.start_point.x)
-            y = this.origin_offset.y - (e.clientY - this.start_point.y)
+                view.offset
+                    x: x
+                    y: y
+                background.setAttrs
+                    x: x + 20
+                    y: y + 20
 
-            view.offset
-                x: x
-                y: y
-            background.setAttrs
-                x: x + 20
-                y: y + 20
-
-            view.fire('change-offset', {x: x, y: y}, false);
-        else
+                view.fire('change-offset', {x: x, y: y}, false);
+            else
 
         view.batchDraw();
 
@@ -161,24 +166,24 @@ define [
 
         return if e.targetNode and e.targetNode isnt background
 
-        mode = 'MOVE'
-        if(mode is 'SELECT')
-            background.setAttrs({x:this.origin_offset.x + 20, y:this.origin_offset.y + 20})
-            this.selectbox.remove()
-            delete this.selectbox
-        else if(mode is 'MOVE')
-            x = Math.max(this.origin_offset.x - (e.clientX - this.start_point.x), -20)
-            y = Math.max(this.origin_offset.y - (e.clientY - this.start_point.y), -20)
+        switch(controller.getEditMode())
+            when 'SELECT'
+                background.setAttrs({x:this.origin_offset.x + 20, y:this.origin_offset.y + 20})
+                this.selectbox.remove()
+                delete this.selectbox
+            when 'MOVE'
+                x = Math.max(this.origin_offset.x - (e.clientX - this.start_point.x), -20)
+                y = Math.max(this.origin_offset.y - (e.clientY - this.start_point.y), -20)
 
-            view.offset
-                x: x
-                y: y
-            background.setAttrs
-                x: x + 20
-                y: y + 20
+                view.offset
+                    x: x
+                    y: y
+                background.setAttrs
+                    x: x + 20
+                    y: y + 20
 
-            view.fire('change-offset', {x: x, y: y}, false);
-        else
+                view.fire('change-offset', {x: x, y: y}, false);
+            else
 
         view.draw();
 
@@ -196,11 +201,24 @@ define [
 
         view.batchDraw()
 
+    onchangeeditmode = (after, before, e) ->
+        controller = this
+        model = e.listener
+        view = controller.getAttachedViews(model)[0]
+
+        switch after
+            when 'MOVE'
+                view.__background__.moveToTop()
+            when 'SELECT'
+                view.__background__.moveToBottom()
+            else
+
     controller =
         '(root)' :
             '(root)' :
                 'change-model' : onchangemodel
                 'change-selections' : onchangeselections
+                'change-edit-mode' : onchangeeditmode
         '(self)' :
             '(self)' :
                 'added' : onadded

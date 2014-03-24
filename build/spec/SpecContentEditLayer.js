@@ -1,7 +1,7 @@
 (function() {
   define(['dou', 'KineticJS', '../EventTracker', '../ComponentSelector', '../command/CommandPropertyChange'], function(dou, kin, EventTracker, ComponentSelector, CommandPropertyChange) {
     "use strict";
-    var controller, createView, onadded, onchange, onchangemodel, onchangeselections, onclick, ondragend, ondragmove, ondragstart, onremoved, onresize, view_listener;
+    var controller, createView, onadded, onchange, onchangeeditmode, onchangemodel, onchangeselections, onclick, ondragend, ondragmove, ondragstart, onremoved, onresize, view_listener;
     createView = function(attributes) {
       var background, offset, stage, view;
       stage = this.getView().getStage();
@@ -19,7 +19,8 @@
         width: Math.min(stage.width() + offset.x, stage.width()),
         height: Math.min(stage.height() + offset.y, stage.height()),
         stroke: attributes.stroke,
-        fill: 'cyan'
+        fill: 'cyan',
+        opacity: 0.1
       });
       view.add(background);
       view.__background__ = background;
@@ -46,7 +47,8 @@
     };
     onchange = function(component, before, after) {};
     ondragstart = function(e) {
-      var background, mode, node, offset, view, view_offset;
+      var background, controller, node, offset, view, view_offset;
+      controller = this.context;
       view = this.listener;
       background = view.__background__;
       node = e.targetNode;
@@ -68,63 +70,63 @@
         x: this.start_point.x + this.origin_offset.x,
         y: this.start_point.y + this.origin_offset.y
       };
-      mode = 'MOVE';
-      if (mode === 'SELECT') {
-        this.selectbox = new kin.Rect({
-          stroke: 'black',
-          strokeWidth: 1,
-          dash: [3, 3]
-        });
-        view.add(this.selectbox);
-        this.selectbox.setAttrs(offset);
-      } else if (mode === 'MOVE') {
-
-      } else {
-
+      switch (controller.getEditMode()) {
+        case 'SELECT':
+          this.selectbox = new kin.Rect({
+            stroke: 'black',
+            strokeWidth: 1,
+            dash: [3, 3]
+          });
+          view.add(this.selectbox);
+          this.selectbox.setAttrs(offset);
+          break;
+        case 'MOVE':
+          break;
       }
       view.draw();
       return e.cancelBubble = true;
     };
     ondragmove = function(e) {
-      var background, mode, view, x, y;
+      var background, controller, view, x, y;
+      controller = this.context;
       view = this.listener;
       background = view.__background__;
       if (e.targetNode && e.targetNode !== background) {
         return;
       }
-      mode = 'MOVE';
-      if (mode === 'SELECT') {
-        background.setAttrs({
-          x: this.origin_offset.x + 20,
-          y: this.origin_offset.y + 20
-        });
-        this.selectbox.setAttrs({
-          width: e.clientX - this.start_point.x,
-          height: e.clientY - this.start_point.y
-        });
-      } else if (mode === 'MOVE') {
-        x = this.origin_offset.x - (e.clientX - this.start_point.x);
-        y = this.origin_offset.y - (e.clientY - this.start_point.y);
-        view.offset({
-          x: x,
-          y: y
-        });
-        background.setAttrs({
-          x: x + 20,
-          y: y + 20
-        });
-        view.fire('change-offset', {
-          x: x,
-          y: y
-        }, false);
-      } else {
-
+      switch (controller.getEditMode()) {
+        case 'SELECT':
+          background.setAttrs({
+            x: this.origin_offset.x + 20,
+            y: this.origin_offset.y + 20
+          });
+          this.selectbox.setAttrs({
+            width: e.clientX - this.start_point.x,
+            height: e.clientY - this.start_point.y
+          });
+          break;
+        case 'MOVE':
+          x = this.origin_offset.x - (e.clientX - this.start_point.x);
+          y = this.origin_offset.y - (e.clientY - this.start_point.y);
+          view.offset({
+            x: x,
+            y: y
+          });
+          background.setAttrs({
+            x: x + 20,
+            y: y + 20
+          });
+          view.fire('change-offset', {
+            x: x,
+            y: y
+          }, false);
+          break;
       }
       view.batchDraw();
       return e.cancelBubble = true;
     };
     ondragend = function(e) {
-      var background, cmd, controller, dragmodel, dragview, mode, view, x, y;
+      var background, cmd, controller, dragmodel, dragview, view, x, y;
       controller = this.context;
       dragview = e.targetNode;
       dragmodel = controller.getAttachedModel(dragview);
@@ -151,31 +153,31 @@
       if (e.targetNode && e.targetNode !== background) {
         return;
       }
-      mode = 'MOVE';
-      if (mode === 'SELECT') {
-        background.setAttrs({
-          x: this.origin_offset.x + 20,
-          y: this.origin_offset.y + 20
-        });
-        this.selectbox.remove();
-        delete this.selectbox;
-      } else if (mode === 'MOVE') {
-        x = Math.max(this.origin_offset.x - (e.clientX - this.start_point.x), -20);
-        y = Math.max(this.origin_offset.y - (e.clientY - this.start_point.y), -20);
-        view.offset({
-          x: x,
-          y: y
-        });
-        background.setAttrs({
-          x: x + 20,
-          y: y + 20
-        });
-        view.fire('change-offset', {
-          x: x,
-          y: y
-        }, false);
-      } else {
-
+      switch (controller.getEditMode()) {
+        case 'SELECT':
+          background.setAttrs({
+            x: this.origin_offset.x + 20,
+            y: this.origin_offset.y + 20
+          });
+          this.selectbox.remove();
+          delete this.selectbox;
+          break;
+        case 'MOVE':
+          x = Math.max(this.origin_offset.x - (e.clientX - this.start_point.x), -20);
+          y = Math.max(this.origin_offset.y - (e.clientY - this.start_point.y), -20);
+          view.offset({
+            x: x,
+            y: y
+          });
+          background.setAttrs({
+            x: x + 20,
+            y: y + 20
+          });
+          view.fire('change-offset', {
+            x: x,
+            y: y
+          }, false);
+          break;
       }
       view.draw();
       return e.cancelBubble = true;
@@ -192,11 +194,24 @@
       background.setSize(e.after);
       return view.batchDraw();
     };
+    onchangeeditmode = function(after, before, e) {
+      var controller, model, view;
+      controller = this;
+      model = e.listener;
+      view = controller.getAttachedViews(model)[0];
+      switch (after) {
+        case 'MOVE':
+          return view.__background__.moveToTop();
+        case 'SELECT':
+          return view.__background__.moveToBottom();
+      }
+    };
     controller = {
       '(root)': {
         '(root)': {
           'change-model': onchangemodel,
-          'change-selections': onchangeselections
+          'change-selections': onchangeselections,
+          'change-edit-mode': onchangeeditmode
         }
       },
       '(self)': {

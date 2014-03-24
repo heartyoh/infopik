@@ -7,6 +7,7 @@
         this.onselectionchange = config.onselectionchange;
         this.context = config.context;
         this.selections = [];
+        this.selectable_fn = config.selectable_fn;
       }
 
       SelectionManager.prototype.focus = function(target) {
@@ -70,12 +71,12 @@
           _results = [];
           for (_i = 0, _len = target.length; _i < _len; _i++) {
             item = target[_i];
-            if (item.getAttr('id')) {
+            if ((!this.selectable_fn) || this.selectable_fn(item)) {
               _results.push(item);
             }
           }
           return _results;
-        })();
+        }).call(this);
         added = (function() {
           var _i, _len, _ref, _results;
           _ref = this.selections;

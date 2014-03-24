@@ -58,6 +58,7 @@ define [
             @selectionManager = new SelectionManager({
                 onselectionchange: @onselectionchange
                 context: this
+                selectable_fn: (item) -> item.getAttr('id')
             })
 
             @compEventTracker = new EventTracker()
@@ -185,6 +186,16 @@ define [
                 after :
                     width: width
                     height: height
+
+        setEditMode: (mode) ->
+            old = @editMode or 'SELECT'
+            return if old is mode
+            @editMode = mode
+            @application.trigger 'change-edit-mode', mode, old
+
+        getEditMode: ->
+            return @editMode if @editMode
+            return 'SELECT'
 
         onadd: (container, component, index, e) ->
             vcontainer = if container is @application then @view else this.findViewByComponent container

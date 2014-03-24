@@ -15,6 +15,7 @@ define [
             @onselectionchange = config.onselectionchange
             @context = config.context
             @selections = []
+            @selectable_fn = config.selectable_fn
 
         focus: (target)->
             return @selections[0] if not target
@@ -66,7 +67,7 @@ define [
             if not (target instanceof Array)
                 target = if not target then [] else [target]
             
-            @selections = (item for item in target when item.getAttr('id'))
+            @selections = (item for item in target when (not @selectable_fn) or @selectable_fn(item))
 
             added = (item for item in @selections when old_sels.indexOf(item) is -1)
             removed = (item for item in old_sels when @selections.indexOf(item) is -1)

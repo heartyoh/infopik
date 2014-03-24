@@ -15,7 +15,10 @@
         this.commandManager = new CommandManager();
         this.selectionManager = new SelectionManager({
           onselectionchange: this.onselectionchange,
-          context: this
+          context: this,
+          selectable_fn: function(item) {
+            return item.getAttr('id');
+          }
         });
         this.compEventTracker = new EventTracker();
         this.viewEventTracker = new EventTracker();
@@ -153,6 +156,23 @@
             height: height
           }
         });
+      };
+
+      ApplicationContext.prototype.setEditMode = function(mode) {
+        var old;
+        old = this.editMode || 'SELECT';
+        if (old === mode) {
+          return;
+        }
+        this.editMode = mode;
+        return this.application.trigger('change-edit-mode', mode, old);
+      };
+
+      ApplicationContext.prototype.getEditMode = function() {
+        if (this.editMode) {
+          return this.editMode;
+        }
+        return 'SELECT';
       };
 
       ApplicationContext.prototype.onadd = function(container, component, index, e) {

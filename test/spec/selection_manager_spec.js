@@ -11,6 +11,9 @@ define(['build/SelectionManager'], function (SelectionManager) {
       selectionManager = new SelectionManager({
         onselectionchange : function(e) {
           changes = e;
+        },
+        selectable_fn : function(item) {
+          return item > 0
         }
       });
 
@@ -22,6 +25,19 @@ define(['build/SelectionManager'], function (SelectionManager) {
       it('should notify the changes', function () {
 
         selectionManager.select([1, 2, 3, 4, 5]);
+
+        selectionManager.get().length.should.equal(5);
+        selectionManager.focus().should.equal(1);
+
+        changes.added.should.have.members([1, 2, 3, 4, 5]);
+        changes.removed.should.be.empty;
+        changes.before.should.be.empty;
+        changes.after.should.have.members([1, 2, 3, 4, 5]);
+      });
+
+      it('should exclude items that selectable function returns false', function () {
+
+        selectionManager.select([-1, 0, 1, 2, 3, 4, 5]);
 
         selectionManager.get().length.should.equal(5);
         selectionManager.focus().should.equal(1);
