@@ -1,7 +1,7 @@
 (function() {
   define(['dou', 'KineticJS', '../EventTracker', '../ComponentSelector', '../command/CommandPropertyChange'], function(dou, kin, EventTracker, ComponentSelector, CommandPropertyChange) {
     "use strict";
-    var controller, createView, onadded, onchange, onchangeeditmode, onchangemodel, onchangeselections, onclick, ondragend, ondragmove, ondragstart, onremoved, onresize, view_listener;
+    var controller, createView, onadded, onchange, onchangeeditmode, onchangemodel, onchangeselections, onclick, ondragend, ondragmove, ondragstart, onremoved, onresize, view_listener, _editmodechange;
     createView = function(attributes) {
       var background, offset, stage, view;
       stage = this.getView().getStage();
@@ -26,7 +26,21 @@
       view.__background__ = background;
       return view;
     };
-    onadded = function(container, component, index, e) {};
+    _editmodechange = function(after, before, view, model, controller) {
+      switch (after) {
+        case 'MOVE':
+          return view.__background__.moveToTop();
+        case 'SELECT':
+          return view.__background__.moveToBottom();
+      }
+    };
+    onadded = function(container, component, index, e) {
+      var controller, model, view;
+      controller = this;
+      model = e.listener;
+      view = controller.getAttachedViews(model)[0];
+      return _editmodechange(controller.getEditMode(), null, view, model, controller);
+    };
     onremoved = function(container, component, e) {};
     onchangemodel = function(after, before, e) {
       var model;
@@ -199,12 +213,7 @@
       controller = this;
       model = e.listener;
       view = controller.getAttachedViews(model)[0];
-      switch (after) {
-        case 'MOVE':
-          return view.__background__.moveToTop();
-        case 'SELECT':
-          return view.__background__.moveToBottom();
-      }
+      return _editmodechange(after, before, view, model, controller);
     };
     controller = {
       '(root)': {

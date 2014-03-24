@@ -45,10 +45,20 @@ define [
 
         view
 
+    _editmodechange = (after, before, view, model, controller) ->
+        switch after
+            when 'MOVE'
+                view.__background__.moveToTop()
+            when 'SELECT'
+                view.__background__.moveToBottom()
+            else
+
     onadded = (container, component, index, e) ->
-        # controller = this
-        # model = e.listener
-        # view = controller.getAttachedViews(model)[0]
+        controller = this
+        model = e.listener
+        view = controller.getAttachedViews(model)[0]
+
+        _editmodechange(controller.getEditMode(), null, view, model, controller)
 
     onremoved = (container, component, e) ->
 
@@ -206,12 +216,7 @@ define [
         model = e.listener
         view = controller.getAttachedViews(model)[0]
 
-        switch after
-            when 'MOVE'
-                view.__background__.moveToTop()
-            when 'SELECT'
-                view.__background__.moveToBottom()
-            else
+        _editmodechange(after, before, view, model, controller)
 
     controller =
         '(root)' :
