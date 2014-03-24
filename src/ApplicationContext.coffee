@@ -175,6 +175,11 @@ define [
         execute: (command) ->
             @commandManager.execute command
 
+        setSize: (width, height) ->
+            @view.setSize
+                width: width
+                height: height
+
         onadd: (container, component, index, e) ->
             vcontainer = if container is @application then @view else this.findViewByComponent container
             vcomponent = this.createView(component);

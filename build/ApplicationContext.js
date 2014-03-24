@@ -139,6 +139,13 @@
         return this.commandManager.execute(command);
       };
 
+      ApplicationContext.prototype.setSize = function(width, height) {
+        return this.view.setSize({
+          width: width,
+          height: height
+        });
+      };
+
       ApplicationContext.prototype.onadd = function(container, component, index, e) {
         var vcomponent, vcontainer;
         vcontainer = container === this.application ? this.view : this.findViewByComponent(container);
