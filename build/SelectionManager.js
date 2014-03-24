@@ -65,7 +65,17 @@
         if (!(target instanceof Array)) {
           target = !target ? [] : [target];
         }
-        this.selections = target;
+        this.selections = (function() {
+          var _i, _len, _results;
+          _results = [];
+          for (_i = 0, _len = target.length; _i < _len; _i++) {
+            item = target[_i];
+            if (item.getAttr('id')) {
+              _results.push(item);
+            }
+          }
+          return _results;
+        })();
         added = (function() {
           var _i, _len, _ref, _results;
           _ref = this.selections;
@@ -89,7 +99,7 @@
           }
           return _results;
         }).call(this);
-        if (this.onselectionchange) {
+        if (this.onselectionchange && (added.length > 0 || removed.length > 0)) {
           return this.onselectionchange.call(this.context, {
             added: added,
             removed: removed,

@@ -16,6 +16,7 @@ define [
             x: attributes.x
             y: attributes.y
             draggable: true
+            id: attributes.id
 
         imageObj = new Image()
         imageObj.onload = ->

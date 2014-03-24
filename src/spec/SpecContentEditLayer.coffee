@@ -56,7 +56,7 @@ define [
 
     onchangeselections = (after, before, added, removed) ->
         controller = this
-        console.log 'selection-changed', after[0], controller.getAttachedModel(after[0])
+        console.log 'selection-changed', after[0], controller.getAttachedModel(after[0]) if after.length > 0
 
     onchange = (component, before, after) ->
 

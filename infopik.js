@@ -1050,7 +1050,17 @@
                 if (!(target instanceof Array)) {
                     target = !target ? [] : [target];
                 }
-                this.selections = target;
+                this.selections = function () {
+                    var _i, _len, _results;
+                    _results = [];
+                    for (_i = 0, _len = target.length; _i < _len; _i++) {
+                        item = target[_i];
+                        if (item.getAttr('id')) {
+                            _results.push(item);
+                        }
+                    }
+                    return _results;
+                }();
                 added = function () {
                     var _i, _len, _ref, _results;
                     _ref = this.selections;
@@ -1074,7 +1084,7 @@
                     }
                     return _results;
                 }.call(this);
-                if (this.onselectionchange) {
+                if (this.onselectionchange && (added.length > 0 || removed.length > 0)) {
                     return this.onselectionchange.call(this.context, {
                         added: added,
                         removed: removed,
@@ -1251,7 +1261,9 @@
         onchangeselections = function (after, before, added, removed) {
             var controller;
             controller = this;
-            return console.log('selection-changed', after[0], controller.getAttachedModel(after[0]));
+            if (after.length > 0) {
+                return console.log('selection-changed', after[0], controller.getAttachedModel(after[0]));
+            }
         };
         onchange = function (component, before, after) {
         };
@@ -2275,7 +2287,8 @@
             view = new kin.Image({
                 x: attributes.x,
                 y: attributes.y,
-                draggable: true
+                draggable: true,
+                id: attributes.id
             });
             imageObj = new Image();
             imageObj.onload = function () {

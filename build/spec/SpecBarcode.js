@@ -7,7 +7,8 @@
       view = new kin.Image({
         x: attributes.x,
         y: attributes.y,
-        draggable: true
+        draggable: true,
+        id: attributes.id
       });
       imageObj = new Image();
       imageObj.onload = function() {

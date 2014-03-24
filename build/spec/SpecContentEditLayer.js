@@ -40,7 +40,9 @@
     onchangeselections = function(after, before, added, removed) {
       var controller;
       controller = this;
-      return console.log('selection-changed', after[0], controller.getAttachedModel(after[0]));
+      if (after.length > 0) {
+        return console.log('selection-changed', after[0], controller.getAttachedModel(after[0]));
+      }
     };
     onchange = function(component, before, after) {};
     ondragstart = function(e) {

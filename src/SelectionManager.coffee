@@ -66,12 +66,12 @@ define [
             if not (target instanceof Array)
                 target = if not target then [] else [target]
             
-            @selections = target
-            
+            @selections = (item for item in target when item.getAttr('id'))
+
             added = (item for item in @selections when old_sels.indexOf(item) is -1)
             removed = (item for item in old_sels when @selections.indexOf(item) is -1)
 
-            if @onselectionchange
+            if @onselectionchange && (added.length > 0 || removed.length > 0)
                 @onselectionchange.call @context,
                     added : added
                     removed : removed
