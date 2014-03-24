@@ -446,10 +446,9 @@
             return _results;
         };
         EventPump = function () {
-            EventPump.prototype.listeners = [];
-            EventPump.prototype.deliverer = null;
             function EventPump(deliverer) {
                 this.setDeliverer(deliverer);
+                this.listeners = [];
             }
             EventPump.prototype.setDeliverer = function (deliverer) {
                 return this.deliverer = deliverer;

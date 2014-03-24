@@ -27,17 +27,13 @@ define [
             control.call this.context, eventPump.deliverer, item.listener, item.clonedHandlers, e, args
 
     class EventPump
-        # @property {Array<Object>} the listeners
-        listeners: []
-        # @property {Object} the deliverer
-        deliverer: null
-
         # Construct a new event pump.
         #
         # @param [Object] deliverer target object to listen events that the object fires or delegates
         #
         constructor: (deliverer)->
             @setDeliverer(deliverer)
+            @listeners = []
 
         setDeliverer: (deliverer) ->
             @deliverer = deliverer

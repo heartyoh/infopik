@@ -49,8 +49,8 @@ require(['require', 'chai', 'mocha'], function(require, chai){
     // 'selection_manager_spec.js',
     // 'spec_group_spec.js',
     'spec_painter_spec.js',
-    'spec_ruler_layer_spec.js',
-    'application_size_spec.js',
+    // 'spec_ruler_layer_spec.js',
+    // 'application_size_spec.js',
     // 'spec_presenter_spec.js',
     // 'spec_rect_spec.js',
   ].map(function(test) {
