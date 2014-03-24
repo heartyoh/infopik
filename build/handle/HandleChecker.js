@@ -1,9 +1,14 @@
 (function() {
-  define(['KineticJS'], function(kin) {
+  define(['dou', 'KineticJS'], function(dou, kin) {
     "use strict";
     var createHandle, createView;
     createView = function(attributes) {
-      return new kin.Rect(attributes);
+      var fill, fills;
+      fills = ['red', 'black', 'yellow', 'cyan'];
+      fill = Math.floor(Math.random() * 10) % fills.length;
+      return new kin.Rect(dou.util.shallow_merge(attributes, {
+        fill: fills[fill]
+      }));
     };
     createHandle = function(attributes) {
       return new Kin.Rect(attributes);

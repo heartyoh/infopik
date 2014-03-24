@@ -5,13 +5,19 @@
 # ==========================================
 
 define [
+    'dou'
     'KineticJS'
-], (kin) ->
+], (
+    dou
+    kin
+) ->
     
     "use strict"
 
     createView = (attributes) ->
-        new kin.Rect(attributes)
+        fills = ['red', 'black', 'yellow', 'cyan']
+        fill = Math.floor(Math.random() * 10) % (fills.length)
+        new kin.Rect(dou.util.shallow_merge(attributes, {fill: fills[fill]}))
 
     createHandle = (attributes) ->
         new Kin.Rect(attributes)

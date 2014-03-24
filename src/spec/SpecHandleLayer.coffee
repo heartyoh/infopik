@@ -46,11 +46,13 @@ define [
             view.draw()
 
     onchangeselection = (after, before, added, removed, e) ->
+
         controller = this
         model = e.listener
         view = controller.getAttachedViews(model)[0]
 
         for node in removed
+
             id = node.getAttr('id')
             handle = view.handles[id]
             handle_comp = controller.getAttachedModel(handle)
@@ -59,6 +61,7 @@ define [
             delete view.handles[id]
 
         for node in added
+
             id = node.getAttr('id')
             pos = node.getAbsolutePosition()
             handle_comp = this.createComponent
