@@ -28,13 +28,13 @@
     onadded = function(container, component, index, e) {};
     onremoved = function(container, component, e) {};
     onchangemodel = function(after, before, e) {
-      var view;
-      view = e.listener;
+      var model;
+      model = e.listener;
       if (before) {
-        view.remove(before);
+        model.remove(before);
       }
       if (after) {
-        return view.add(after);
+        return model.add(after);
       }
     };
     onchangeselections = function(after, before, added, removed) {

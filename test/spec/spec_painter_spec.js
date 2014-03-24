@@ -27,7 +27,7 @@ define([
       app = infopik.app({
         application_spec: SpecPainter,
         container: 'painter_spec',
-        width: 1000,
+        width: 1200,
         height: 400
       });
 

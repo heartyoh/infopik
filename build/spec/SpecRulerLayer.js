@@ -1,7 +1,7 @@
 (function() {
   define(['dou', 'KineticJS'], function(dou, kin) {
     "use strict";
-    var createView, onchangeoffset, onresize, view_listener;
+    var controller, createView, onadded, onchangeoffset, onresize, view_listener;
     createView = function(attributes) {
       return new kin.Layer(attributes);
     };
@@ -35,6 +35,34 @@
       });
       return view.batchDraw();
     };
+    onadded = function(container, component, index, e) {
+      var children, controller, model, stage, view;
+      controller = this;
+      model = e.listener;
+      view = controller.getAttachedViews(model)[0];
+      stage = view.getStage();
+      if (!view.__hori__) {
+        children = view.getChildren().toArray();
+        view.__hori__ = children[0];
+        view.__vert__ = children[1];
+      }
+      view.__hori__.setSize({
+        width: stage.width(),
+        height: 20
+      });
+      view.__vert__.setSize({
+        width: 20,
+        height: stage.height()
+      });
+      return view.batchDraw();
+    };
+    controller = {
+      '(root)': {
+        '(self)': {
+          added: onadded
+        }
+      }
+    };
     view_listener = {
       '?offset_monitor_target': {
         'change-offset': onchangeoffset
@@ -52,6 +80,7 @@
       defaults: {
         draggable: false
       },
+      controller: controller,
       view_listener: view_listener,
       view_factory_fn: createView,
       components: [

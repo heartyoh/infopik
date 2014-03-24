@@ -1249,13 +1249,13 @@
         onremoved = function (container, component, e) {
         };
         onchangemodel = function (after, before, e) {
-            var view;
-            view = e.listener;
+            var model;
+            model = e.listener;
             if (before) {
-                view.remove(before);
+                model.remove(before);
             }
             if (after) {
-                return view.add(after);
+                return model.add(after);
             }
         };
         onchangeselections = function (after, before, added, removed) {
@@ -1653,7 +1653,7 @@
         'KineticJS'
     ], function (dou, kin) {
         'use strict';
-        var createView, onchangeoffset, onresize, view_listener;
+        var controller, createView, onadded, onchangeoffset, onresize, view_listener;
         createView = function (attributes) {
             return new kin.Layer(attributes);
         };
@@ -1687,6 +1687,28 @@
             });
             return view.batchDraw();
         };
+        onadded = function (container, component, index, e) {
+            var children, controller, model, stage, view;
+            controller = this;
+            model = e.listener;
+            view = controller.getAttachedViews(model)[0];
+            stage = view.getStage();
+            if (!view.__hori__) {
+                children = view.getChildren().toArray();
+                view.__hori__ = children[0];
+                view.__vert__ = children[1];
+            }
+            view.__hori__.setSize({
+                width: stage.width(),
+                height: 20
+            });
+            view.__vert__.setSize({
+                width: 20,
+                height: stage.height()
+            });
+            return view.batchDraw();
+        };
+        controller = { '(root)': { '(self)': { added: onadded } } };
         view_listener = {
             '?offset_monitor_target': { 'change-offset': onchangeoffset },
             '(root)': { 'resize': onresize }
@@ -1698,6 +1720,7 @@
             container_type: 'layer',
             description: 'Ruler Layer Specification',
             defaults: { draggable: false },
+            controller: controller,
             view_listener: view_listener,
             view_factory_fn: createView,
             components: [

@@ -49,10 +49,10 @@ define [
     onremoved = (container, component, e) ->
 
     onchangemodel = (after, before, e) ->
-        view = e.listener
+        model = e.listener
         
-        view.remove before if before
-        view.add after if after
+        model.remove before if before
+        model.add after if after
 
     onchangeselections = (after, before, added, removed) ->
         controller = this

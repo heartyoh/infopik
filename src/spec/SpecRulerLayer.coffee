@@ -43,6 +43,34 @@ define [
 
         view.batchDraw()
 
+    onadded = (container, component, index, e) ->
+        controller = this
+        model = e.listener
+        view = controller.getAttachedViews(model)[0]
+
+        stage = view.getStage()
+
+        if not view.__hori__
+            children = view.getChildren().toArray()
+            view.__hori__ = children[0]
+            view.__vert__ = children[1]
+
+        view.__hori__.setSize {width: stage.width(), height: 20}
+        view.__vert__.setSize {width: 20, height: stage.height()}
+        # component.forEach (child) ->
+        #     console.log child
+        #     if child.get('direction') is 'horizontal'
+        #         child.set('width', stage.width()) 
+        #     else if child.get('direction') is 'vertical'
+        #         child.set('height', stage.height()) 
+
+        view.batchDraw()
+
+    controller =
+        '(root)':
+            '(self)':
+                added: onadded
+
     view_listener = 
         '?offset_monitor_target':
             'change-offset': onchangeoffset
@@ -58,7 +86,7 @@ define [
         defaults:
             draggable: false
 
-        # controller: controller
+        controller: controller
         view_listener: view_listener
         view_factory_fn: createView
         components: [{
