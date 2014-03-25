@@ -202,7 +202,7 @@
           return;
         }
         return this.execute(new CommandMove({
-          to: 'UP',
+          to: to,
           view: view,
           model: this.getAttachedModel(view)
         }));

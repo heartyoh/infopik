@@ -226,7 +226,7 @@ define [
             return if not view
 
             @execute new CommandMove
-                to: 'UP'
+                to: to
                 view: view
                 model: this.getAttachedModel(view)
 
