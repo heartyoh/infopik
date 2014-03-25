@@ -77,6 +77,8 @@ define [
         console.log 'selection-changed', after[0], controller.getAttachedModel(after[0]) if after.length > 0
 
     onchange = (component, before, after) ->
+        view = component.getViews()[0]
+        view.setAttrs after
 
     stuck_background_position = (view) ->
         view_offset = view.offset()
@@ -166,12 +168,10 @@ define [
 
         if dragmodel
             cmd = new CommandPropertyChange
-                
                 changes: [
                     component: dragmodel 
                     
                     before:
-                        
                         x: dragmodel.get('x')
                         y: dragmodel.get('y')
                     after:
@@ -251,7 +251,6 @@ define [
             dragmove : ondragmove
             dragend : ondragend
             click : onclick
-            # 'change-offset' : onchangeoffset
         '(root)' :
             resize : onresize
 

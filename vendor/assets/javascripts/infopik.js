@@ -1394,6 +1394,9 @@
             }
         };
         onchange = function (component, before, after) {
+            var view;
+            view = component.getViews()[0];
+            return view.setAttrs(after);
         };
         stuck_background_position = function (view) {
             var view_offset, view_origin_offset;
