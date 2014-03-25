@@ -79,6 +79,7 @@ define [
     onchange = (component, before, after) ->
         view = component.getViews()[0]
         view.setAttrs after
+        view.getLayer().batchDraw()
 
     stuck_background_position = (view) ->
         view_offset = view.offset()
