@@ -43,9 +43,6 @@ define [
     createView = (attributes) ->
         new kin.Stage(attributes)
 
-    controller =
-        # 'painter-app':
-
     {
         type: 'painter-app'
         name: 'painter-app'
@@ -55,7 +52,6 @@ define [
         defaults: {
             # draggable: true
         }
-        controller: controller
         view_factory_fn: createView
         dependencies: {
             'infographic' : SpecInfographic

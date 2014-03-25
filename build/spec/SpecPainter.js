@@ -1,18 +1,17 @@
 (function() {
   define(['KineticJS', './SpecInfographic', './SpecContentEditLayer', './SpecGuideLayer', './SpecRulerLayer', './SpecHandleLayer', './SpecGroup', './SpecRect', './SpecRing', './SpecRuler', './SpecImage', './SpecText', './SpecStar', './SpecBarcode', '../handle/HandleChecker'], function(kin, SpecInfographic, SpecContentEditLayer, SpecGuideLayer, SpecRulerLayer, SpecHandleLayer, SpecGroup, SpecRect, SpecRing, SpecRuler, SpecImage, SpecText, SpecStar, SpecBarcode, HandleChecker) {
     "use strict";
-    var controller, createView;
+    var createView;
     createView = function(attributes) {
       return new kin.Stage(attributes);
     };
-    return controller = {
+    return {
       type: 'painter-app',
       name: 'painter-app',
       containable: true,
       container_type: 'application',
       description: 'Painter Application Specification',
       defaults: {},
-      controller: controller,
       view_factory_fn: createView,
       dependencies: {
         'infographic': SpecInfographic,

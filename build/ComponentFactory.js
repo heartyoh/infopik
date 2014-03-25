@@ -38,8 +38,8 @@
             return view.add(this.createView(child, controller));
           }, this);
         }
-        if (spec.view_listener) {
-          _ref = spec.view_listener;
+        if (spec.view_event_map) {
+          _ref = spec.view_event_map;
           for (selector in _ref) {
             if (!__hasProp.call(_ref, selector)) continue;
             handlers = _ref[selector];
@@ -86,8 +86,8 @@
         if (!component.get('id')) {
           component.set('id', this.uniqueId());
         }
-        if (spec.controller) {
-          this.eventEngine.add(component, spec.controller, controller);
+        if (spec.model_event_map) {
+          this.eventEngine.add(component, spec.model_event_map, controller);
         }
         return component;
       };

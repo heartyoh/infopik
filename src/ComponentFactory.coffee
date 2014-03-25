@@ -50,9 +50,9 @@ define [
                     view.add this.createView child, controller
                 , this
 
-            if spec.view_listener
+            if spec.view_event_map
 
-                for own selector, handlers of spec.view_listener
+                for own selector, handlers of spec.view_event_map
 
                     if selector.indexOf('?') == 0
                         variable = selector.substr(1)
@@ -85,7 +85,7 @@ define [
 
             component.set('id', @uniqueId()) if not component.get('id')
 
-            @eventEngine.add(component, spec.controller, controller) if spec.controller
+            @eventEngine.add(component, spec.model_event_map, controller) if spec.model_event_map
 
             component
 

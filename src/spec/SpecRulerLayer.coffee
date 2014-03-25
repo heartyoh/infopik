@@ -66,12 +66,12 @@ define [
 
         view.batchDraw()
 
-    controller =
+    model_event_map =
         '(root)':
             '(self)':
                 added: onadded
 
-    view_listener = 
+    view_event_map = 
         '?offset_monitor_target':
             'change-offset': onchangeoffset
         '(root)':
@@ -86,8 +86,8 @@ define [
         defaults:
             draggable: false
 
-        controller: controller
-        view_listener: view_listener
+        model_event_map: model_event_map
+        view_event_map: view_event_map
         view_factory_fn: createView
         components: [{
             type: 'ruler'

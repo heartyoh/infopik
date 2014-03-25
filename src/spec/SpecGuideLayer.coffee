@@ -153,7 +153,7 @@ define [
         view = controller.getView() # root view
         this.getEventHandler().off(view, guide_handler)
 
-    controller =
+    model_event_map =
         '(root)' :
             '(all)' :
                 'change' : onchange
@@ -162,7 +162,7 @@ define [
                 'added' : onadded
                 'removed' : onremoved
 
-    view_listener = 
+    view_event_map = 
         '(root)' : 
             dragstart : ondragstart
             dragmove : ondragmove
@@ -177,8 +177,8 @@ define [
         defaults: {
             draggable: false
         }
-        controller: controller
-        view_listener: view_listener
+        model_event_map: model_event_map
+        view_event_map: view_event_map
         view_factory_fn: createView
         toolbox_image: 'images/toolbox_guide_layer.png'
     }

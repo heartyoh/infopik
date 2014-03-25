@@ -40,8 +40,10 @@ define [
             opacity: 0.1
             # id: undefined
 
-        view.add background
         view.__background__ = background
+        view.__origin_offset__ = offset
+
+        view.add background
 
         view
 
@@ -76,6 +78,13 @@ define [
 
     onchange = (component, before, after) ->
 
+    stuck_background_position = (view) ->
+        view_offset = view.offset()
+        view_origin_offset = view.__origin_offset__
+        view.__background__.position
+            x: view_offset.x - view_origin_offset.x
+            y: view_offset.y - view_origin_offset.y
+
     ondragstart = (e) ->
         controller = this.context
         view = this.listener
@@ -87,14 +96,11 @@ define [
             
         return if e.targetNode and e.targetNode isnt background
 
-        view_offset = view.offset()
-        background.setAttrs({x: view_offset.x + 20, y: view_offset.y + 20})
+        this.origin_offset = view.offset()
 
         this.start_point =
-            x: e.clientX
-            y: e.clientY
-
-        this.origin_offset = view.offset()
+            x: e.offsetX # e.clientX
+            y: e.offsetY # e.clientY
 
         offset = 
             x: this.start_point.x + this.origin_offset.x
@@ -112,6 +118,8 @@ define [
             when 'MOVE'
             else
 
+        stuck_background_position view
+
         view.draw();
 
         e.cancelBubble = true
@@ -124,25 +132,27 @@ define [
 
         return if e.targetNode and e.targetNode isnt background
 
+        current_point = 
+            x: e.offsetX # e.clientX
+            y: e.offsetY # e.clientY
+
         switch(controller.getEditMode())
             when 'SELECT'
-                background.setAttrs({x:this.origin_offset.x + 20, y:this.origin_offset.y + 20})
-                this.selectbox.setAttrs({width: e.clientX - this.start_point.x, height: e.clientY - this.start_point.y})
+                this.selectbox.setAttrs({width: current_point.x - this.start_point.x, height: current_point.y - this.start_point.y})
 
                 # TODO select components in the area of selectionbox
             when 'MOVE'
-                x = this.origin_offset.x - (e.clientX - this.start_point.x)
-                y = this.origin_offset.y - (e.clientY - this.start_point.y)
+                x = this.origin_offset.x - (current_point.x - this.start_point.x)
+                y = this.origin_offset.y - (current_point.y - this.start_point.y)
 
                 view.offset
                     x: x
                     y: y
-                background.setAttrs
-                    x: x + 20
-                    y: y + 20
 
                 view.fire('change-offset', {x: x, y: y}, false);
             else
+
+        stuck_background_position view
 
         view.batchDraw();
 
@@ -178,24 +188,26 @@ define [
 
         return if e.targetNode and e.targetNode isnt background
 
+        current_point = 
+            x: e.offsetX # e.clientX
+            y: e.offsetY # e.clientY
+
         switch(controller.getEditMode())
             when 'SELECT'
-                background.setAttrs({x:this.origin_offset.x + 20, y:this.origin_offset.y + 20})
                 this.selectbox.remove()
                 delete this.selectbox
             when 'MOVE'
-                x = Math.max(this.origin_offset.x - (e.clientX - this.start_point.x), -20)
-                y = Math.max(this.origin_offset.y - (e.clientY - this.start_point.y), -20)
+                x = Math.max(this.origin_offset.x - (current_point.x - this.start_point.x), -20)
+                y = Math.max(this.origin_offset.y - (current_point.y - this.start_point.y), -20)
 
                 view.offset
                     x: x
                     y: y
-                background.setAttrs
-                    x: x + 20
-                    y: y + 20
 
                 view.fire('change-offset', {x: x, y: y}, false);
             else
+
+        stuck_background_position view
 
         view.draw();
 
@@ -220,7 +232,7 @@ define [
 
         _editmodechange(after, before, view, model, controller)
 
-    controller =
+    model_event_map =
         '(root)' :
             '(root)' :
                 'change-model' : onchangemodel
@@ -233,12 +245,13 @@ define [
             '(all)' :
                 'change' : onchange
 
-    view_listener =
+    view_event_map =
         '(self)' : 
             dragstart : ondragstart
             dragmove : ondragmove
             dragend : ondragend
             click : onclick
+            # 'change-offset' : onchangeoffset
         '(root)' :
             resize : onresize
 
@@ -252,8 +265,8 @@ define [
             listening: true
             draggable: false
         }
-        controller: controller
-        view_listener: view_listener
+        model_event_map: model_event_map
+        view_event_map: view_event_map
         view_factory_fn: createView
         toolbox_image: 'images/toolbox_content_edit_layer.png'
     }

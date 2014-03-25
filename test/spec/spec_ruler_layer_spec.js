@@ -36,101 +36,101 @@ define([
       app.setEditMode('MOVE');
     });
 
-    it('should move offset by dragging content-edit-layer background', function (done) {
-      var contentEditLayer = app.findComponent('content-edit-layer')[0];
-      var contentEditLayerView = app.getAttachedViews(contentEditLayer)[0];
-      var background = contentEditLayerView.__background__;
+    // it('should move offset by dragging content-edit-layer background', function (done) {
+    //   var contentEditLayer = app.findComponent('content-edit-layer')[0];
+    //   var contentEditLayerView = app.getAttachedViews(contentEditLayer)[0];
+    //   var background = contentEditLayerView.__background__;
 
-      var stage = background.getStage();
-      var top = stage.content.getBoundingClientRect().top;
+    //   var stage = background.getStage();
+    //   var top = stage.content.getBoundingClientRect().top;
 
-      var originOffset = contentEditLayerView.offset();
+    //   var originOffset = contentEditLayerView.offset();
 
-      stage._mousedown({
-          clientX: 200,
-          clientY: 200 + top
-      });
+    //   stage._mousedown({
+    //       clientX: 200,
+    //       clientY: 200 + top
+    //   });
 
-      setTimeout(function() {
-        stage._mousemove({
-            clientX: 200,
-            clientY: 200 + top
-        });
+    //   setTimeout(function() {
+    //     stage._mousemove({
+    //         clientX: 200,
+    //         clientY: 200 + top
+    //     });
 
-        stage._mousemove({
-            clientX: 100,
-            clientY: 100 + top
-        });
+    //     stage._mousemove({
+    //         clientX: 100,
+    //         clientY: 100 + top
+    //     });
 
-        assert(background.isDragging(), 'background should be dragging');
+    //     assert(background.isDragging(), 'background should be dragging');
 
-        Kinetic.DD._endDragBefore();
-        stage._mouseup({
-            clientX: 100,
-            clientY: 100 + top
-        });
-        Kinetic.DD._endDragAfter({
-          dragEndNode:background,
-            clientX: 100,
-            clientY: 100 + top
-        });
+    //     Kinetic.DD._endDragBefore();
+    //     stage._mouseup({
+    //         clientX: 100,
+    //         clientY: 100 + top
+    //     });
+    //     Kinetic.DD._endDragAfter({
+    //       dragEndNode:background,
+    //         clientX: 100,
+    //         clientY: 100 + top
+    //     });
 
-        contentEditLayerView.getOffset().x.should.equal(originOffset.x + 100);
-        contentEditLayerView.getOffset().y.should.equal(originOffset.y + 100);
+    //     contentEditLayerView.getOffset().x.should.equal(originOffset.x + 100);
+    //     contentEditLayerView.getOffset().y.should.equal(originOffset.y + 100);
 
-        contentEditLayerView.draw();
+    //     contentEditLayerView.draw();
 
-        done();
-      }, 20);
-    });
+    //     done();
+    //   }, 20);
+    // });
 
-    it('should move back to origin when new offset position is below zero', function (done) {
-      var contentEditLayer = app.findComponent('content-edit-layer')[0];
-      var contentEditLayerView = app.getAttachedViews(contentEditLayer)[0];
-      var background = contentEditLayerView.__background__;
+    // it('should move back to origin when new offset position is below zero', function (done) {
+    //   var contentEditLayer = app.findComponent('content-edit-layer')[0];
+    //   var contentEditLayerView = app.getAttachedViews(contentEditLayer)[0];
+    //   var background = contentEditLayerView.__background__;
 
-      var stage = background.getStage();
-      var top = stage.content.getBoundingClientRect().top;
+    //   var stage = background.getStage();
+    //   var top = stage.content.getBoundingClientRect().top;
 
-      var originOffset = contentEditLayerView.offset();
+    //   var originOffset = contentEditLayerView.offset();
 
-      stage._mousedown({
-          clientX: 100,
-          clientY: 100 + top
-      });
+    //   stage._mousedown({
+    //       clientX: 100,
+    //       clientY: 100 + top
+    //   });
 
-      setTimeout(function() {
-        stage._mousemove({
-            clientX: 100,
-            clientY: 100 + top
-        });
+    //   setTimeout(function() {
+    //     stage._mousemove({
+    //         clientX: 100,
+    //         clientY: 100 + top
+    //     });
 
-        stage._mousemove({
-            clientX: 200,
-            clientY: 200 + top
-        });
+    //     stage._mousemove({
+    //         clientX: 200,
+    //         clientY: 200 + top
+    //     });
 
-        assert(background.isDragging(), 'background should be dragging');
+    //     assert(background.isDragging(), 'background should be dragging');
 
-        Kinetic.DD._endDragBefore();
-        stage._mouseup({
-            clientX: 200,
-            clientY: 200 + top
-        });
-        Kinetic.DD._endDragAfter({
-          dragEndNode:background,
-            clientX: 200,
-            clientY: 200 + top
-        });
+    //     Kinetic.DD._endDragBefore();
+    //     stage._mouseup({
+    //         clientX: 200,
+    //         clientY: 200 + top
+    //     });
+    //     Kinetic.DD._endDragAfter({
+    //       dragEndNode:background,
+    //         clientX: 200,
+    //         clientY: 200 + top
+    //     });
 
-        contentEditLayerView.getOffset().x.should.equal(originOffset.x);
-        contentEditLayerView.getOffset().y.should.equal(originOffset.y);
+    //     contentEditLayerView.getOffset().x.should.equal(originOffset.x);
+    //     contentEditLayerView.getOffset().y.should.equal(originOffset.y);
 
-        contentEditLayerView.draw();
+    //     contentEditLayerView.draw();
 
-        done();
-      }, 20);
-    });
+    //     done();
+    //   }, 20);
+    // });
 
   });
 

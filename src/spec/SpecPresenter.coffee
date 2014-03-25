@@ -27,9 +27,6 @@ define [
     createView = (attributes) ->
         return new kin.Stage(attributes)
 
-    controller =
-        # 'presenter-app':
-
     {
         type: 'presenter-app'
         name: 'presenter-app'
@@ -38,7 +35,6 @@ define [
         description: 'Presenter Application Specification'
         defaults: {
         }
-        controller: controller
         view_factory_fn: createView
         dependencies: {
           'infographic' : SpecInfographic

@@ -41,19 +41,8 @@ define [
             model = @params.model
             view = @params.view
 
-            switch to
-                when 'UP'
-                    view.moveDown()
-                    model.moveDown()
-                when 'DOWN'
-                    view.moveUp()
-                    model.moveUp()
-                when 'TOP'
-                    view.setZIndex(@i_view)
-                    model.moveAt(@i_model)
-                when 'BOTTOM'
-                    view.setZIndex(@i_view)
-                    model.moveAt(@i_model)
+            view.setZIndex(@i_view)
+            model.moveAt(@i_model)
 
             view.getLayer().draw()
 

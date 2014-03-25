@@ -1,7 +1,7 @@
 (function() {
   define(['KineticJS', '../EventTracker', '../ComponentSelector', '../command/CommandPropertyChange'], function(kin, EventTracker, ComponentSelector, CommandPropertyChange) {
     "use strict";
-    var controller, createView, onadded, onchange, onchangemodel, onremoved, view_listener;
+    var createView, model_event_map, onadded, onchange, onchangemodel, onremoved, view_event_map;
     createView = function(attributes) {
       return new kin.Layer(attributes);
     };
@@ -29,7 +29,7 @@
       view.setAttrs(after);
       return this.drawView();
     };
-    controller = {
+    model_event_map = {
       '(root)': {
         '(root)': {
           'change-model': onchangemodel
@@ -44,7 +44,7 @@
         }
       }
     };
-    view_listener = {
+    view_event_map = {
       click: function(e) {
         var node;
         node = e.targetNode;
@@ -58,8 +58,8 @@
       container_type: 'layer',
       description: 'Content View Layer Specification',
       defaults: {},
-      controller: controller,
-      view_listener: view_listener,
+      model_event_map: model_event_map,
+      view_event_map: view_event_map,
       view_factory_fn: createView,
       toolbox_image: 'images/toolbox_content_view_layer.png'
     };

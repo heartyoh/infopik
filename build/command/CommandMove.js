@@ -44,23 +44,8 @@
         to = this.params.to;
         model = this.params.model;
         view = this.params.view;
-        switch (to) {
-          case 'UP':
-            view.moveDown();
-            model.moveDown();
-            break;
-          case 'DOWN':
-            view.moveUp();
-            model.moveUp();
-            break;
-          case 'TOP':
-            view.setZIndex(this.i_view);
-            model.moveAt(this.i_model);
-            break;
-          case 'BOTTOM':
-            view.setZIndex(this.i_view);
-            model.moveAt(this.i_model);
-        }
+        view.setZIndex(this.i_view);
+        model.moveAt(this.i_model);
         return view.getLayer().draw();
       };
 

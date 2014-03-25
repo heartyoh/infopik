@@ -1,7 +1,7 @@
 (function() {
   define(['KineticJS'], function(kin) {
     "use strict";
-    var controller, createView, onadded, onchange, ondragend, ondragmove, ondragstart, onremoved, view_listener;
+    var createView, model_event_map, onadded, onchange, ondragend, ondragmove, ondragstart, onremoved, view_event_map;
     createView = function(attributes) {
       return new kin.Layer(attributes);
     };
@@ -142,7 +142,7 @@
       view = controller.getView();
       return this.getEventHandler().off(view, guide_handler);
     };
-    controller = {
+    model_event_map = {
       '(root)': {
         '(all)': {
           'change': onchange
@@ -155,7 +155,7 @@
         }
       }
     };
-    view_listener = {
+    view_event_map = {
       '(root)': {
         dragstart: ondragstart,
         dragmove: ondragmove,
@@ -171,8 +171,8 @@
       defaults: {
         draggable: false
       },
-      controller: controller,
-      view_listener: view_listener,
+      model_event_map: model_event_map,
+      view_event_map: view_event_map,
       view_factory_fn: createView,
       toolbox_image: 'images/toolbox_guide_layer.png'
     };

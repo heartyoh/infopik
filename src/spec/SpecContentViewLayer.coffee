@@ -40,7 +40,7 @@ define [
 
         this.drawView()
 
-    controller =
+    model_event_map =
         '(root)' :
             '(root)' :
                 'change-model' : onchangemodel
@@ -52,7 +52,7 @@ define [
                 # 'removed' : onremoved
                 'change' : onchange
 
-    view_listener =
+    view_event_map =
         click : (e) ->
             node = e.targetNode
             this.selectionManager.select(node)
@@ -65,8 +65,8 @@ define [
         description: 'Content View Layer Specification'
         defaults: {
         }
-        controller: controller
-        view_listener: view_listener
+        model_event_map: model_event_map
+        view_event_map: view_event_map
         view_factory_fn: createView
         toolbox_image: 'images/toolbox_content_view_layer.png'
     }

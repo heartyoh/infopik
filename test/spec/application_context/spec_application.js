@@ -16,7 +16,7 @@ define([
     return new kin.Stage(attributes);
   };
 
-  var controller = {
+  var model_event_map = {
     '#application': {
       'change-model' : function(after, before, e) {
       }
@@ -37,7 +37,7 @@ define([
     description: 'Sample Application Specification',
     defaults: {
     },
-    controller: controller,
+    model_event_map: model_event_map,
     view_factory_fn: createView,
     dependencies: {
       'content-view-layer' : SpecContentViewLayer,

@@ -37,19 +37,17 @@ define([
     it('should ...', function () {
 
       app.setModel(infographic);
+      app.setEditMode('MOVE');
 
       infographic.forEach(function(child) {
         var view = app.getAttachedViews(child)[0];
-        console.log(view.getZIndex(), view.getAttr('id'));
       });
 
       var last = app.getView().find('#noid-12');
-      // last.moveToTop();
-      last.setZIndex(100);
+      last.moveToTop();
 
       infographic.forEach(function(child) {
         var view = app.getAttachedViews(child)[0];
-        console.log(view.getZIndex(), view.getAttr('id'));
       });
     });
 

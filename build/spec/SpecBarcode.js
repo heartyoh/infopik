@@ -1,7 +1,7 @@
 (function() {
   define(['bwip', 'KineticJS'], function(bwip, kin) {
     "use strict";
-    var controller, createHandle, createView;
+    var createHandle, createView, model_event_map;
     createView = function(attributes) {
       var imageObj, view;
       view = new kin.Image({
@@ -32,11 +32,11 @@
     createHandle = function(attributes) {
       return new Kin.Image(attributes);
     };
-    controller = {
+    model_event_map = {
       '(self)': {
         '(self)': {
           change: function(component, before, after, changed) {
-            var imageObj, url, view;
+            var controller, imageObj, url, view;
             if (after.x || after.y) {
               return;
             }
@@ -68,7 +68,7 @@
         rotationDeg: 0,
         draggable: true
       },
-      controller: controller,
+      model_event_map: model_event_map,
       view_factory_fn: createView,
       handle_factory_fn: createHandle,
       toolbox_image: 'images/toolbox_barcode.png'

@@ -39,14 +39,6 @@ define([
 
       var timeout = function() {
         if(++count == 11) {
-          var layers = [];
-
-          layers = stage.getChildren().toArray();
-
-          for(var i = 0;i < layers.length;i++) {
-            console.log(layers[i].getSize());
-          }
-
           done();
           return;
         }

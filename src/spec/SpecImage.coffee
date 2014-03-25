@@ -26,7 +26,7 @@ define [
     createHandle = (attributes) ->
         new Kin.Image(attributes)
 
-    controller =
+    model_event_map =
         '(self)' :
             '(self)' :
                 change : (component, before, after) ->
@@ -38,7 +38,7 @@ define [
                     imageObj = view.getImage()
                     imageObj.src = after['url']
 
-    view_listener = 
+    view_event_map = 
         '(self)' : # fot Test only
             click : (e) ->
                 controller = this.context
@@ -63,8 +63,8 @@ define [
             rotationDeg: 0
             draggable: true
         }
-        controller: controller
-        view_listener: view_listener
+        model_event_map: model_event_map
+        view_event_map: view_event_map
         view_factory_fn: createView
         handle_factory_fn: createHandle
         toolbox_image: 'images/toolbox_image.png'

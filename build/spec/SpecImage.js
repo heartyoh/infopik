@@ -1,7 +1,7 @@
 (function() {
   define(['KineticJS'], function(kin) {
     "use strict";
-    var controller, createHandle, createView, view_listener;
+    var createHandle, createView, model_event_map, view_event_map;
     createView = function(attributes) {
       var image, imageObj;
       image = new kin.Image(attributes);
@@ -16,11 +16,11 @@
     createHandle = function(attributes) {
       return new Kin.Image(attributes);
     };
-    controller = {
+    model_event_map = {
       '(self)': {
         '(self)': {
           change: function(component, before, after) {
-            var imageObj, view;
+            var controller, imageObj, view;
             if (!(before['url'] || after['url'])) {
               return;
             }
@@ -32,10 +32,10 @@
         }
       }
     };
-    view_listener = {
+    view_event_map = {
       '(self)': {
         click: function(e) {
-          var model, view;
+          var controller, model, view;
           controller = this.context;
           view = this.listener;
           model = controller.getAttachedModel(view);
@@ -60,8 +60,8 @@
         rotationDeg: 0,
         draggable: true
       },
-      controller: controller,
-      view_listener: view_listener,
+      model_event_map: model_event_map,
+      view_event_map: view_event_map,
       view_factory_fn: createView,
       handle_factory_fn: createHandle,
       toolbox_image: 'images/toolbox_image.png'

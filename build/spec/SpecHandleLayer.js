@@ -1,7 +1,7 @@
 (function() {
   define(['dou', 'KineticJS'], function(dou, kin) {
     "use strict";
-    var controller, createView, onchangeoffset, onchangeselection, ondragend, ondragmove, view_listener;
+    var createView, model_event_map, onchangeoffset, onchangeselection, ondragend, ondragmove, view_event_map;
     createView = function(attributes) {
       var view;
       view = new kin.Layer(attributes);
@@ -65,14 +65,14 @@
       }
       return view.batchDraw();
     };
-    controller = {
+    model_event_map = {
       '(root)': {
         '(root)': {
           'change-selections': onchangeselection
         }
       }
     };
-    view_listener = {
+    view_event_map = {
       '?offset_monitor_target': {
         'change-offset': onchangeoffset,
         dragmove: ondragmove,
@@ -88,8 +88,8 @@
       defaults: {
         draggable: false
       },
-      controller: controller,
-      view_listener: view_listener,
+      model_event_map: model_event_map,
+      view_event_map: view_event_map,
       view_factory_fn: createView,
       toolbox_image: 'images/toolbox_handle_layer.png'
     };

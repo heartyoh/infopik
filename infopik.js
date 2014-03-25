@@ -887,8 +887,8 @@
                         return view.add(this.createView(child, controller));
                     }, this);
                 }
-                if (spec.view_listener) {
-                    _ref = spec.view_listener;
+                if (spec.view_event_map) {
+                    _ref = spec.view_event_map;
                     for (selector in _ref) {
                         if (!__hasProp.call(_ref, selector))
                             continue;
@@ -935,8 +935,8 @@
                 if (!component.get('id')) {
                     component.set('id', this.uniqueId());
                 }
-                if (spec.controller) {
-                    this.eventEngine.add(component, spec.controller, controller);
+                if (spec.model_event_map) {
+                    this.eventEngine.add(component, spec.model_event_map, controller);
                 }
                 return component;
             };
@@ -1330,7 +1330,7 @@
         '../command/CommandPropertyChange'
     ], function (dou, kin, EventTracker, ComponentSelector, CommandPropertyChange) {
         'use strict';
-        var controller, createView, onadded, onchange, onchangeeditmode, onchangemodel, onchangeselections, onclick, ondragend, ondragmove, ondragstart, onremoved, onresize, view_listener, _editmodechange;
+        var createView, model_event_map, onadded, onchange, onchangeeditmode, onchangemodel, onchangeselections, onclick, ondragend, ondragmove, ondragstart, onremoved, onresize, stuck_background_position, view_event_map, _editmodechange;
         createView = function (attributes) {
             var background, offset, stage, view;
             stage = this.getView().getStage();
@@ -1351,8 +1351,9 @@
                 fill: 'cyan',
                 opacity: 0.1
             });
-            view.add(background);
             view.__background__ = background;
+            view.__origin_offset__ = offset;
+            view.add(background);
             return view;
         };
         _editmodechange = function (after, before, view, model, controller) {
@@ -1394,8 +1395,17 @@
         };
         onchange = function (component, before, after) {
         };
+        stuck_background_position = function (view) {
+            var view_offset, view_origin_offset;
+            view_offset = view.offset();
+            view_origin_offset = view.__origin_offset__;
+            return view.__background__.position({
+                x: view_offset.x - view_origin_offset.x,
+                y: view_offset.y - view_origin_offset.y
+            });
+        };
         ondragstart = function (e) {
-            var background, controller, node, offset, view, view_offset;
+            var background, controller, node, offset, view;
             controller = this.context;
             view = this.listener;
             background = view.__background__;
@@ -1404,16 +1414,11 @@
             if (e.targetNode && e.targetNode !== background) {
                 return;
             }
-            view_offset = view.offset();
-            background.setAttrs({
-                x: view_offset.x + 20,
-                y: view_offset.y + 20
-            });
-            this.start_point = {
-                x: e.clientX,
-                y: e.clientY
-            };
             this.origin_offset = view.offset();
+            this.start_point = {
+                x: e.offsetX,
+                y: e.offsetY
+            };
             offset = {
                 x: this.start_point.x + this.origin_offset.x,
                 y: this.start_point.y + this.origin_offset.y
@@ -1434,38 +1439,35 @@
             case 'MOVE':
                 break;
             }
+            stuck_background_position(view);
             view.draw();
             return e.cancelBubble = true;
         };
         ondragmove = function (e) {
-            var background, controller, view, x, y;
+            var background, controller, current_point, view, x, y;
             controller = this.context;
             view = this.listener;
             background = view.__background__;
             if (e.targetNode && e.targetNode !== background) {
                 return;
             }
+            current_point = {
+                x: e.offsetX,
+                y: e.offsetY
+            };
             switch (controller.getEditMode()) {
             case 'SELECT':
-                background.setAttrs({
-                    x: this.origin_offset.x + 20,
-                    y: this.origin_offset.y + 20
-                });
                 this.selectbox.setAttrs({
-                    width: e.clientX - this.start_point.x,
-                    height: e.clientY - this.start_point.y
+                    width: current_point.x - this.start_point.x,
+                    height: current_point.y - this.start_point.y
                 });
                 break;
             case 'MOVE':
-                x = this.origin_offset.x - (e.clientX - this.start_point.x);
-                y = this.origin_offset.y - (e.clientY - this.start_point.y);
+                x = this.origin_offset.x - (current_point.x - this.start_point.x);
+                y = this.origin_offset.y - (current_point.y - this.start_point.y);
                 view.offset({
                     x: x,
                     y: y
-                });
-                background.setAttrs({
-                    x: x + 20,
-                    y: y + 20
                 });
                 view.fire('change-offset', {
                     x: x,
@@ -1473,11 +1475,12 @@
                 }, false);
                 break;
             }
+            stuck_background_position(view);
             view.batchDraw();
             return e.cancelBubble = true;
         };
         ondragend = function (e) {
-            var background, cmd, controller, dragmodel, dragview, view, x, y;
+            var background, cmd, controller, current_point, dragmodel, dragview, view, x, y;
             controller = this.context;
             dragview = e.targetNode;
             dragmodel = controller.getAttachedModel(dragview);
@@ -1502,25 +1505,21 @@
             if (e.targetNode && e.targetNode !== background) {
                 return;
             }
+            current_point = {
+                x: e.offsetX,
+                y: e.offsetY
+            };
             switch (controller.getEditMode()) {
             case 'SELECT':
-                background.setAttrs({
-                    x: this.origin_offset.x + 20,
-                    y: this.origin_offset.y + 20
-                });
                 this.selectbox.remove();
                 delete this.selectbox;
                 break;
             case 'MOVE':
-                x = Math.max(this.origin_offset.x - (e.clientX - this.start_point.x), -20);
-                y = Math.max(this.origin_offset.y - (e.clientY - this.start_point.y), -20);
+                x = Math.max(this.origin_offset.x - (current_point.x - this.start_point.x), -20);
+                y = Math.max(this.origin_offset.y - (current_point.y - this.start_point.y), -20);
                 view.offset({
                     x: x,
                     y: y
-                });
-                background.setAttrs({
-                    x: x + 20,
-                    y: y + 20
                 });
                 view.fire('change-offset', {
                     x: x,
@@ -1528,6 +1527,7 @@
                 }, false);
                 break;
             }
+            stuck_background_position(view);
             view.draw();
             return e.cancelBubble = true;
         };
@@ -1550,7 +1550,7 @@
             view = controller.getAttachedViews(model)[0];
             return _editmodechange(after, before, view, model, controller);
         };
-        controller = {
+        model_event_map = {
             '(root)': {
                 '(root)': {
                     'change-model': onchangemodel,
@@ -1566,7 +1566,7 @@
                 '(all)': { 'change': onchange }
             }
         };
-        view_listener = {
+        view_event_map = {
             '(self)': {
                 dragstart: ondragstart,
                 dragmove: ondragmove,
@@ -1585,8 +1585,8 @@
                 listening: true,
                 draggable: false
             },
-            controller: controller,
-            view_listener: view_listener,
+            model_event_map: model_event_map,
+            view_event_map: view_event_map,
             view_factory_fn: createView,
             toolbox_image: 'images/toolbox_content_edit_layer.png'
         };
@@ -1595,7 +1595,7 @@
 (function () {
     define('build/spec/SpecGuideLayer', ['KineticJS'], function (kin) {
         'use strict';
-        var controller, createView, onadded, onchange, ondragend, ondragmove, ondragstart, onremoved, view_listener;
+        var createView, model_event_map, onadded, onchange, ondragend, ondragmove, ondragstart, onremoved, view_event_map;
         createView = function (attributes) {
             return new kin.Layer(attributes);
         };
@@ -1757,7 +1757,7 @@
             view = controller.getView();
             return this.getEventHandler().off(view, guide_handler);
         };
-        controller = {
+        model_event_map = {
             '(root)': { '(all)': { 'change': onchange } },
             '(self)': {
                 '(self)': {
@@ -1766,7 +1766,7 @@
                 }
             }
         };
-        view_listener = {
+        view_event_map = {
             '(root)': {
                 dragstart: ondragstart,
                 dragmove: ondragmove,
@@ -1780,8 +1780,8 @@
             container_type: 'layer',
             description: 'Editing Guide Specification',
             defaults: { draggable: false },
-            controller: controller,
-            view_listener: view_listener,
+            model_event_map: model_event_map,
+            view_event_map: view_event_map,
             view_factory_fn: createView,
             toolbox_image: 'images/toolbox_guide_layer.png'
         };
@@ -1793,7 +1793,7 @@
         'KineticJS'
     ], function (dou, kin) {
         'use strict';
-        var controller, createView, onadded, onchangeoffset, onresize, view_listener;
+        var createView, model_event_map, onadded, onchangeoffset, onresize, view_event_map;
         createView = function (attributes) {
             return new kin.Layer(attributes);
         };
@@ -1848,8 +1848,8 @@
             });
             return view.batchDraw();
         };
-        controller = { '(root)': { '(self)': { added: onadded } } };
-        view_listener = {
+        model_event_map = { '(root)': { '(self)': { added: onadded } } };
+        view_event_map = {
             '?offset_monitor_target': { 'change-offset': onchangeoffset },
             '(root)': { 'resize': onresize }
         };
@@ -1860,8 +1860,8 @@
             container_type: 'layer',
             description: 'Ruler Layer Specification',
             defaults: { draggable: false },
-            controller: controller,
-            view_listener: view_listener,
+            model_event_map: model_event_map,
+            view_event_map: view_event_map,
             view_factory_fn: createView,
             components: [
                 {
@@ -1909,7 +1909,7 @@
         'KineticJS'
     ], function (dou, kin) {
         'use strict';
-        var controller, createView, onchangeoffset, onchangeselection, ondragend, ondragmove, view_listener;
+        var createView, model_event_map, onchangeoffset, onchangeselection, ondragend, ondragmove, view_event_map;
         createView = function (attributes) {
             var view;
             view = new kin.Layer(attributes);
@@ -1973,8 +1973,8 @@
             }
             return view.batchDraw();
         };
-        controller = { '(root)': { '(root)': { 'change-selections': onchangeselection } } };
-        view_listener = {
+        model_event_map = { '(root)': { '(root)': { 'change-selections': onchangeselection } } };
+        view_event_map = {
             '?offset_monitor_target': {
                 'change-offset': onchangeoffset,
                 dragmove: ondragmove,
@@ -1988,8 +1988,8 @@
             container_type: 'layer',
             description: 'Handle Layer Specification',
             defaults: { draggable: false },
-            controller: controller,
-            view_listener: view_listener,
+            model_event_map: model_event_map,
+            view_event_map: view_event_map,
             view_factory_fn: createView,
             toolbox_image: 'images/toolbox_handle_layer.png'
         };
@@ -2308,7 +2308,7 @@
 (function () {
     define('build/spec/SpecImage', ['KineticJS'], function (kin) {
         'use strict';
-        var controller, createHandle, createView, view_listener;
+        var createHandle, createView, model_event_map, view_event_map;
         createView = function (attributes) {
             var image, imageObj;
             image = new kin.Image(attributes);
@@ -2323,11 +2323,11 @@
         createHandle = function (attributes) {
             return new Kin.Image(attributes);
         };
-        controller = {
+        model_event_map = {
             '(self)': {
                 '(self)': {
                     change: function (component, before, after) {
-                        var imageObj, view;
+                        var controller, imageObj, view;
                         if (!(before['url'] || after['url'])) {
                             return;
                         }
@@ -2339,10 +2339,10 @@
                 }
             }
         };
-        view_listener = {
+        view_event_map = {
             '(self)': {
                 click: function (e) {
-                    var model, view;
+                    var controller, model, view;
                     controller = this.context;
                     view = this.listener;
                     model = controller.getAttachedModel(view);
@@ -2367,8 +2367,8 @@
                 rotationDeg: 0,
                 draggable: true
             },
-            controller: controller,
-            view_listener: view_listener,
+            model_event_map: model_event_map,
+            view_event_map: view_event_map,
             view_factory_fn: createView,
             handle_factory_fn: createHandle,
             toolbox_image: 'images/toolbox_image.png'
@@ -2444,7 +2444,7 @@
         'KineticJS'
     ], function (bwip, kin) {
         'use strict';
-        var controller, createHandle, createView;
+        var createHandle, createView, model_event_map;
         createView = function (attributes) {
             var imageObj, view;
             view = new kin.Image({
@@ -2475,11 +2475,11 @@
         createHandle = function (attributes) {
             return new Kin.Image(attributes);
         };
-        controller = {
+        model_event_map = {
             '(self)': {
                 '(self)': {
                     change: function (component, before, after, changed) {
-                        var imageObj, url, view;
+                        var controller, imageObj, url, view;
                         if (after.x || after.y) {
                             return;
                         }
@@ -2511,7 +2511,7 @@
                 rotationDeg: 0,
                 draggable: true
             },
-            controller: controller,
+            model_event_map: model_event_map,
             view_factory_fn: createView,
             handle_factory_fn: createHandle,
             toolbox_image: 'images/toolbox_barcode.png'
@@ -2575,18 +2575,17 @@
         '../handle/HandleChecker'
     ], function (kin, SpecInfographic, SpecContentEditLayer, SpecGuideLayer, SpecRulerLayer, SpecHandleLayer, SpecGroup, SpecRect, SpecRing, SpecRuler, SpecImage, SpecText, SpecStar, SpecBarcode, HandleChecker) {
         'use strict';
-        var controller, createView;
+        var createView;
         createView = function (attributes) {
             return new kin.Stage(attributes);
         };
-        return controller = {
+        return {
             type: 'painter-app',
             name: 'painter-app',
             containable: true,
             container_type: 'application',
             description: 'Painter Application Specification',
             defaults: {},
-            controller: controller,
             view_factory_fn: createView,
             dependencies: {
                 'infographic': SpecInfographic,
@@ -2650,7 +2649,7 @@
         '../command/CommandPropertyChange'
     ], function (kin, EventTracker, ComponentSelector, CommandPropertyChange) {
         'use strict';
-        var controller, createView, onadded, onchange, onchangemodel, onremoved, view_listener;
+        var createView, model_event_map, onadded, onchange, onchangemodel, onremoved, view_event_map;
         createView = function (attributes) {
             return new kin.Layer(attributes);
         };
@@ -2680,14 +2679,14 @@
             view.setAttrs(after);
             return this.drawView();
         };
-        controller = {
+        model_event_map = {
             '(root)': { '(root)': { 'change-model': onchangemodel } },
             '(self)': {
                 '(all)': { 'change': onchange },
                 '(self)': { 'change': onchange }
             }
         };
-        view_listener = {
+        view_event_map = {
             click: function (e) {
                 var node;
                 node = e.targetNode;
@@ -2701,8 +2700,8 @@
             container_type: 'layer',
             description: 'Content View Layer Specification',
             defaults: {},
-            controller: controller,
-            view_listener: view_listener,
+            model_event_map: model_event_map,
+            view_event_map: view_event_map,
             view_factory_fn: createView,
             toolbox_image: 'images/toolbox_content_view_layer.png'
         };
@@ -2719,18 +2718,17 @@
         './SpecRuler'
     ], function (kin, SpecInfographic, SpecContentViewLayer, SpecGroup, SpecRect, SpecRing, SpecRuler) {
         'use strict';
-        var controller, createView;
+        var createView;
         createView = function (attributes) {
             return new kin.Stage(attributes);
         };
-        return controller = {
+        return {
             type: 'presenter-app',
             name: 'presenter-app',
             containable: true,
             container_type: 'application',
             description: 'Presenter Application Specification',
             defaults: {},
-            controller: controller,
             view_factory_fn: createView,
             dependencies: {
                 'infographic': SpecInfographic,
@@ -2804,23 +2802,8 @@
                 to = this.params.to;
                 model = this.params.model;
                 view = this.params.view;
-                switch (to) {
-                case 'UP':
-                    view.moveDown();
-                    model.moveDown();
-                    break;
-                case 'DOWN':
-                    view.moveUp();
-                    model.moveUp();
-                    break;
-                case 'TOP':
-                    view.setZIndex(this.i_view);
-                    model.moveAt(this.i_model);
-                    break;
-                case 'BOTTOM':
-                    view.setZIndex(this.i_view);
-                    model.moveAt(this.i_model);
-                }
+                view.setZIndex(this.i_view);
+                model.moveAt(this.i_model);
                 return view.getLayer().draw();
             };
             return CommandMove;

@@ -40,7 +40,7 @@ define [
     createHandle = (attributes) ->
         new Kin.Image(attributes)
 
-    controller =
+    model_event_map =
         '(self)' :
             '(self)' :
                 change : (component, before, after, changed) ->
@@ -72,7 +72,7 @@ define [
             rotationDeg: 0
             draggable: true
         }
-        controller: controller
+        model_event_map: model_event_map
         view_factory_fn: createView
         handle_factory_fn: createHandle
         toolbox_image: 'images/toolbox_barcode.png'

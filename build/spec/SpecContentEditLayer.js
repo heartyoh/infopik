@@ -1,7 +1,7 @@
 (function() {
   define(['dou', 'KineticJS', '../EventTracker', '../ComponentSelector', '../command/CommandPropertyChange'], function(dou, kin, EventTracker, ComponentSelector, CommandPropertyChange) {
     "use strict";
-    var controller, createView, onadded, onchange, onchangeeditmode, onchangemodel, onchangeselections, onclick, ondragend, ondragmove, ondragstart, onremoved, onresize, view_listener, _editmodechange;
+    var createView, model_event_map, onadded, onchange, onchangeeditmode, onchangemodel, onchangeselections, onclick, ondragend, ondragmove, ondragstart, onremoved, onresize, stuck_background_position, view_event_map, _editmodechange;
     createView = function(attributes) {
       var background, offset, stage, view;
       stage = this.getView().getStage();
@@ -22,8 +22,9 @@
         fill: 'cyan',
         opacity: 0.1
       });
-      view.add(background);
       view.__background__ = background;
+      view.__origin_offset__ = offset;
+      view.add(background);
       return view;
     };
     _editmodechange = function(after, before, view, model, controller) {
@@ -63,8 +64,17 @@
       }
     };
     onchange = function(component, before, after) {};
+    stuck_background_position = function(view) {
+      var view_offset, view_origin_offset;
+      view_offset = view.offset();
+      view_origin_offset = view.__origin_offset__;
+      return view.__background__.position({
+        x: view_offset.x - view_origin_offset.x,
+        y: view_offset.y - view_origin_offset.y
+      });
+    };
     ondragstart = function(e) {
-      var background, controller, node, offset, view, view_offset;
+      var background, controller, node, offset, view;
       controller = this.context;
       view = this.listener;
       background = view.__background__;
@@ -73,16 +83,11 @@
       if (e.targetNode && e.targetNode !== background) {
         return;
       }
-      view_offset = view.offset();
-      background.setAttrs({
-        x: view_offset.x + 20,
-        y: view_offset.y + 20
-      });
-      this.start_point = {
-        x: e.clientX,
-        y: e.clientY
-      };
       this.origin_offset = view.offset();
+      this.start_point = {
+        x: e.offsetX,
+        y: e.offsetY
+      };
       offset = {
         x: this.start_point.x + this.origin_offset.x,
         y: this.start_point.y + this.origin_offset.y
@@ -100,38 +105,35 @@
         case 'MOVE':
           break;
       }
+      stuck_background_position(view);
       view.draw();
       return e.cancelBubble = true;
     };
     ondragmove = function(e) {
-      var background, controller, view, x, y;
+      var background, controller, current_point, view, x, y;
       controller = this.context;
       view = this.listener;
       background = view.__background__;
       if (e.targetNode && e.targetNode !== background) {
         return;
       }
+      current_point = {
+        x: e.offsetX,
+        y: e.offsetY
+      };
       switch (controller.getEditMode()) {
         case 'SELECT':
-          background.setAttrs({
-            x: this.origin_offset.x + 20,
-            y: this.origin_offset.y + 20
-          });
           this.selectbox.setAttrs({
-            width: e.clientX - this.start_point.x,
-            height: e.clientY - this.start_point.y
+            width: current_point.x - this.start_point.x,
+            height: current_point.y - this.start_point.y
           });
           break;
         case 'MOVE':
-          x = this.origin_offset.x - (e.clientX - this.start_point.x);
-          y = this.origin_offset.y - (e.clientY - this.start_point.y);
+          x = this.origin_offset.x - (current_point.x - this.start_point.x);
+          y = this.origin_offset.y - (current_point.y - this.start_point.y);
           view.offset({
             x: x,
             y: y
-          });
-          background.setAttrs({
-            x: x + 20,
-            y: y + 20
           });
           view.fire('change-offset', {
             x: x,
@@ -139,11 +141,12 @@
           }, false);
           break;
       }
+      stuck_background_position(view);
       view.batchDraw();
       return e.cancelBubble = true;
     };
     ondragend = function(e) {
-      var background, cmd, controller, dragmodel, dragview, view, x, y;
+      var background, cmd, controller, current_point, dragmodel, dragview, view, x, y;
       controller = this.context;
       dragview = e.targetNode;
       dragmodel = controller.getAttachedModel(dragview);
@@ -170,25 +173,21 @@
       if (e.targetNode && e.targetNode !== background) {
         return;
       }
+      current_point = {
+        x: e.offsetX,
+        y: e.offsetY
+      };
       switch (controller.getEditMode()) {
         case 'SELECT':
-          background.setAttrs({
-            x: this.origin_offset.x + 20,
-            y: this.origin_offset.y + 20
-          });
           this.selectbox.remove();
           delete this.selectbox;
           break;
         case 'MOVE':
-          x = Math.max(this.origin_offset.x - (e.clientX - this.start_point.x), -20);
-          y = Math.max(this.origin_offset.y - (e.clientY - this.start_point.y), -20);
+          x = Math.max(this.origin_offset.x - (current_point.x - this.start_point.x), -20);
+          y = Math.max(this.origin_offset.y - (current_point.y - this.start_point.y), -20);
           view.offset({
             x: x,
             y: y
-          });
-          background.setAttrs({
-            x: x + 20,
-            y: y + 20
           });
           view.fire('change-offset', {
             x: x,
@@ -196,6 +195,7 @@
           }, false);
           break;
       }
+      stuck_background_position(view);
       view.draw();
       return e.cancelBubble = true;
     };
@@ -218,7 +218,7 @@
       view = controller.getAttachedViews(model)[0];
       return _editmodechange(after, before, view, model, controller);
     };
-    controller = {
+    model_event_map = {
       '(root)': {
         '(root)': {
           'change-model': onchangemodel,
@@ -236,7 +236,7 @@
         }
       }
     };
-    view_listener = {
+    view_event_map = {
       '(self)': {
         dragstart: ondragstart,
         dragmove: ondragmove,
@@ -257,8 +257,8 @@
         listening: true,
         draggable: false
       },
-      controller: controller,
-      view_listener: view_listener,
+      model_event_map: model_event_map,
+      view_event_map: view_event_map,
       view_factory_fn: createView,
       toolbox_image: 'images/toolbox_content_edit_layer.png'
     };
