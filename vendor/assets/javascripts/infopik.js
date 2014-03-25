@@ -3048,6 +3048,12 @@
             ApplicationContext.prototype.moveToBottom = function () {
                 return this._move('BOTTOM');
             };
+            ApplicationContext.prototype.redo = function () {
+                return this.commandManager.redo();
+            };
+            ApplicationContext.prototype.undo = function () {
+                return this.commandManager.undo();
+            };
             return ApplicationContext;
         }();
         dou.mixin(ApplicationContext, MVCMixin.controller);

@@ -242,6 +242,12 @@ define [
         moveToBottom: ->
             @_move 'BOTTOM'
 
+        redo: ->
+            @commandManager.redo()
+
+        undo: ->
+            @commandManager.undo()
+
     dou.mixin ApplicationContext, MVCMixin.controller
     
     ApplicationContext
