@@ -1,5 +1,5 @@
 (function() {
-  define(['dou', 'KineticJS', './MVCMixin', './Component', './Container', './EventEngine', './EventTracker', './ComponentFactory', './Command', './CommandManager', './ComponentRegistry', './ComponentSelector', './SelectionManager', './ComponentSpec', './spec/SpecPainter', './spec/SpecPresenter', './spec/SpecInfographic'], function(dou, kin, MVCMixin, Component, Container, EventEngine, EventTracker, ComponentFactory, Command, CommandManager, ComponentRegistry, ComponentSelector, SelectionManager, ComponentSpec, SpecPainter, SpecPresenter, SpecInfographic) {
+  define(['dou', 'KineticJS', './MVCMixin', './Component', './Container', './EventEngine', './EventTracker', './ComponentFactory', './Command', './CommandManager', './ComponentRegistry', './ComponentSelector', './SelectionManager', './ComponentSpec', './spec/SpecPainter', './spec/SpecPresenter', './spec/SpecInfographic', './command/CommandMove'], function(dou, kin, MVCMixin, Component, Container, EventEngine, EventTracker, ComponentFactory, Command, CommandManager, ComponentRegistry, ComponentSelector, SelectionManager, ComponentSpec, SpecPainter, SpecPresenter, SpecInfographic, CommandMove) {
     "use strict";
     var ApplicationContext;
     ApplicationContext = (function() {
@@ -193,6 +193,35 @@
 
       ApplicationContext.prototype.onselectionchange = function(changes) {
         return this.application.trigger('change-selections', changes.after, changes.before, changes.added, changes.removed);
+      };
+
+      ApplicationContext.prototype._move = function(to) {
+        var view;
+        view = this.selectionManager.focus();
+        if (!view) {
+          return;
+        }
+        return this.execute(new CommandMove({
+          to: 'UP',
+          view: view,
+          model: this.getAttachedModel(view)
+        }));
+      };
+
+      ApplicationContext.prototype.moveUp = function() {
+        return this._move('UP');
+      };
+
+      ApplicationContext.prototype.moveDown = function() {
+        return this._move('DOWN');
+      };
+
+      ApplicationContext.prototype.moveToTop = function() {
+        return this._move('TOP');
+      };
+
+      ApplicationContext.prototype.moveToBottom = function() {
+        return this._move('BOTTOM');
       };
 
       return ApplicationContext;

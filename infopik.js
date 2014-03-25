@@ -189,9 +189,46 @@
         'use strict';
         var Component;
         Component = function () {
-            function Component(type) {
+            function Component(type, container) {
                 this.type = type;
+                this.container = container;
             }
+            Component.prototype.getContainer = function () {
+                return this.container;
+            };
+            Component.prototype.setContainer = function (container) {
+                return this.container = container;
+            };
+            Component.prototype.moveAt = function (index) {
+                if (!this.getContainer()) {
+                    return;
+                }
+                return this.container.moveChildAt(index, this);
+            };
+            Component.prototype.moveUp = function () {
+                if (!this.getContainer()) {
+                    return;
+                }
+                return this.container.moveChildUp(this);
+            };
+            Component.prototype.moveDown = function () {
+                if (!this.getContainer()) {
+                    return;
+                }
+                return this.container.moveChildDown(this);
+            };
+            Component.prototype.moveToTop = function () {
+                if (!this.getContainer()) {
+                    return;
+                }
+                return this.container.moveChildToTop(this);
+            };
+            Component.prototype.moveToBottom = function () {
+                if (!this.getContainer()) {
+                    return;
+                }
+                return this.container.moveChildToBottom(this);
+            };
             return Component;
         }();
         return dou.mixin(Component, [
@@ -223,7 +260,8 @@
         './Component'
     ], function (dou, Component) {
         'use strict';
-        var Container, add, add_component, forEach, getAt, indexOf, remove, remove_component, size;
+        var Container, EMPTY, add, add_component, forEach, getAt, indexOf, moveChildAt, moveChildDown, moveChildToBottom, moveChildToTop, moveChildUp, remove, remove_component, size;
+        EMPTY = [];
         add_component = function (container, component) {
             var index;
             index = container.__components__.push(component) - 1;
@@ -290,10 +328,62 @@
             return this.__components__.forEach(fn, context);
         };
         indexOf = function (item) {
-            return (this.__components__ || []).indexOf(item);
+            return (this.__components__ || EMPTY).indexOf(item);
         };
         size = function () {
-            return (this.__components__ || []).length;
+            return (this.__components__ || EMPTY).length;
+        };
+        moveChildAt = function (index, child) {
+            var head, oldIndex, tail;
+            oldIndex = this.indexOf(child);
+            if (oldIndex === -1) {
+                return;
+            }
+            head = this.__components__.splice(0, oldIndex);
+            tail = this.__components__.splice(1);
+            this.__components__ = head.concat(tail);
+            index = Math.max(0, index);
+            index = Math.min(index, this.__components__.length);
+            head = this.__components__.splice(0, index);
+            return this.__components__ = head.concat(child, this.__components__);
+        };
+        moveChildUp = function (child) {
+            var index;
+            index = this.indexOf(child);
+            if (index === -1 || index === this.size() - 1) {
+                return;
+            }
+            this.__components__[index] = this.__components__[index + 1];
+            return this.__components__[index + 1] = child;
+        };
+        moveChildDown = function (child) {
+            var index;
+            index = this.indexOf(child);
+            if (index === -1 || index === 0) {
+                return;
+            }
+            this.__components__[index] = this.__components__[index - 1];
+            return this.__components__[index - 1] = child;
+        };
+        moveChildToTop = function (child) {
+            var head, index, tail;
+            index = this.indexOf(child);
+            if (index === -1 || index === this.size() - 1) {
+                return;
+            }
+            head = this.__components__.splice(0, index);
+            tail = this.__components__.splice(1);
+            return this.__components__ = head.concat(tail, this.__components__);
+        };
+        moveChildToBottom = function (child) {
+            var head, index, tail;
+            index = this.indexOf(child);
+            if (index === -1 || index === 0) {
+                return;
+            }
+            head = this.__components__.splice(0, index);
+            tail = this.__components__.splice(1);
+            return this.__components__ = this.__components__.concat(head, tail);
         };
         Container = function (_super) {
             __extends(Container, _super);
@@ -306,12 +396,14 @@
             Container.prototype.getAt = getAt;
             Container.prototype.indexOf = indexOf;
             Container.prototype.forEach = forEach;
+            Container.prototype.moveChildAt = moveChildAt;
+            Container.prototype.moveChildUp = moveChildUp;
+            Container.prototype.moveChildDown = moveChildDown;
+            Container.prototype.moveChildToTop = moveChildToTop;
+            Container.prototype.moveChildToBottom = moveChildToBottom;
             return Container;
         }(Component);
-        return dou.mixin(Container, [
-            dou['with'].advice,
-            dou['with'].lifecycle
-        ]);
+        return Container;
     });
 }.call(this));
 (function () {
@@ -2640,6 +2732,85 @@
     });
 }.call(this));
 (function () {
+    var __hasProp = {}.hasOwnProperty, __extends = function (child, parent) {
+            for (var key in parent) {
+                if (__hasProp.call(parent, key))
+                    child[key] = parent[key];
+            }
+            function ctor() {
+                this.constructor = child;
+            }
+            ctor.prototype = parent.prototype;
+            child.prototype = new ctor();
+            child.__super__ = parent.prototype;
+            return child;
+        };
+    define('build/command/CommandMove', [
+        'dou',
+        '../Command'
+    ], function (dou, Command) {
+        'use strict';
+        var CommandMove;
+        return CommandMove = function (_super) {
+            __extends(CommandMove, _super);
+            function CommandMove() {
+                return CommandMove.__super__.constructor.apply(this, arguments);
+            }
+            CommandMove.prototype.execute = function () {
+                var model, to, view;
+                to = this.params.to;
+                model = this.params.model;
+                view = this.params.view;
+                this.i_model = model.getContainer().indexOf(model);
+                this.i_view = view.getZIndex();
+                switch (to) {
+                case 'UP':
+                    view.moveUp();
+                    model.moveUp();
+                    break;
+                case 'DOWN':
+                    view.moveDown();
+                    model.moveDown();
+                    break;
+                case 'TOP':
+                    view.moveToTop();
+                    model.moveToTop();
+                    break;
+                case 'BOTTOM':
+                    view.moveToBottom();
+                    model.moveToBottom();
+                }
+                return view.getLayer().draw();
+            };
+            CommandMove.prototype.unexecute = function () {
+                var model, to, view;
+                to = this.params.to;
+                model = this.params.model;
+                view = this.params.view;
+                switch (to) {
+                case 'UP':
+                    view.moveDown();
+                    model.moveDown();
+                    break;
+                case 'DOWN':
+                    view.moveUp();
+                    model.moveUp();
+                    break;
+                case 'TOP':
+                    view.setZIndex(this.i_view);
+                    model.moveAt(this.i_model);
+                    break;
+                case 'BOTTOM':
+                    view.setZIndex(this.i_view);
+                    model.moveAt(this.i_model);
+                }
+                return view.getLayer().draw();
+            };
+            return CommandMove;
+        }(Command);
+    });
+}.call(this));
+(function () {
     define('build/ApplicationContext', [
         'dou',
         'KineticJS',
@@ -2657,8 +2828,9 @@
         './ComponentSpec',
         './spec/SpecPainter',
         './spec/SpecPresenter',
-        './spec/SpecInfographic'
-    ], function (dou, kin, MVCMixin, Component, Container, EventEngine, EventTracker, ComponentFactory, Command, CommandManager, ComponentRegistry, ComponentSelector, SelectionManager, ComponentSpec, SpecPainter, SpecPresenter, SpecInfographic) {
+        './spec/SpecInfographic',
+        './command/CommandMove'
+    ], function (dou, kin, MVCMixin, Component, Container, EventEngine, EventTracker, ComponentFactory, Command, CommandManager, ComponentRegistry, ComponentSelector, SelectionManager, ComponentSpec, SpecPainter, SpecPresenter, SpecInfographic, CommandMove) {
         'use strict';
         var ApplicationContext;
         ApplicationContext = function () {
@@ -2834,6 +3006,30 @@
             };
             ApplicationContext.prototype.onselectionchange = function (changes) {
                 return this.application.trigger('change-selections', changes.after, changes.before, changes.added, changes.removed);
+            };
+            ApplicationContext.prototype._move = function (to) {
+                var view;
+                view = this.selectionManager.focus();
+                if (!view) {
+                    return;
+                }
+                return this.execute(new CommandMove({
+                    to: 'UP',
+                    view: view,
+                    model: this.getAttachedModel(view)
+                }));
+            };
+            ApplicationContext.prototype.moveUp = function () {
+                return this._move('UP');
+            };
+            ApplicationContext.prototype.moveDown = function () {
+                return this._move('DOWN');
+            };
+            ApplicationContext.prototype.moveToTop = function () {
+                return this._move('TOP');
+            };
+            ApplicationContext.prototype.moveToBottom = function () {
+                return this._move('BOTTOM');
             };
             return ApplicationContext;
         }();

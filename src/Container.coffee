@@ -14,6 +14,8 @@ define [
     
     "use strict"
 
+    EMPTY = []
+
     add_component = (container, component) ->
         index = (container.__components__.push component) - 1
 
@@ -66,10 +68,49 @@ define [
         @__components__.forEach(fn, context)
 
     indexOf = (item) ->
-        (@__components__ || []).indexOf(item)
+        (@__components__ || EMPTY).indexOf(item)
 
     size = ->
-        (@__components__ || []).length
+        (@__components__ || EMPTY).length
+
+    moveChildAt = (index, child) ->
+        oldIndex = @indexOf(child)
+        return if oldIndex is -1
+        head = @__components__.splice(0, oldIndex)
+        tail = @__components__.splice(1)
+        @__components__ = head.concat(tail)
+        
+        index = Math.max(0, index)
+        index = Math.min(index, @__components__.length)
+
+        head = @__components__.splice(0, index)
+        @__components__ = head.concat(child, @__components__)
+
+    moveChildUp = (child) ->
+        index = @indexOf(child)
+        return if (index is -1) or (index is @size() - 1)
+        @__components__[index] = @__components__[index + 1]
+        @__components__[index + 1] = child
+
+    moveChildDown = (child) ->
+        index = @indexOf(child)
+        return if index is -1 or index is 0
+        @__components__[index] = @__components__[index - 1]
+        @__components__[index - 1] = child
+
+    moveChildToTop = (child) ->
+        index = @indexOf(child)
+        return if index is -1 or (index is @size() - 1)
+        head = @__components__.splice(0, index)
+        tail = @__components__.splice(1)
+        @__components__ = head.concat(tail, @__components__)
+
+    moveChildToBottom = (child) ->
+        index = @indexOf(child)
+        return if index is -1 or index is 0
+        head = @__components__.splice(0, index)
+        tail = @__components__.splice(1)
+        @__components__ = @__components__.concat(head, tail)
 
     class Container extends Component
         constructor : (type) ->
@@ -81,5 +122,10 @@ define [
         getAt: getAt
         indexOf: indexOf
         forEach: forEach
+        moveChildAt: moveChildAt
+        moveChildUp: moveChildUp
+        moveChildDown: moveChildDown
+        moveChildToTop: moveChildToTop
+        moveChildToBottom: moveChildToBottom
 
-    dou.mixin Container, [dou.with.advice, dou.with.lifecycle]
+    Container

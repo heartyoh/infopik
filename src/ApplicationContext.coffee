@@ -22,6 +22,7 @@ define [
     './spec/SpecPainter'
     './spec/SpecPresenter'
     './spec/SpecInfographic'
+    './command/CommandMove'
 ], (dou
     kin
     MVCMixin
@@ -39,6 +40,7 @@ define [
     SpecPainter
     SpecPresenter
     SpecInfographic
+    CommandMove
 ) ->
     
     "use strict"
@@ -218,6 +220,27 @@ define [
 
         onselectionchange: (changes) ->
             @application.trigger 'change-selections', changes.after, changes.before, changes.added, changes.removed
+
+        _move: (to) ->
+            view = @selectionManager.focus()
+            return if not view
+
+            @execute new CommandMove
+                to: 'UP'
+                view: view
+                model: this.getAttachedModel(view)
+
+        moveUp: ->
+            @_move 'UP'
+
+        moveDown: ->
+            @_move 'DOWN'
+
+        moveToTop: ->
+            @_move 'TOP'
+
+        moveToBottom: ->
+            @_move 'BOTTOM'
 
     dou.mixin ApplicationContext, MVCMixin.controller
     

@@ -4,6 +4,8 @@
 # http://opensource.org/licenses/MIT
 # ==========================================
 
+# Ref. http://arcturo.github.io/library/coffeescript/03_classes.html
+  
 define [
 ], (
 ) ->

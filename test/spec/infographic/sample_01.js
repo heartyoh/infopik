@@ -37,6 +37,7 @@ define([
           stroke: 'darkgray',
           width: 100,
           height: 50,
+          'z-index': 2,
           draggable: true
         }
       }, {
@@ -46,6 +47,7 @@ define([
           y: 10,
           width: 100,
           height: 50,
+          'z-index': 1,
           draggable: true
         }
       }, {

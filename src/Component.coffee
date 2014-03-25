@@ -15,8 +15,35 @@ define [
     "use strict"
 
     class Component
-        constructor : (type) ->
+        constructor : (type, container) ->
             @type = type
+            @container = container
+
+        getContainer : ->
+            @container
+
+        setContainer : (container) ->
+            @container = container
+
+        moveAt: (index) ->
+            return if not @getContainer()
+            @container.moveChildAt(index, this)
+
+        moveUp: ->
+            return if not @getContainer()
+            @container.moveChildUp(this)
+
+        moveDown: ->
+            return if not @getContainer()
+            @container.moveChildDown(this)
+
+        moveToTop: ->
+            return if not @getContainer()
+            @container.moveChildToTop(this)
+
+        moveToBottom: ->
+            return if not @getContainer()
+            @container.moveChildToBottom(this)
 
     dou.mixin Component, [
         dou.with.advice

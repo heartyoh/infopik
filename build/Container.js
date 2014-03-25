@@ -4,7 +4,8 @@
 
   define(['dou', './Component'], function(dou, Component) {
     "use strict";
-    var Container, add, add_component, forEach, getAt, indexOf, remove, remove_component, size;
+    var Container, EMPTY, add, add_component, forEach, getAt, indexOf, moveChildAt, moveChildDown, moveChildToBottom, moveChildToTop, moveChildUp, remove, remove_component, size;
+    EMPTY = [];
     add_component = function(container, component) {
       var index;
       index = (container.__components__.push(component)) - 1;
@@ -71,10 +72,62 @@
       return this.__components__.forEach(fn, context);
     };
     indexOf = function(item) {
-      return (this.__components__ || []).indexOf(item);
+      return (this.__components__ || EMPTY).indexOf(item);
     };
     size = function() {
-      return (this.__components__ || []).length;
+      return (this.__components__ || EMPTY).length;
+    };
+    moveChildAt = function(index, child) {
+      var head, oldIndex, tail;
+      oldIndex = this.indexOf(child);
+      if (oldIndex === -1) {
+        return;
+      }
+      head = this.__components__.splice(0, oldIndex);
+      tail = this.__components__.splice(1);
+      this.__components__ = head.concat(tail);
+      index = Math.max(0, index);
+      index = Math.min(index, this.__components__.length);
+      head = this.__components__.splice(0, index);
+      return this.__components__ = head.concat(child, this.__components__);
+    };
+    moveChildUp = function(child) {
+      var index;
+      index = this.indexOf(child);
+      if ((index === -1) || (index === this.size() - 1)) {
+        return;
+      }
+      this.__components__[index] = this.__components__[index + 1];
+      return this.__components__[index + 1] = child;
+    };
+    moveChildDown = function(child) {
+      var index;
+      index = this.indexOf(child);
+      if (index === -1 || index === 0) {
+        return;
+      }
+      this.__components__[index] = this.__components__[index - 1];
+      return this.__components__[index - 1] = child;
+    };
+    moveChildToTop = function(child) {
+      var head, index, tail;
+      index = this.indexOf(child);
+      if (index === -1 || (index === this.size() - 1)) {
+        return;
+      }
+      head = this.__components__.splice(0, index);
+      tail = this.__components__.splice(1);
+      return this.__components__ = head.concat(tail, this.__components__);
+    };
+    moveChildToBottom = function(child) {
+      var head, index, tail;
+      index = this.indexOf(child);
+      if (index === -1 || index === 0) {
+        return;
+      }
+      head = this.__components__.splice(0, index);
+      tail = this.__components__.splice(1);
+      return this.__components__ = this.__components__.concat(head, tail);
     };
     Container = (function(_super) {
       __extends(Container, _super);
@@ -95,10 +148,20 @@
 
       Container.prototype.forEach = forEach;
 
+      Container.prototype.moveChildAt = moveChildAt;
+
+      Container.prototype.moveChildUp = moveChildUp;
+
+      Container.prototype.moveChildDown = moveChildDown;
+
+      Container.prototype.moveChildToTop = moveChildToTop;
+
+      Container.prototype.moveChildToBottom = moveChildToBottom;
+
       return Container;
 
     })(Component);
-    return dou.mixin(Container, [dou["with"].advice, dou["with"].lifecycle]);
+    return Container;
   });
 
 }).call(this);
