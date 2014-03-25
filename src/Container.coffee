@@ -17,22 +17,35 @@ define [
     EMPTY = []
 
     add_component = (container, component) ->
+        containable = component instanceof Component
+        if containable
+            oldContainer = component.getContainer()
+            
+            if oldContainer
+                return if container is oldContainer
+                remove_component(container, component)
+
         index = (container.__components__.push component) - 1
+        component.setContainer(container) if containable
 
         container.trigger 'add', container, component, index
 
-        return if not (component instanceof Component)
+        return if not containable
 
         component.delegate_on container
 
         component.trigger 'added', container, component, index
 
     remove_component = (container, component) ->
+        containable = component instanceof Component
+
         idx = container.__components__.indexOf component
 
         return if idx is -1
 
         container.__components__.splice(idx, 1) if idx > -1
+
+        component.setContainer(null) if containable
 
         container.trigger 'remove', container, component
 

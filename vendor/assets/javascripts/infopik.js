@@ -263,23 +263,40 @@
         var Container, EMPTY, add, add_component, forEach, getAt, indexOf, moveChildAt, moveChildDown, moveChildToBottom, moveChildToTop, moveChildUp, remove, remove_component, size;
         EMPTY = [];
         add_component = function (container, component) {
-            var index;
+            var containable, index, oldContainer;
+            containable = component instanceof Component;
+            if (containable) {
+                oldContainer = component.getContainer();
+                if (oldContainer) {
+                    if (container === oldContainer) {
+                        return;
+                    }
+                    remove_component(container, component);
+                }
+            }
             index = container.__components__.push(component) - 1;
+            if (containable) {
+                component.setContainer(container);
+            }
             container.trigger('add', container, component, index);
-            if (!(component instanceof Component)) {
+            if (!containable) {
                 return;
             }
             component.delegate_on(container);
             return component.trigger('added', container, component, index);
         };
         remove_component = function (container, component) {
-            var idx;
+            var containable, idx;
+            containable = component instanceof Component;
             idx = container.__components__.indexOf(component);
             if (idx === -1) {
                 return;
             }
             if (idx > -1) {
                 container.__components__.splice(idx, 1);
+            }
+            if (containable) {
+                component.setContainer(null);
             }
             container.trigger('remove', container, component);
             if (!(component instanceof Component)) {
