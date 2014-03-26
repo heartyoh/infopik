@@ -76,6 +76,5 @@ define [
         dispose: ->
             @stop()
             @clear()
-            @deliverer = null
 
     EventPump

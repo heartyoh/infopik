@@ -204,7 +204,7 @@ define [
             this.drawView()
 
         onremove: (container, component, e) ->
-            console.log 'removed', container, component
+            # console.log 'removed', container, component
             # vcontainer = if container is @application then @view else this.findViewByComponent container
             vcomponent = this.findViewByComponent component
 

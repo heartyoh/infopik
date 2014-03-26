@@ -35,7 +35,7 @@ define([
     });
 
     afterEach(function() {
-      // app.dispose();
+      app.dispose();
       console.log('application disposed');
     });
 

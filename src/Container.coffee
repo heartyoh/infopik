@@ -130,14 +130,15 @@ define [
             super(type)
 
         dispose: ->
-            return if @__components__
+            if @__components__
+                children = dou.util.clone(@__components__)
 
-            children = dou.util.clone(@__components__)
+                for component in children
+                    component.dispose()
+                @__components__ = null
 
-            for component in children
-                component.dispose()
-            @__components__ = null
-
+            super()
+            
         add: add
         remove: remove
         size: size

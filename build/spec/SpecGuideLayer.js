@@ -139,8 +139,7 @@
     onremoved = function(container, component, e) {
       var controller, view;
       controller = this;
-      view = controller.getView();
-      return this.getEventHandler().off(view, guide_handler);
+      return view = controller.getView();
     };
     model_event_map = {
       '(root)': {

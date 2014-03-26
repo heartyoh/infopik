@@ -151,7 +151,7 @@ define [
     onremoved = (container, component, e) ->
         controller = this
         view = controller.getView() # root view
-        this.getEventHandler().off(view, guide_handler)
+        # this.getEventHandler().off(view, guide_handler)
 
     model_event_map =
         '(root)' :

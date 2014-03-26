@@ -180,7 +180,6 @@
 
       ApplicationContext.prototype.onremove = function(container, component, e) {
         var vcomponent;
-        console.log('removed', container, component);
         vcomponent = this.findViewByComponent(component);
         vcomponent.destroy();
         return this.drawView();

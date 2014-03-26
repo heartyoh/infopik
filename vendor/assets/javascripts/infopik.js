@@ -194,7 +194,8 @@
                 this.container = container;
             }
             Component.prototype.dispose = function () {
-                return this.setContainer(null);
+                this.setContainer(null);
+                return console.log('component disposed', this.type);
             };
             Component.prototype.getContainer = function () {
                 return this.container;
@@ -423,14 +424,14 @@
             Container.prototype.dispose = function () {
                 var children, component, _i, _len;
                 if (this.__components__) {
-                    return;
+                    children = dou.util.clone(this.__components__);
+                    for (_i = 0, _len = children.length; _i < _len; _i++) {
+                        component = children[_i];
+                        component.dispose();
+                    }
+                    this.__components__ = null;
                 }
-                children = dou.util.clone(this.__components__);
-                for (_i = 0, _len = children.length; _i < _len; _i++) {
-                    component = children[_i];
-                    component.dispose();
-                }
-                return this.__components__ = null;
+                return Container.__super__.dispose.call(this);
             };
             Container.prototype.add = add;
             Container.prototype.remove = remove;
@@ -640,8 +641,7 @@
             };
             EventPump.prototype.dispose = function () {
                 this.stop();
-                this.clear();
-                return this.deliverer = null;
+                return this.clear();
             };
             return EventPump;
         }();
@@ -1804,8 +1804,7 @@
         onremoved = function (container, component, e) {
             var controller, view;
             controller = this;
-            view = controller.getView();
-            return this.getEventHandler().off(view, guide_handler);
+            return view = controller.getView();
         };
         model_event_map = {
             '(root)': { '(all)': { 'change': onchange } },
@@ -3045,7 +3044,6 @@
             };
             ApplicationContext.prototype.onremove = function (container, component, e) {
                 var vcomponent;
-                console.log('removed', container, component);
                 vcomponent = this.findViewByComponent(component);
                 vcomponent.destroy();
                 return this.drawView();

@@ -9,7 +9,8 @@
       }
 
       Component.prototype.dispose = function() {
-        return this.setContainer(null);
+        this.setContainer(null);
+        return console.log('component disposed', this.type);
       };
 
       Component.prototype.getContainer = function() {

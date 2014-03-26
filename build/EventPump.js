@@ -110,8 +110,7 @@
 
       EventPump.prototype.dispose = function() {
         this.stop();
-        this.clear();
-        return this.deliverer = null;
+        return this.clear();
       };
 
       return EventPump;
