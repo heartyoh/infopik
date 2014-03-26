@@ -23,7 +23,8 @@ define [
             view.setAttrs
                 width : imageObj.width,
                 height : imageObj.height
-            view.getLayer().draw()
+            layer = view.getLayer()
+            layer.draw() if layer
 
         imageObj.src = bwip.imageUrl
             symbol : attributes['symbol']

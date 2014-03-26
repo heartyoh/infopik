@@ -69,7 +69,10 @@ define [
     onchangemodel = (after, before, e) ->
         model = e.listener
         
-        model.remove before if before
+        if before
+            model.remove before
+            before.dispose()
+
         model.add after if after
 
     onchangeselections = (after, before, added, removed) ->

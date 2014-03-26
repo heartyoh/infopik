@@ -1426,6 +1426,7 @@
             model = e.listener;
             if (before) {
                 model.remove(before);
+                before.dispose();
             }
             if (after) {
                 return model.add(after);
@@ -2362,7 +2363,11 @@
             image = new kin.Image(attributes);
             imageObj = new Image();
             imageObj.onload = function () {
-                return image.getLayer().draw();
+                var layer;
+                layer = image.getLayer();
+                if (layer) {
+                    return layer.draw();
+                }
             };
             imageObj.src = attributes['url'];
             image.setImage(imageObj);
@@ -2503,11 +2508,15 @@
             });
             imageObj = new Image();
             imageObj.onload = function () {
+                var layer;
                 view.setAttrs({
                     width: imageObj.width,
                     height: imageObj.height
                 });
-                return view.getLayer().draw();
+                layer = view.getLayer();
+                if (layer) {
+                    return layer.draw();
+                }
             };
             imageObj.src = bwip.imageUrl({
                 symbol: attributes['symbol'],

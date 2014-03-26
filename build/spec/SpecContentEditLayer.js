@@ -51,6 +51,7 @@
       model = e.listener;
       if (before) {
         model.remove(before);
+        before.dispose();
       }
       if (after) {
         return model.add(after);

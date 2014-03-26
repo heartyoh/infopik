@@ -7,7 +7,11 @@
       image = new kin.Image(attributes);
       imageObj = new Image();
       imageObj.onload = function() {
-        return image.getLayer().draw();
+        var layer;
+        layer = image.getLayer();
+        if (layer) {
+          return layer.draw();
+        }
       };
       imageObj.src = attributes['url'];
       image.setImage(imageObj);

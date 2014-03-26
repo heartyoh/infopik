@@ -15,7 +15,8 @@ define [
 
         imageObj = new Image()
         imageObj.onload = ->
-            image.getLayer().draw()
+            layer = image.getLayer()
+            layer.draw() if layer
 
         imageObj.src = attributes['url']
 

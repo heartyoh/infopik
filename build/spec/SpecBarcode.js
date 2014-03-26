@@ -12,11 +12,15 @@
       });
       imageObj = new Image();
       imageObj.onload = function() {
+        var layer;
         view.setAttrs({
           width: imageObj.width,
           height: imageObj.height
         });
-        return view.getLayer().draw();
+        layer = view.getLayer();
+        if (layer) {
+          return layer.draw();
+        }
       };
       imageObj.src = bwip.imageUrl({
         symbol: attributes['symbol'],

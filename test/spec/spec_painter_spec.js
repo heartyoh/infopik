@@ -36,7 +36,6 @@ define([
 
     afterEach(function() {
       app.dispose();
-      console.log('application disposed');
     });
 
     it('should ...', function () {
@@ -44,16 +43,19 @@ define([
       app.setModel(infographic);
       // app.setEditMode('MOVE');
 
-      infographic.forEach(function(child) {
-        var view = app.getAttachedViews(child)[0];
-      });
+      // infographic.forEach(function(child) {
+      //   var view = app.getAttachedViews(child)[0];
+      // });
 
-      var last = app.getView().find('#noid-12');
-      last.moveToTop();
+      // var last = app.getView().find('#noid-12');
+      // last.moveToTop();
 
-      infographic.forEach(function(child) {
-        var view = app.getAttachedViews(child)[0];
-      });
+      // infographic.forEach(function(child) {
+      //   var view = app.getAttachedViews(child)[0];
+      // });
+
+      // app.setModel(null);
+      app.setModel(app.createComponent(sample_01))      
     });
 
   });
