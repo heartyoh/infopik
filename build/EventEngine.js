@@ -6,7 +6,7 @@
     var EventEngine;
     EventEngine = (function() {
       function EventEngine(root) {
-        this.eventPumps = [];
+        this.eventMaps = [];
         this.setRoot(root);
       }
 
@@ -16,7 +16,7 @@
 
       EventEngine.prototype.stop = function() {
         var item, _i, _len, _ref, _results;
-        _ref = this.eventPumps;
+        _ref = this.eventMaps;
         _results = [];
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
           item = _ref[_i];
@@ -43,7 +43,7 @@
               eventPump = new EventPump(target);
               eventPump.on(listener, handlers);
               eventPump.start(context);
-              _results1.push(this.eventPumps.push({
+              _results1.push(this.eventMaps.push({
                 eventPump: eventPump,
                 listener: listener,
                 handlerMap: handlerMap,
@@ -57,14 +57,14 @@
       };
 
       EventEngine.prototype.remove = function(listener, handlerMap) {
-        var index, item, _i, _len, _ref, _results;
-        _ref = this.eventPumps;
+        var index, item, maps, _i, _len, _results;
+        maps = dou.util.clone(this.eventMaps);
         _results = [];
-        for (index = _i = 0, _len = _ref.length; _i < _len; index = ++_i) {
-          item = _ref[index];
+        for (index = _i = 0, _len = maps.length; _i < _len; index = ++_i) {
+          item = maps[index];
           if (item.listener === listener && (!handlerMap || item.handlerMap === handlerMap)) {
-            this.eventPumps.splice(index, 1);
-            _results.push(item.eventPump.despose());
+            this.eventMaps.splice(index, 1);
+            _results.push(item.eventPump.dispose());
           } else {
             _results.push(void 0);
           }
@@ -73,16 +73,16 @@
       };
 
       EventEngine.prototype.clear = function() {
-        var eventPump, _i, _len, _ref;
-        _ref = this.eventPumps;
-        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-          eventPump = _ref[_i];
-          eventPump.despose();
+        var eventMap, maps, _i, _len;
+        maps = dou.util.clone(this.eventMaps);
+        for (_i = 0, _len = maps.length; _i < _len; _i++) {
+          eventMap = maps[_i];
+          eventMap.eventPump.dispose();
         }
-        return this.eventPumps = [];
+        return this.eventMaps = [];
       };
 
-      EventEngine.prototype.despose = function() {
+      EventEngine.prototype.dispose = function() {
         this.stop();
         return this.clear();
       };

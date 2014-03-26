@@ -29,6 +29,10 @@ define(['dou', 'build/EventTracker'], function (dou, EventTracker) {
       eventTracker = new EventTracker();
     });
 
+    afterEach(function() {
+      eventTracker.dispose();
+    });
+
     describe('on', function() {
       it('should execute belonging event handlers on the bound events', function () {
         var startcount = 0;

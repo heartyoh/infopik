@@ -36,6 +36,10 @@ define([
       app.setEditMode('MOVE');
     });
 
+    afterEach(function() {
+      app.dispose();
+    });
+
     // it('should move offset by dragging content-edit-layer background', function (done) {
     //   var contentEditLayer = app.findComponent('content-edit-layer')[0];
     //   var contentEditLayerView = app.getAttachedViews(contentEditLayer)[0];

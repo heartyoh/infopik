@@ -80,11 +80,10 @@
         }
       }
 
-      ApplicationContext.prototype.despose = function() {
-        this.compEventTracker.despose();
-        this.eventController.despose();
-        this.eventRegistry.despose();
-        return this.componentFactory.despose();
+      ApplicationContext.prototype.dispose = function() {
+        this.application.dispose();
+        this.compEventTracker.dispose();
+        return this.componentFactory.dispose();
       };
 
       ApplicationContext.prototype.getEventTracker = function() {
@@ -104,10 +103,6 @@
         before = this.model;
         this.model = model;
         return this.application.trigger('change-model', this.model, before);
-      };
-
-      ApplicationContext.prototype.getController = function() {
-        return this.eventController;
       };
 
       ApplicationContext.prototype.getApplication = function() {

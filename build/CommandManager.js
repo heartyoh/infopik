@@ -7,7 +7,7 @@
         this.reset();
       }
 
-      CommandManager.prototype.despose = function() {
+      CommandManager.prototype.dispose = function() {
         return this.reset();
       };
 

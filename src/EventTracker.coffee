@@ -22,6 +22,9 @@ define [
 
             (@boundhandler[ev] = handler.bind(self)) for own ev, handler of handlers when typeof handler is 'function'
 
+        dispose: ->
+            @off()
+
         on: ->
             return if @started
 
@@ -66,8 +69,8 @@ define [
         all: ->
             (tracker for tracker in @trackers)
 
-        despose: ->
-            tracker.off() for tracker in @trackers
+        dispose: ->
+            tracker.dispose() for tracker in @trackers
             @trackers = []
             @selector = null
 

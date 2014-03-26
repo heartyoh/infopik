@@ -23,6 +23,10 @@
         }
       }
 
+      StandAloneTracker.prototype.dispose = function() {
+        return this.off();
+      };
+
       StandAloneTracker.prototype.on = function() {
         var ev, handler, _ref;
         if (this.started) {
@@ -123,12 +127,12 @@
         return _results;
       };
 
-      EventTracker.prototype.despose = function() {
+      EventTracker.prototype.dispose = function() {
         var tracker, _i, _len, _ref;
         _ref = this.trackers;
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
           tracker = _ref[_i];
-          tracker.off();
+          tracker.dispose();
         }
         this.trackers = [];
         return this.selector = null;

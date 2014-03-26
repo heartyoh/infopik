@@ -30,9 +30,9 @@ define [
             @eventEngine = eventEngine
             @eventTracker = eventTracker
 
-        despose: ->
+        dispose: ->
             @componentRegistry = null
-            @eventEngine.despose() if @eventEngine
+            @eventEngine.dispose() if @eventEngine
 
         uniqueId: ->
             "noid-#{@seed++}"
@@ -51,9 +51,7 @@ define [
                 , this
 
             if spec.view_event_map
-
                 for own selector, handlers of spec.view_event_map
-
                     if selector.indexOf('?') == 0
                         variable = selector.substr(1)
                         selector = component.get(variable)
@@ -86,6 +84,13 @@ define [
             component.set('id', @uniqueId()) if not component.get('id')
 
             @eventEngine.add(component, spec.model_event_map, controller) if spec.model_event_map
+
+            component.addDisposer =>
+                @eventEngine.remove(component)
+                for view in component.getViews()
+                    @eventTracker.off view
+                    view.destroy()
+                component.detachAll()
 
             component
 

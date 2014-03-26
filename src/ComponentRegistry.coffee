@@ -16,7 +16,7 @@ define [
         constructor : ->
             @componentSpecs = {}
 
-        despose : ->
+        dispose : ->
             keys = Object.keys(@componentSpecs)
             @unregister(type) for type in keys
 

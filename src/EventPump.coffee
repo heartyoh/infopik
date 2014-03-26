@@ -70,10 +70,10 @@ define [
                 if item.listener is listener and (!handlers or item.handlers is handlers)
                     @listeners.splice(index, 1)
 
-        clear: 
+        clear: ->
             @listeners = []
 
-        despose: ->
+        dispose: ->
             @stop()
             @clear()
             @deliverer = null

@@ -17,6 +17,9 @@ define [
             @selections = []
             @selectable_fn = config.selectable_fn
 
+        dispose: ->
+            @reset()
+
         focus: (target)->
             return @selections[0] if not target
 

@@ -34,10 +34,15 @@ define([
       infographic = app.createComponent(sample_01);
     });
 
+    afterEach(function() {
+      // app.dispose();
+      console.log('application disposed');
+    });
+
     it('should ...', function () {
 
       app.setModel(infographic);
-      app.setEditMode('MOVE');
+      // app.setEditMode('MOVE');
 
       infographic.forEach(function(child) {
         var view = app.getAttachedViews(child)[0];

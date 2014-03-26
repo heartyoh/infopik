@@ -104,9 +104,11 @@
         return _results;
       };
 
-      EventPump.prototype.clear = EventPump.listeners = [];
+      EventPump.prototype.clear = function() {
+        return this.listeners = [];
+      };
 
-      EventPump.prototype.despose = function() {
+      EventPump.prototype.dispose = function() {
         this.stop();
         this.clear();
         return this.deliverer = null;

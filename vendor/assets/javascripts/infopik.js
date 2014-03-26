@@ -193,11 +193,23 @@
                 this.type = type;
                 this.container = container;
             }
+            Component.prototype.dispose = function () {
+                return this.setContainer(null);
+            };
             Component.prototype.getContainer = function () {
                 return this.container;
             };
             Component.prototype.setContainer = function (container) {
-                return this.container = container;
+                if (container === this.container) {
+                    return;
+                }
+                if (this.container) {
+                    this.container.remove(this);
+                }
+                this.container = container;
+                if (this.container) {
+                    return this.container.add(this);
+                }
             };
             Component.prototype.moveAt = function (index) {
                 if (!this.getContainer()) {
@@ -237,6 +249,7 @@
             dou['with'].property,
             dou['with'].lifecycle,
             dou['with'].serialize,
+            dou['with'].disposer,
             MVCMixin.model
         ]);
     });
@@ -407,6 +420,18 @@
             function Container(type) {
                 Container.__super__.constructor.call(this, type);
             }
+            Container.prototype.dispose = function () {
+                var children, component, _i, _len;
+                if (this.__components__) {
+                    return;
+                }
+                children = dou.util.clone(this.__components__);
+                for (_i = 0, _len = children.length; _i < _len; _i++) {
+                    component = children[_i];
+                    component.dispose();
+                }
+                return this.__components__ = null;
+            };
             Container.prototype.add = add;
             Container.prototype.remove = remove;
             Container.prototype.size = size;
@@ -610,8 +635,10 @@
                 }
                 return _results;
             };
-            EventPump.prototype.clear = EventPump.listeners = [];
-            EventPump.prototype.despose = function () {
+            EventPump.prototype.clear = function () {
+                return this.listeners = [];
+            };
+            EventPump.prototype.dispose = function () {
                 this.stop();
                 this.clear();
                 return this.deliverer = null;
@@ -632,7 +659,7 @@
         var EventEngine;
         EventEngine = function () {
             function EventEngine(root) {
-                this.eventPumps = [];
+                this.eventMaps = [];
                 this.setRoot(root);
             }
             EventEngine.prototype.setRoot = function (root) {
@@ -640,7 +667,7 @@
             };
             EventEngine.prototype.stop = function () {
                 var item, _i, _len, _ref, _results;
-                _ref = this.eventPumps;
+                _ref = this.eventMaps;
                 _results = [];
                 for (_i = 0, _len = _ref.length; _i < _len; _i++) {
                     item = _ref[_i];
@@ -667,7 +694,7 @@
                             eventPump = new EventPump(target);
                             eventPump.on(listener, handlers);
                             eventPump.start(context);
-                            _results1.push(this.eventPumps.push({
+                            _results1.push(this.eventMaps.push({
                                 eventPump: eventPump,
                                 listener: listener,
                                 handlerMap: handlerMap,
@@ -680,14 +707,14 @@
                 return _results;
             };
             EventEngine.prototype.remove = function (listener, handlerMap) {
-                var index, item, _i, _len, _ref, _results;
-                _ref = this.eventPumps;
+                var index, item, maps, _i, _len, _results;
+                maps = dou.util.clone(this.eventMaps);
                 _results = [];
-                for (index = _i = 0, _len = _ref.length; _i < _len; index = ++_i) {
-                    item = _ref[index];
+                for (index = _i = 0, _len = maps.length; _i < _len; index = ++_i) {
+                    item = maps[index];
                     if (item.listener === listener && (!handlerMap || item.handlerMap === handlerMap)) {
-                        this.eventPumps.splice(index, 1);
-                        _results.push(item.eventPump.despose());
+                        this.eventMaps.splice(index, 1);
+                        _results.push(item.eventPump.dispose());
                     } else {
                         _results.push(void 0);
                     }
@@ -695,15 +722,15 @@
                 return _results;
             };
             EventEngine.prototype.clear = function () {
-                var eventPump, _i, _len, _ref;
-                _ref = this.eventPumps;
-                for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-                    eventPump = _ref[_i];
-                    eventPump.despose();
+                var eventMap, maps, _i, _len;
+                maps = dou.util.clone(this.eventMaps);
+                for (_i = 0, _len = maps.length; _i < _len; _i++) {
+                    eventMap = maps[_i];
+                    eventMap.eventPump.dispose();
                 }
-                return this.eventPumps = [];
+                return this.eventMaps = [];
             };
-            EventEngine.prototype.despose = function () {
+            EventEngine.prototype.dispose = function () {
                 this.stop();
                 return this.clear();
             };
@@ -736,6 +763,9 @@
                     }
                 }
             }
+            StandAloneTracker.prototype.dispose = function () {
+                return this.off();
+            };
             StandAloneTracker.prototype.on = function () {
                 var ev, handler, _ref;
                 if (this.started) {
@@ -830,12 +860,12 @@
                 }
                 return _results;
             };
-            EventTracker.prototype.despose = function () {
+            EventTracker.prototype.dispose = function () {
                 var tracker, _i, _len, _ref;
                 _ref = this.trackers;
                 for (_i = 0, _len = _ref.length; _i < _len; _i++) {
                     tracker = _ref[_i];
-                    tracker.off();
+                    tracker.dispose();
                 }
                 this.trackers = [];
                 return this.selector = null;
@@ -864,10 +894,10 @@
                 this.eventEngine = eventEngine;
                 this.eventTracker = eventTracker;
             }
-            ComponentFactory.prototype.despose = function () {
+            ComponentFactory.prototype.dispose = function () {
                 this.componentRegistry = null;
                 if (this.eventEngine) {
-                    return this.eventEngine.despose();
+                    return this.eventEngine.dispose();
                 }
             };
             ComponentFactory.prototype.uniqueId = function () {
@@ -938,6 +968,19 @@
                 if (spec.model_event_map) {
                     this.eventEngine.add(component, spec.model_event_map, controller);
                 }
+                component.addDisposer(function (_this) {
+                    return function () {
+                        var view, _k, _len2, _ref2;
+                        _this.eventEngine.remove(component);
+                        _ref2 = component.getViews();
+                        for (_k = 0, _len2 = _ref2.length; _k < _len2; _k++) {
+                            view = _ref2[_k];
+                            _this.eventTracker.off(view);
+                            view.destroy();
+                        }
+                        return component.detachAll();
+                    };
+                }(this));
                 return component;
             };
             return ComponentFactory;
@@ -970,7 +1013,7 @@
             function CommandManager(params) {
                 this.reset();
             }
-            CommandManager.prototype.despose = function () {
+            CommandManager.prototype.dispose = function () {
                 return this.reset();
             };
             CommandManager.prototype.execute = function (command) {
@@ -1021,7 +1064,7 @@
             function ComponentRegistry() {
                 this.componentSpecs = {};
             }
-            ComponentRegistry.prototype.despose = function () {
+            ComponentRegistry.prototype.dispose = function () {
                 var keys, type, _i, _len, _results;
                 keys = Object.keys(this.componentSpecs);
                 _results = [];
@@ -1107,6 +1150,9 @@
                 this.selections = [];
                 this.selectable_fn = config.selectable_fn;
             }
+            SelectionManager.prototype.dispose = function () {
+                return this.reset();
+            };
             SelectionManager.prototype.focus = function (target) {
                 var idx, old_sels;
                 if (!target) {
@@ -2916,11 +2962,10 @@
                     }
                 }
             }
-            ApplicationContext.prototype.despose = function () {
-                this.compEventTracker.despose();
-                this.eventController.despose();
-                this.eventRegistry.despose();
-                return this.componentFactory.despose();
+            ApplicationContext.prototype.dispose = function () {
+                this.application.dispose();
+                this.compEventTracker.dispose();
+                return this.componentFactory.dispose();
             };
             ApplicationContext.prototype.getEventTracker = function () {
                 return this.compEventTracker;
@@ -2936,9 +2981,6 @@
                 before = this.model;
                 this.model = model;
                 return this.application.trigger('change-model', this.model, before);
-            };
-            ApplicationContext.prototype.getController = function () {
-                return this.eventController;
             };
             ApplicationContext.prototype.getApplication = function () {
                 return this.application;

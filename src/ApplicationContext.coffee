@@ -72,11 +72,11 @@ define [
 
             @componentRegistry.setRegisterCallback (spec) ->
                 ;
-                # @eventController.append spec.controller if spec.controller
+                # @eventEngine.append spec.controller if spec.controller
             , this
             @componentRegistry.setUnregisterCallback (spec) ->
                 ;
-                # @eventController.remove spec.controller if spec.controller
+                # @eventEngine.remove spec.controller if spec.controller
             , this
 
             @componentFactory = new ComponentFactory(@componentRegistry, @eventEngine, @viewEventTracker)
@@ -130,11 +130,10 @@ define [
             if @application_spec.layers
                 (@application.add @componentFactory.createComponent(component, this)) for component in @application_spec.layers
 
-        despose: ->
-            @compEventTracker.despose()
-            @eventController.despose()
-            @eventRegistry.despose()
-            @componentFactory.despose()
+        dispose: ->
+            @application.dispose()
+            @compEventTracker.dispose()
+            @componentFactory.dispose()
 
         getEventTracker: ->
             @compEventTracker
@@ -150,9 +149,6 @@ define [
             before = @model
             @model = model
             @application.trigger 'change-model', @model, before
-
-        getController: ->
-            @eventController
 
         getApplication: ->
             @application

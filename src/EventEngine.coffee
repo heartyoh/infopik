@@ -18,14 +18,14 @@ define [
 
     class EventEngine
         constructor: (root) ->
-            @eventPumps = []
+            @eventMaps = []
             @setRoot(root)
 
         setRoot: (root) ->
             @root = root
 
         stop: ->
-            for item in @eventPumps
+            for item in @eventMaps
                 item.eventPump.stop()
 
         add: (listener, handlerMap, context) ->
@@ -40,25 +40,27 @@ define [
                     eventPump.on(listener, handlers)
                     eventPump.start(context)
 
-                    @eventPumps.push
+                    @eventMaps.push
                         eventPump: eventPump
                         listener: listener
                         handlerMap: handlerMap
                         target: target
 
         remove: (listener, handlerMap) ->
-            for item, index in @eventPumps
+            maps = dou.util.clone @eventMaps
+            for item, index in maps
                 if item.listener is listener and (!handlerMap or item.handlerMap is handlerMap)
-                    @eventPumps.splice(index, 1)
-                    item.eventPump.despose()
+                    @eventMaps.splice(index, 1)
+                    item.eventPump.dispose()
 
         clear: ->
-            for eventPump in @eventPumps
-                eventPump.despose()
+            maps = dou.util.clone @eventMaps
+            for eventMap in maps
+                eventMap.eventPump.dispose()
 
-            @eventPumps = []
+            @eventMaps = []
 
-        despose: ->
+        dispose: ->
             @stop()
             @clear()
 

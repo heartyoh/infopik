@@ -43,6 +43,10 @@ define(['dou', 'build/ComponentRegistry'],
       });
     });
 
+    afterEach(function() {
+      componentRegistry.dispose()
+    });
+
     describe('register', function() {
 
       it('should ', function () {

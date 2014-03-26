@@ -59,6 +59,8 @@ define(['dou', 'build/EventTracker'], function (dou, EventTracker) {
         startcount.should.equal(2);
         movecount.should.equal(20);
         endcount.should.equal(2);
+
+        tracker.dispose();
       });
 
       it('should bind on the specified object when handlers call-backed', function () {
@@ -76,6 +78,8 @@ define(['dou', 'build/EventTracker'], function (dou, EventTracker) {
         evsource.test();
 
         self.a.should.equal('A');
+
+        tracker.dispose();
       });
 
       it('should bind target object when handlers call-backed if bind object is not specified', function () {
@@ -91,6 +95,8 @@ define(['dou', 'build/EventTracker'], function (dou, EventTracker) {
         evsource.test();
 
         calc.should.equal(2);
+
+        tracker.dispose();
       });
 
     });

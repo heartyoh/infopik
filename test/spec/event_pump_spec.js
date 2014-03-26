@@ -97,6 +97,10 @@ define([
       folder3.add([file31, link32]);
     });
 
+    afterEach(function() {
+      root.dispose()
+    });
+
     describe('on/off', function() {
 
       it('should be able to use id, type and special(self, all) selector', function() {
@@ -173,6 +177,8 @@ define([
         origin_link_count.should.be.equal(1);
 
         deliverer_computer_count.should.be.equal(6);
+
+        pump.dispose();
       });
 
       it('should be able to use variable selector', function() {

@@ -20,6 +20,10 @@ define(['build/SelectionManager'], function (SelectionManager) {
       changes = null;
     });
 
+    afterEach(function() {
+      selectionManager.dispose()
+    });
+
     describe('select', function () {
 
       it('should notify the changes', function () {

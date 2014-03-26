@@ -51,7 +51,7 @@ define(['dou',
     });
 
     afterEach(function() {
-      // stage.destroy();
+      stage.destroy();
     });
 
     describe('render', function() {

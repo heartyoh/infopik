@@ -8,12 +8,25 @@
         this.container = container;
       }
 
+      Component.prototype.dispose = function() {
+        return this.setContainer(null);
+      };
+
       Component.prototype.getContainer = function() {
         return this.container;
       };
 
       Component.prototype.setContainer = function(container) {
-        return this.container = container;
+        if (container === this.container) {
+          return;
+        }
+        if (this.container) {
+          this.container.remove(this);
+        }
+        this.container = container;
+        if (this.container) {
+          return this.container.add(this);
+        }
       };
 
       Component.prototype.moveAt = function(index) {
@@ -54,7 +67,7 @@
       return Component;
 
     })();
-    return dou.mixin(Component, [dou["with"].advice, dou["with"].event, dou["with"].property, dou["with"].lifecycle, dou["with"].serialize, MVCMixin.model]);
+    return dou.mixin(Component, [dou["with"].advice, dou["with"].event, dou["with"].property, dou["with"].lifecycle, dou["with"].serialize, dou["with"].disposer, MVCMixin.model]);
   });
 
 }).call(this);

@@ -126,8 +126,17 @@ define [
         @__components__ = @__components__.concat(head, tail)
 
     class Container extends Component
-        constructor : (type) ->
+        constructor: (type) ->
             super(type)
+
+        dispose: ->
+            return if @__components__
+
+            children = dou.util.clone(@__components__)
+
+            for component in children
+                component.dispose()
+            @__components__ = null
 
         add: add
         remove: remove

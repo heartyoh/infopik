@@ -13,10 +13,10 @@
         this.eventTracker = eventTracker;
       }
 
-      ComponentFactory.prototype.despose = function() {
+      ComponentFactory.prototype.dispose = function() {
         this.componentRegistry = null;
         if (this.eventEngine) {
-          return this.eventEngine.despose();
+          return this.eventEngine.dispose();
         }
       };
 
@@ -89,6 +89,19 @@
         if (spec.model_event_map) {
           this.eventEngine.add(component, spec.model_event_map, controller);
         }
+        component.addDisposer((function(_this) {
+          return function() {
+            var view, _k, _len2, _ref2;
+            _this.eventEngine.remove(component);
+            _ref2 = component.getViews();
+            for (_k = 0, _len2 = _ref2.length; _k < _len2; _k++) {
+              view = _ref2[_k];
+              _this.eventTracker.off(view);
+              view.destroy();
+            }
+            return component.detachAll();
+          };
+        })(this));
         return component;
       };
 

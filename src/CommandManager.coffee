@@ -14,7 +14,7 @@ define [
         constructor : (params) ->
             this.reset()
 
-        despose : ->
+        dispose : ->
             this.reset()
 
         execute: (command) ->

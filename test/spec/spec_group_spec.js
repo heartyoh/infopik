@@ -22,12 +22,13 @@ define([
 
     var controller;
     var componentFactory;
+    var componentRegistry;
     var container;
     var stage;
     var layer;
 
     beforeEach(function() {
-      var componentRegistry = new ComponentRegistry();
+      componentRegistry = new ComponentRegistry();
 
       controller = dou.mixin({}, MVCMixin.controller);
 
@@ -54,7 +55,9 @@ define([
     });
 
     afterEach(function() {
-      // stage.destroy();
+      stage.destroy();
+      componentFactory.dispose();
+      componentRegistry.dispose();
     });
 
     describe('render', function() {

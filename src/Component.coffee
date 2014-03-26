@@ -19,11 +19,21 @@ define [
             @type = type
             @container = container
 
+        dispose : ->
+            @setContainer null
+
         getContainer : ->
             @container
 
         setContainer : (container) ->
+            return if container is @container
+
+            if @container
+                @container.remove this
+
             @container = container
+            if @container
+                @container.add this
 
         moveAt: (index) ->
             return if not @getContainer()
@@ -51,5 +61,6 @@ define [
         dou.with.property
         dou.with.lifecycle
         dou.with.serialize
+        dou.with.disposer
         MVCMixin.model
     ]

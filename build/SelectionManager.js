@@ -10,6 +10,10 @@
         this.selectable_fn = config.selectable_fn;
       }
 
+      SelectionManager.prototype.dispose = function() {
+        return this.reset();
+      };
+
       SelectionManager.prototype.focus = function(target) {
         var idx, old_sels;
         if (!target) {

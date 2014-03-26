@@ -9,7 +9,7 @@
         this.componentSpecs = {};
       }
 
-      ComponentRegistry.prototype.despose = function() {
+      ComponentRegistry.prototype.dispose = function() {
         var keys, type, _i, _len, _results;
         keys = Object.keys(this.componentSpecs);
         _results = [];

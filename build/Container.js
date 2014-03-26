@@ -153,6 +153,19 @@
         Container.__super__.constructor.call(this, type);
       }
 
+      Container.prototype.dispose = function() {
+        var children, component, _i, _len;
+        if (this.__components__) {
+          return;
+        }
+        children = dou.util.clone(this.__components__);
+        for (_i = 0, _len = children.length; _i < _len; _i++) {
+          component = children[_i];
+          component.dispose();
+        }
+        return this.__components__ = null;
+      };
+
       Container.prototype.add = add;
 
       Container.prototype.remove = remove;
