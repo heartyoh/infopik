@@ -232,11 +232,6 @@
       };
 
       ApplicationContext.prototype.set_scale = function(scale) {
-        var height, size, width;
-        size = this.getView().getSize();
-        width = size.width * scale;
-        height = size.height * scale;
-        this.setSize(width, height);
         this.getView().setScale({
           x: scale,
           y: scale

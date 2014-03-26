@@ -250,12 +250,6 @@ define [
             @commandManager.undo()
 
         set_scale: (scale) ->
-            size = @getView().getSize()
-            width = size.width * scale
-            height = size.height * scale
-            
-            @setSize width, height
-
             @getView().setScale
                 x : scale
                 y : scale
