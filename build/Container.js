@@ -4,7 +4,7 @@
 
   define(['dou', './Component'], function(dou, Component) {
     "use strict";
-    var Container, EMPTY, add, add_component, forEach, getAt, indexOf, moveChildAt, moveChildDown, moveChildToBottom, moveChildToTop, moveChildUp, remove, remove_component, size;
+    var Container, EMPTY, add, add_component, forEach, getAt, indexOf, moveChildAt, moveChildBackward, moveChildForward, moveChildToBack, moveChildToFront, remove, remove_component, size;
     EMPTY = [];
     add_component = function(container, component) {
       var containable, index, oldContainer;
@@ -108,7 +108,7 @@
       head = this.__components__.splice(0, index);
       return this.__components__ = head.concat(child, this.__components__);
     };
-    moveChildUp = function(child) {
+    moveChildForward = function(child) {
       var index;
       index = this.indexOf(child);
       if ((index === -1) || (index === this.size() - 1)) {
@@ -117,7 +117,7 @@
       this.__components__[index] = this.__components__[index + 1];
       return this.__components__[index + 1] = child;
     };
-    moveChildDown = function(child) {
+    moveChildBackward = function(child) {
       var index;
       index = this.indexOf(child);
       if (index === -1 || index === 0) {
@@ -126,7 +126,7 @@
       this.__components__[index] = this.__components__[index - 1];
       return this.__components__[index - 1] = child;
     };
-    moveChildToTop = function(child) {
+    moveChildToFront = function(child) {
       var head, index, tail;
       index = this.indexOf(child);
       if (index === -1 || (index === this.size() - 1)) {
@@ -136,7 +136,7 @@
       tail = this.__components__.splice(1);
       return this.__components__ = head.concat(tail, this.__components__);
     };
-    moveChildToBottom = function(child) {
+    moveChildToBack = function(child) {
       var head, index, tail;
       index = this.indexOf(child);
       if (index === -1 || index === 0) {
@@ -180,13 +180,13 @@
 
       Container.prototype.moveChildAt = moveChildAt;
 
-      Container.prototype.moveChildUp = moveChildUp;
+      Container.prototype.moveChildForward = moveChildForward;
 
-      Container.prototype.moveChildDown = moveChildDown;
+      Container.prototype.moveChildBackward = moveChildBackward;
 
-      Container.prototype.moveChildToTop = moveChildToTop;
+      Container.prototype.moveChildToFront = moveChildToFront;
 
-      Container.prototype.moveChildToBottom = moveChildToBottom;
+      Container.prototype.moveChildToBack = moveChildToBack;
 
       return Container;
 

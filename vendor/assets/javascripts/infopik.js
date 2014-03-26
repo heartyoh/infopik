@@ -217,29 +217,29 @@
                 }
                 return this.container.moveChildAt(index, this);
             };
-            Component.prototype.moveUp = function () {
+            Component.prototype.moveForward = function () {
                 if (!this.getContainer()) {
                     return;
                 }
-                return this.container.moveChildUp(this);
+                return this.container.moveChildForward(this);
             };
-            Component.prototype.moveDown = function () {
+            Component.prototype.moveBackward = function () {
                 if (!this.getContainer()) {
                     return;
                 }
-                return this.container.moveChildDown(this);
+                return this.container.moveChildBackward(this);
             };
-            Component.prototype.moveToTop = function () {
+            Component.prototype.moveToFront = function () {
                 if (!this.getContainer()) {
                     return;
                 }
-                return this.container.moveChildToTop(this);
+                return this.container.moveChildToFront(this);
             };
-            Component.prototype.moveToBottom = function () {
+            Component.prototype.moveToBack = function () {
                 if (!this.getContainer()) {
                     return;
                 }
-                return this.container.moveChildToBottom(this);
+                return this.container.moveChildToBack(this);
             };
             return Component;
         }();
@@ -273,7 +273,7 @@
         './Component'
     ], function (dou, Component) {
         'use strict';
-        var Container, EMPTY, add, add_component, forEach, getAt, indexOf, moveChildAt, moveChildDown, moveChildToBottom, moveChildToTop, moveChildUp, remove, remove_component, size;
+        var Container, EMPTY, add, add_component, forEach, getAt, indexOf, moveChildAt, moveChildBackward, moveChildForward, moveChildToBack, moveChildToFront, remove, remove_component, size;
         EMPTY = [];
         add_component = function (container, component) {
             var containable, index, oldContainer;
@@ -377,7 +377,7 @@
             head = this.__components__.splice(0, index);
             return this.__components__ = head.concat(child, this.__components__);
         };
-        moveChildUp = function (child) {
+        moveChildForward = function (child) {
             var index;
             index = this.indexOf(child);
             if (index === -1 || index === this.size() - 1) {
@@ -386,7 +386,7 @@
             this.__components__[index] = this.__components__[index + 1];
             return this.__components__[index + 1] = child;
         };
-        moveChildDown = function (child) {
+        moveChildBackward = function (child) {
             var index;
             index = this.indexOf(child);
             if (index === -1 || index === 0) {
@@ -395,7 +395,7 @@
             this.__components__[index] = this.__components__[index - 1];
             return this.__components__[index - 1] = child;
         };
-        moveChildToTop = function (child) {
+        moveChildToFront = function (child) {
             var head, index, tail;
             index = this.indexOf(child);
             if (index === -1 || index === this.size() - 1) {
@@ -405,7 +405,7 @@
             tail = this.__components__.splice(1);
             return this.__components__ = head.concat(tail, this.__components__);
         };
-        moveChildToBottom = function (child) {
+        moveChildToBack = function (child) {
             var head, index, tail;
             index = this.indexOf(child);
             if (index === -1 || index === 0) {
@@ -439,10 +439,10 @@
             Container.prototype.indexOf = indexOf;
             Container.prototype.forEach = forEach;
             Container.prototype.moveChildAt = moveChildAt;
-            Container.prototype.moveChildUp = moveChildUp;
-            Container.prototype.moveChildDown = moveChildDown;
-            Container.prototype.moveChildToTop = moveChildToTop;
-            Container.prototype.moveChildToBottom = moveChildToBottom;
+            Container.prototype.moveChildForward = moveChildForward;
+            Container.prototype.moveChildBackward = moveChildBackward;
+            Container.prototype.moveChildToFront = moveChildToFront;
+            Container.prototype.moveChildToBack = moveChildToBack;
             return Container;
         }(Component);
         return Container;
@@ -1265,6 +1265,10 @@
         }();
     });
 }.call(this));
+define("build/Clipboard",["module","require","exports"],function(module, require, exports) {
+(function () {
+}.call(this));
+});
 (function () {
     define('build/ComponentSpec', ['dou'], function (dou) {
         'use strict';
@@ -2829,39 +2833,45 @@
                 return CommandMove.__super__.constructor.apply(this, arguments);
             }
             CommandMove.prototype.execute = function () {
-                var model, to, view;
+                var layer, model, to, view;
                 to = this.params.to;
                 model = this.params.model;
                 view = this.params.view;
                 this.i_model = model.getContainer().indexOf(model);
                 this.i_view = view.getZIndex();
                 switch (to) {
-                case 'UP':
+                case 'FORWARD':
                     view.moveUp();
-                    model.moveUp();
+                    model.moveForward();
                     break;
-                case 'DOWN':
+                case 'BACKWORD':
                     view.moveDown();
-                    model.moveDown();
+                    model.moveBackward();
                     break;
-                case 'TOP':
+                case 'FRONT':
                     view.moveToTop();
-                    model.moveToTop();
+                    model.moveToFront();
                     break;
-                case 'BOTTOM':
+                case 'BACK':
                     view.moveToBottom();
-                    model.moveToBottom();
+                    model.moveToBack();
                 }
-                return view.getLayer().draw();
+                layer = view.getLayer();
+                if (layer) {
+                    return layer.draw();
+                }
             };
             CommandMove.prototype.unexecute = function () {
-                var model, to, view;
+                var layer, model, to, view;
                 to = this.params.to;
                 model = this.params.model;
                 view = this.params.view;
                 view.setZIndex(this.i_view);
                 model.moveAt(this.i_model);
-                return view.getLayer().draw();
+                layer = view.getLayer();
+                if (layer) {
+                    return layer.draw();
+                }
             };
             return CommandMove;
         }(Command);
@@ -2882,12 +2892,13 @@
         './ComponentRegistry',
         './ComponentSelector',
         './SelectionManager',
+        './Clipboard',
         './ComponentSpec',
         './spec/SpecPainter',
         './spec/SpecPresenter',
         './spec/SpecInfographic',
         './command/CommandMove'
-    ], function (dou, kin, MVCMixin, Component, Container, EventEngine, EventTracker, ComponentFactory, Command, CommandManager, ComponentRegistry, ComponentSelector, SelectionManager, ComponentSpec, SpecPainter, SpecPresenter, SpecInfographic, CommandMove) {
+    ], function (dou, kin, MVCMixin, Component, Container, EventEngine, EventTracker, ComponentFactory, Command, CommandManager, ComponentRegistry, ComponentSelector, SelectionManager, Clipboard, ComponentSpec, SpecPainter, SpecPresenter, SpecInfographic, CommandMove) {
         'use strict';
         var ApplicationContext;
         ApplicationContext = function () {
@@ -3076,17 +3087,17 @@
                     model: this.getAttachedModel(view)
                 }));
             };
-            ApplicationContext.prototype.moveUp = function () {
-                return this._move('UP');
+            ApplicationContext.prototype.moveForward = function () {
+                return this._move('FORWARD');
             };
-            ApplicationContext.prototype.moveDown = function () {
-                return this._move('DOWN');
+            ApplicationContext.prototype.moveBackward = function () {
+                return this._move('BACKWARD');
             };
-            ApplicationContext.prototype.moveToTop = function () {
-                return this._move('TOP');
+            ApplicationContext.prototype.moveToFront = function () {
+                return this._move('FRONT');
             };
-            ApplicationContext.prototype.moveToBottom = function () {
-                return this._move('BOTTOM');
+            ApplicationContext.prototype.moveToBack = function () {
+                return this._move('BACK');
             };
             ApplicationContext.prototype.redo = function () {
                 return this.commandManager.redo();
@@ -3109,7 +3120,48 @@
             ApplicationContext.prototype.scaleReduce = function () {
                 var scale;
                 scale = this.getView().scaleX();
-                return this.setScale(scale - 1 > 8 ? 1 : scale - 1);
+                return this.setScale(scale - 1 < 1 ? 1 : scale - 1);
+            };
+            ApplicationContext.prototype.cut = function () {
+                return this.clipboard.cut(this.selectionManager.get());
+            };
+            ApplicationContext.prototype.copy = function () {
+                return this.clipboard.copy(this.selectionManager.get());
+            };
+            ApplicationContext.prototype.paste = function () {
+                var component, components, nodes;
+                components = this.clipboard.paste();
+                nodes = function () {
+                    var _i, _len, _results;
+                    _results = [];
+                    for (_i = 0, _len = components.length; _i < _len; _i++) {
+                        component = components[_i];
+                        _results.push(this.getAttachedModel(component));
+                    }
+                    return _results;
+                }.call(this);
+                return this.selectionManager.select(nodes);
+            };
+            ApplicationContext.prototype.moveDelta = function (delta) {
+                var after, attr, before, changes, component, node, nodes, _i, _len;
+                nodes = this.selectionManager.get();
+                changes = [];
+                for (_i = 0, _len = nodes.length; _i < _len; _i++) {
+                    node = nodes[_i];
+                    component = this.getAttachedModel(node);
+                    before = {};
+                    after = {};
+                    for (attr in delta) {
+                        before[attr] = component.get(attr);
+                        after[attr] = component.get(attr) + delta[attr];
+                    }
+                    changes.push({
+                        component: component,
+                        before: before,
+                        after: after
+                    });
+                }
+                return this.commandManager.execute(new CommandPropertyChange({ changes: changes }));
             };
             return ApplicationContext;
         }();

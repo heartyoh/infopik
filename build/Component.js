@@ -36,32 +36,32 @@
         return this.container.moveChildAt(index, this);
       };
 
-      Component.prototype.moveUp = function() {
+      Component.prototype.moveForward = function() {
         if (!this.getContainer()) {
           return;
         }
-        return this.container.moveChildUp(this);
+        return this.container.moveChildForward(this);
       };
 
-      Component.prototype.moveDown = function() {
+      Component.prototype.moveBackward = function() {
         if (!this.getContainer()) {
           return;
         }
-        return this.container.moveChildDown(this);
+        return this.container.moveChildBackward(this);
       };
 
-      Component.prototype.moveToTop = function() {
+      Component.prototype.moveToFront = function() {
         if (!this.getContainer()) {
           return;
         }
-        return this.container.moveChildToTop(this);
+        return this.container.moveChildToFront(this);
       };
 
-      Component.prototype.moveToBottom = function() {
+      Component.prototype.moveToBack = function() {
         if (!this.getContainer()) {
           return;
         }
-        return this.container.moveChildToBottom(this);
+        return this.container.moveChildToBack(this);
       };
 
       return Component;

@@ -21,20 +21,21 @@ define [
             @i_view = view.getZIndex()
 
             switch to
-                when 'UP'
+                when 'FORWARD'
                     view.moveUp()
-                    model.moveUp()
-                when 'DOWN'
+                    model.moveForward()
+                when 'BACKWORD'
                     view.moveDown()
-                    model.moveDown()
-                when 'TOP'
+                    model.moveBackward()
+                when 'FRONT'
                     view.moveToTop()
-                    model.moveToTop()
-                when 'BOTTOM'
+                    model.moveToFront()
+                when 'BACK'
                     view.moveToBottom()
-                    model.moveToBottom()
+                    model.moveToBack()
 
-            view.getLayer().draw()
+            layer = view.getLayer()
+            layer.draw() if layer
 
         unexecute: ->
             to = @params.to
@@ -44,5 +45,6 @@ define [
             view.setZIndex(@i_view)
             model.moveAt(@i_model)
 
-            view.getLayer().draw()
+            layer = view.getLayer()
+            layer.draw() if layer
 

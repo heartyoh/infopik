@@ -13,40 +13,46 @@
       }
 
       CommandMove.prototype.execute = function() {
-        var model, to, view;
+        var layer, model, to, view;
         to = this.params.to;
         model = this.params.model;
         view = this.params.view;
         this.i_model = model.getContainer().indexOf(model);
         this.i_view = view.getZIndex();
         switch (to) {
-          case 'UP':
+          case 'FORWARD':
             view.moveUp();
-            model.moveUp();
+            model.moveForward();
             break;
-          case 'DOWN':
+          case 'BACKWORD':
             view.moveDown();
-            model.moveDown();
+            model.moveBackward();
             break;
-          case 'TOP':
+          case 'FRONT':
             view.moveToTop();
-            model.moveToTop();
+            model.moveToFront();
             break;
-          case 'BOTTOM':
+          case 'BACK':
             view.moveToBottom();
-            model.moveToBottom();
+            model.moveToBack();
         }
-        return view.getLayer().draw();
+        layer = view.getLayer();
+        if (layer) {
+          return layer.draw();
+        }
       };
 
       CommandMove.prototype.unexecute = function() {
-        var model, to, view;
+        var layer, model, to, view;
         to = this.params.to;
         model = this.params.model;
         view = this.params.view;
         view.setZIndex(this.i_view);
         model.moveAt(this.i_model);
-        return view.getLayer().draw();
+        layer = view.getLayer();
+        if (layer) {
+          return layer.draw();
+        }
       };
 
       return CommandMove;

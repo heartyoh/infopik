@@ -99,26 +99,26 @@ define [
         head = @__components__.splice(0, index)
         @__components__ = head.concat(child, @__components__)
 
-    moveChildUp = (child) ->
+    moveChildForward = (child) ->
         index = @indexOf(child)
         return if (index is -1) or (index is @size() - 1)
         @__components__[index] = @__components__[index + 1]
         @__components__[index + 1] = child
 
-    moveChildDown = (child) ->
+    moveChildBackward = (child) ->
         index = @indexOf(child)
         return if index is -1 or index is 0
         @__components__[index] = @__components__[index - 1]
         @__components__[index - 1] = child
 
-    moveChildToTop = (child) ->
+    moveChildToFront = (child) ->
         index = @indexOf(child)
         return if index is -1 or (index is @size() - 1)
         head = @__components__.splice(0, index)
         tail = @__components__.splice(1)
         @__components__ = head.concat(tail, @__components__)
 
-    moveChildToBottom = (child) ->
+    moveChildToBack = (child) ->
         index = @indexOf(child)
         return if index is -1 or index is 0
         head = @__components__.splice(0, index)
@@ -146,9 +146,9 @@ define [
         indexOf: indexOf
         forEach: forEach
         moveChildAt: moveChildAt
-        moveChildUp: moveChildUp
-        moveChildDown: moveChildDown
-        moveChildToTop: moveChildToTop
-        moveChildToBottom: moveChildToBottom
+        moveChildForward: moveChildForward
+        moveChildBackward: moveChildBackward
+        moveChildToFront: moveChildToFront
+        moveChildToBack: moveChildToBack
 
     Container

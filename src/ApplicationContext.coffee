@@ -18,6 +18,7 @@ define [
     './ComponentRegistry'
     './ComponentSelector'
     './SelectionManager'
+    './Clipboard'
     './ComponentSpec'
     './spec/SpecPainter'
     './spec/SpecPresenter'
@@ -36,6 +37,7 @@ define [
     ComponentRegistry
     ComponentSelector
     SelectionManager
+    Clipboard
     ComponentSpec
     SpecPainter
     SpecPresenter
@@ -231,17 +233,17 @@ define [
                 view: view
                 model: this.getAttachedModel(view)
 
-        moveUp: ->
-            @_move 'UP'
+        moveForward: ->
+            @_move 'FORWARD'
 
-        moveDown: ->
-            @_move 'DOWN'
+        moveBackward: ->
+            @_move 'BACKWARD'
 
-        moveToTop: ->
-            @_move 'TOP'
+        moveToFront: ->
+            @_move 'FRONT'
 
-        moveToBottom: ->
-            @_move 'BOTTOM'
+        moveToBack: ->
+            @_move 'BACK'
 
         redo: ->
             @commandManager.redo()
@@ -264,7 +266,40 @@ define [
         scaleReduce: ->
             scale = @getView().scaleX()
             
-            @setScale (if (scale - 1 > 8) then 1 else scale - 1)
+            @setScale (if (scale - 1 < 1) then 1 else scale - 1)
+
+        cut: ->
+            @clipboard.cut @selectionManager.get()
+        copy: ->
+            @clipboard.copy @selectionManager.get()
+
+        paste: ->
+            components = @clipboard.paste()
+            nodes = (@getAttachedModel(component) for component in components)
+            @selectionManager.select(nodes)
+
+        moveDelta: (delta) ->
+            nodes = @selectionManager.get()
+            changes = []
+        
+            for node in nodes
+                component = @getAttachedModel(node)
+
+                before = {}
+                after = {}
+
+                for attr of delta
+                    before[attr] = component.get(attr)
+                    after[attr] = component.get(attr) + delta[attr]
+        
+                changes.push
+                    component : component
+                    before : before
+                    after : after
+        
+            @commandManager.execute(new CommandPropertyChange {
+                changes : changes
+            })
 
     dou.mixin ApplicationContext, MVCMixin.controller
     

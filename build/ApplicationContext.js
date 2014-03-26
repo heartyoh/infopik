@@ -1,5 +1,5 @@
 (function() {
-  define(['dou', 'KineticJS', './MVCMixin', './Component', './Container', './EventEngine', './EventTracker', './ComponentFactory', './Command', './CommandManager', './ComponentRegistry', './ComponentSelector', './SelectionManager', './ComponentSpec', './spec/SpecPainter', './spec/SpecPresenter', './spec/SpecInfographic', './command/CommandMove'], function(dou, kin, MVCMixin, Component, Container, EventEngine, EventTracker, ComponentFactory, Command, CommandManager, ComponentRegistry, ComponentSelector, SelectionManager, ComponentSpec, SpecPainter, SpecPresenter, SpecInfographic, CommandMove) {
+  define(['dou', 'KineticJS', './MVCMixin', './Component', './Container', './EventEngine', './EventTracker', './ComponentFactory', './Command', './CommandManager', './ComponentRegistry', './ComponentSelector', './SelectionManager', './Clipboard', './ComponentSpec', './spec/SpecPainter', './spec/SpecPresenter', './spec/SpecInfographic', './command/CommandMove'], function(dou, kin, MVCMixin, Component, Container, EventEngine, EventTracker, ComponentFactory, Command, CommandManager, ComponentRegistry, ComponentSelector, SelectionManager, Clipboard, ComponentSpec, SpecPainter, SpecPresenter, SpecInfographic, CommandMove) {
     "use strict";
     var ApplicationContext;
     ApplicationContext = (function() {
@@ -207,20 +207,20 @@
         }));
       };
 
-      ApplicationContext.prototype.moveUp = function() {
-        return this._move('UP');
+      ApplicationContext.prototype.moveForward = function() {
+        return this._move('FORWARD');
       };
 
-      ApplicationContext.prototype.moveDown = function() {
-        return this._move('DOWN');
+      ApplicationContext.prototype.moveBackward = function() {
+        return this._move('BACKWARD');
       };
 
-      ApplicationContext.prototype.moveToTop = function() {
-        return this._move('TOP');
+      ApplicationContext.prototype.moveToFront = function() {
+        return this._move('FRONT');
       };
 
-      ApplicationContext.prototype.moveToBottom = function() {
-        return this._move('BOTTOM');
+      ApplicationContext.prototype.moveToBack = function() {
+        return this._move('BACK');
       };
 
       ApplicationContext.prototype.redo = function() {
@@ -248,7 +248,54 @@
       ApplicationContext.prototype.scaleReduce = function() {
         var scale;
         scale = this.getView().scaleX();
-        return this.setScale((scale - 1 > 8 ? 1 : scale - 1));
+        return this.setScale((scale - 1 < 1 ? 1 : scale - 1));
+      };
+
+      ApplicationContext.prototype.cut = function() {
+        return this.clipboard.cut(this.selectionManager.get());
+      };
+
+      ApplicationContext.prototype.copy = function() {
+        return this.clipboard.copy(this.selectionManager.get());
+      };
+
+      ApplicationContext.prototype.paste = function() {
+        var component, components, nodes;
+        components = this.clipboard.paste();
+        nodes = (function() {
+          var _i, _len, _results;
+          _results = [];
+          for (_i = 0, _len = components.length; _i < _len; _i++) {
+            component = components[_i];
+            _results.push(this.getAttachedModel(component));
+          }
+          return _results;
+        }).call(this);
+        return this.selectionManager.select(nodes);
+      };
+
+      ApplicationContext.prototype.moveDelta = function(delta) {
+        var after, attr, before, changes, component, node, nodes, _i, _len;
+        nodes = this.selectionManager.get();
+        changes = [];
+        for (_i = 0, _len = nodes.length; _i < _len; _i++) {
+          node = nodes[_i];
+          component = this.getAttachedModel(node);
+          before = {};
+          after = {};
+          for (attr in delta) {
+            before[attr] = component.get(attr);
+            after[attr] = component.get(attr) + delta[attr];
+          }
+          changes.push({
+            component: component,
+            before: before,
+            after: after
+          });
+        }
+        return this.commandManager.execute(new CommandPropertyChange({
+          changes: changes
+        }));
       };
 
       return ApplicationContext;

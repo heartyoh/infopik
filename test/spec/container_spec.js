@@ -194,7 +194,7 @@ define(['build/Component', 'build/Container', 'build/ComponentSelector'], functi
 
     });
 
-    describe('moveChildDown', function () {
+    describe('moveChildBackward', function () {
       it('should exchange positions of the child and the precedence each other', function() {
         var inst = new Container();
 
@@ -202,16 +202,16 @@ define(['build/Component', 'build/Container', 'build/ComponentSelector'], functi
 
         inst.add([1, 2, 3, 4]);
 
-        inst.moveChildDown(2);
+        inst.moveChildBackward(2);
         expect(inst.indexOf(2)).to.equal(0);
         expect(inst.indexOf(1)).to.equal(1);
 
-        inst.moveChildDown(2);
+        inst.moveChildBackward(2);
         expect(inst.indexOf(2)).to.equal(0);
       });
     });
 
-    describe('moveChildUp', function () {
+    describe('moveChildForward', function () {
       it('should exchange positions of the child and the following each other', function() {
         var inst = new Container();
 
@@ -219,16 +219,16 @@ define(['build/Component', 'build/Container', 'build/ComponentSelector'], functi
 
         inst.add([1, 2, 3, 4]);
 
-        inst.moveChildUp(2);
+        inst.moveChildForward(2);
         expect(inst.indexOf(2)).to.equal(2);
         expect(inst.indexOf(3)).to.equal(1);
 
-        inst.moveChildUp(4);
+        inst.moveChildForward(4);
         expect(inst.indexOf(4)).to.equal(3);
       });
     });
 
-    describe('moveChildToBottom', function () {
+    describe('moveChildToBack', function () {
       it('should move the child to the top of the list', function() {
         var inst = new Container();
 
@@ -236,16 +236,16 @@ define(['build/Component', 'build/Container', 'build/ComponentSelector'], functi
 
         inst.add([1, 2, 3, 4]);
 
-        inst.moveChildToBottom(1);
+        inst.moveChildToBack(1);
         expect(inst.indexOf(1)).to.equal(0);
 
-        inst.moveChildToBottom(3);
+        inst.moveChildToBack(3);
         expect(inst.indexOf(3)).to.equal(0);
         expect(inst.indexOf(1)).to.equal(1);
       });
     });
 
-    describe('moveChildToTop', function () {
+    describe('moveChildToFront', function () {
       it('should move the child to the end of the list', function() {
         var inst = new Container();
 
@@ -253,10 +253,10 @@ define(['build/Component', 'build/Container', 'build/ComponentSelector'], functi
 
         inst.add([1, 2, 3, 4]);
 
-        inst.moveChildToTop(4);
+        inst.moveChildToFront(4);
         expect(inst.indexOf(4)).to.equal(3);
 
-        inst.moveChildToTop(1);
+        inst.moveChildToFront(1);
         expect(inst.indexOf(1)).to.equal(3);
         expect(inst.indexOf(4)).to.equal(2);
       });

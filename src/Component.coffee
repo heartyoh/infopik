@@ -39,21 +39,21 @@ define [
             return if not @getContainer()
             @container.moveChildAt(index, this)
 
-        moveUp: ->
+        moveForward: ->
             return if not @getContainer()
-            @container.moveChildUp(this)
+            @container.moveChildForward(this)
 
-        moveDown: ->
+        moveBackward: ->
             return if not @getContainer()
-            @container.moveChildDown(this)
+            @container.moveChildBackward(this)
 
-        moveToTop: ->
+        moveToFront: ->
             return if not @getContainer()
-            @container.moveChildToTop(this)
+            @container.moveChildToFront(this)
 
-        moveToBottom: ->
+        moveToBack: ->
             return if not @getContainer()
-            @container.moveChildToBottom(this)
+            @container.moveChildToBack(this)
 
     dou.mixin Component, [
         dou.with.advice
