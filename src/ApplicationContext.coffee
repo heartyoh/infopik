@@ -250,19 +250,19 @@ define [
             @commandManager.undo()
 
         set_scale: (scale) ->
-            @getView().setScale
+            @getView().scale
                 x : scale
                 y : scale
             
             @drawView()
 
         scale_enlarge: ->
-            scale = @getView().getScale().x
+            scale = @getView().scaleX()
             
             @set_scale((scale + 1 > 8) ? 8 : scale + 1)
 
         scale_reduce: ->
-            scale = this.stage.getScale().x
+            scale = @getView().scaleX()
             
             @set_scale((scale - 1 < 1) ? 1 : scale - 1)
 

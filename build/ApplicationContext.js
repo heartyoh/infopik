@@ -232,7 +232,7 @@
       };
 
       ApplicationContext.prototype.set_scale = function(scale) {
-        this.getView().setScale({
+        this.getView().scale({
           x: scale,
           y: scale
         });
@@ -241,7 +241,7 @@
 
       ApplicationContext.prototype.scale_enlarge = function() {
         var scale, _ref;
-        scale = this.getView().getScale().x;
+        scale = this.getView().scaleX();
         return this.set_scale((_ref = scale + 1 > 8) != null ? _ref : {
           8: scale + 1
         });
@@ -249,7 +249,7 @@
 
       ApplicationContext.prototype.scale_reduce = function() {
         var scale, _ref;
-        scale = this.stage.getScale().x;
+        scale = this.getView().scaleX();
         return this.set_scale((_ref = scale - 1 < 1) != null ? _ref : {
           1: scale - 1
         });
