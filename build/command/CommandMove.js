@@ -24,7 +24,7 @@
             view.moveUp();
             model.moveForward();
             break;
-          case 'BACKWORD':
+          case 'BACKWARD':
             view.moveDown();
             model.moveBackward();
             break;

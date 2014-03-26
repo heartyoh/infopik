@@ -24,7 +24,7 @@ define [
                 when 'FORWARD'
                     view.moveUp()
                     model.moveForward()
-                when 'BACKWORD'
+                when 'BACKWARD'
                     view.moveDown()
                     model.moveBackward()
                 when 'FRONT'
