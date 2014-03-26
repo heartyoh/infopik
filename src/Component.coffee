@@ -21,7 +21,6 @@ define [
 
         dispose : ->
             @setContainer null
-            console.log 'component disposed', @type
 
         getContainer : ->
             @container
