@@ -3094,22 +3094,22 @@
             ApplicationContext.prototype.undo = function () {
                 return this.commandManager.undo();
             };
-            ApplicationContext.prototype.set_scale = function (scale) {
+            ApplicationContext.prototype.setScale = function (scale) {
                 this.getView().scale({
                     x: scale,
                     y: scale
                 });
                 return this.drawView();
             };
-            ApplicationContext.prototype.scale_enlarge = function () {
-                var scale, _ref;
+            ApplicationContext.prototype.scaleEnlarge = function () {
+                var scale;
                 scale = this.getView().scaleX();
-                return this.set_scale((_ref = scale + 1 > 8) != null ? _ref : { 8: scale + 1 });
+                return this.setScale(scale + 1 > 8 ? 8 : scale + 1);
             };
-            ApplicationContext.prototype.scale_reduce = function () {
-                var scale, _ref;
+            ApplicationContext.prototype.scaleReduce = function () {
+                var scale;
                 scale = this.getView().scaleX();
-                return this.set_scale((_ref = scale - 1 < 1) != null ? _ref : { 1: scale - 1 });
+                return this.setScale(scale - 1 > 8 ? 1 : scale - 1);
             };
             return ApplicationContext;
         }();

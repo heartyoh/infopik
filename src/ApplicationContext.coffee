@@ -249,22 +249,22 @@ define [
         undo: ->
             @commandManager.undo()
 
-        set_scale: (scale) ->
+        setScale: (scale) ->
             @getView().scale
                 x : scale
                 y : scale
             
             @drawView()
 
-        scale_enlarge: ->
+        scaleEnlarge: ->
             scale = @getView().scaleX()
             
-            @set_scale((scale + 1 > 8) ? 8 : scale + 1)
+            @setScale (if (scale + 1 > 8) then 8 else scale + 1)
 
-        scale_reduce: ->
+        scaleReduce: ->
             scale = @getView().scaleX()
             
-            @set_scale((scale - 1 < 1) ? 1 : scale - 1)
+            @setScale (if (scale - 1 > 8) then 1 else scale - 1)
 
     dou.mixin ApplicationContext, MVCMixin.controller
     
