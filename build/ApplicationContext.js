@@ -100,6 +100,11 @@
 
       ApplicationContext.prototype.setModel = function(model) {
         var before;
+        if (model === this.model) {
+          return;
+        }
+        this.commandManager.reset();
+        this.selectionManager.reset();
         before = this.model;
         this.model = model;
         return this.application.trigger('change-model', this.model, before);
@@ -130,7 +135,7 @@
       };
 
       ApplicationContext.prototype.drawView = function() {
-        return this.view.draw();
+        return this.view.batchDraw();
       };
 
       ApplicationContext.prototype.execute = function(command) {
@@ -224,6 +229,35 @@
 
       ApplicationContext.prototype.undo = function() {
         return this.commandManager.undo();
+      };
+
+      ApplicationContext.prototype.set_scale = function(scale) {
+        var height, size, width;
+        size = this.getView().getSize();
+        width = size.width * scale;
+        height = size.height * scale;
+        this.setSize(width, height);
+        this.getView().setScale({
+          x: scale,
+          y: scale
+        });
+        return this.drawView();
+      };
+
+      ApplicationContext.prototype.scale_enlarge = function() {
+        var scale, _ref;
+        scale = this.getView().getScale().x;
+        return this.set_scale((_ref = scale + 1 > 8) != null ? _ref : {
+          8: scale + 1
+        });
+      };
+
+      ApplicationContext.prototype.scale_reduce = function() {
+        var scale, _ref;
+        scale = this.stage.getScale().x;
+        return this.set_scale((_ref = scale - 1 < 1) != null ? _ref : {
+          1: scale - 1
+        });
       };
 
       return ApplicationContext;

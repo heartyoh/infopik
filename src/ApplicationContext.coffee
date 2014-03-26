@@ -146,6 +146,11 @@ define [
             @model
 
         setModel: (model) ->
+            return if model is @model
+
+            @commandManager.reset()
+            @selectionManager.reset()
+
             before = @model
             @model = model
             @application.trigger 'change-model', @model, before
@@ -169,7 +174,7 @@ define [
             @componentFactory.createComponent(obj, this)
 
         drawView: ->
-            @view.draw()
+            @view.batchDraw()
 
         execute: (command) ->
             @commandManager.execute command
@@ -243,6 +248,29 @@ define [
 
         undo: ->
             @commandManager.undo()
+
+        set_scale: (scale) ->
+            size = @getView().getSize()
+            width = size.width * scale
+            height = size.height * scale
+            
+            @setSize width, height
+
+            @getView().setScale
+                x : scale
+                y : scale
+            
+            @drawView()
+
+        scale_enlarge: ->
+            scale = @getView().getScale().x
+            
+            @set_scale((scale + 1 > 8) ? 8 : scale + 1)
+
+        scale_reduce: ->
+            scale = this.stage.getScale().x
+            
+            @set_scale((scale - 1 < 1) ? 1 : scale - 1)
 
     dou.mixin ApplicationContext, MVCMixin.controller
     
