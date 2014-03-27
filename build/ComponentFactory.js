@@ -83,11 +83,14 @@
           component = new Component(obj.type);
         }
         component.initialize(dou.util.shallow_merge(spec.defaults || {}, obj.attrs || {}));
+        if (spec.model_initialize_fn) {
+          spec.model_initialize_fn.call(component);
+        }
         if (!component.get('id')) {
           component.set('id', this.uniqueId());
         }
         if (spec.exportable) {
-          dou.mixin(controller, spec.exportable);
+          spec.exportable(controller, component);
         }
         if (spec.model_event_map) {
           this.eventEngine.add(component, spec.model_event_map, controller);

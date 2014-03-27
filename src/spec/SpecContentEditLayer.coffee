@@ -42,19 +42,29 @@ define [
             opacity: 0.1
             # id: undefined
 
-        layer.__background__ = background
-        layer.__origin_offset__ = offset
+        layer.getBackground = -> background
+        layer.getOriginOffset = -> offset
 
         layer.add background
 
         layer
 
+    model_initialize =  ->
+        editmode = 'SELECT'
+
+        @getEditMode = -> editmode
+        @setEditMode = (mode) ->
+            return if mode is editmode
+            old = editmode
+            editmode = mode
+            @trigger 'change-edit-mode', mode, old
+
     _editmodechange = (after, before, layer, model, controller) ->
         switch after
             when 'MOVE'
-                layer.__background__.moveToTop()
+                layer.getBackground().moveToTop()
             when 'SELECT'
-                layer.__background__.moveToBottom()
+                layer.getBackground().moveToBottom()
             else
                 
         layer.batchDraw()
@@ -64,7 +74,7 @@ define [
         model = e.listener
         layer = controller.getAttachedViews(model)[0]
 
-        _editmodechange(controller.getEditMode(), null, layer, model, controller)
+        _editmodechange(model.getEditMode(), null, layer, model, controller)
 
     onremoved = (container, component, e) ->
 
@@ -88,8 +98,8 @@ define [
 
     _stuckBackgroundPosition = (layer) ->
         layerOffset = layer.offset()
-        layerOriginOffset = layer.__origin_offset__
-        layer.__background__.position
+        layerOriginOffset = layer.getOriginOffset()
+        layer.getBackground().position
             x: layerOffset.x - layerOriginOffset.x
             y: layerOffset.y - layerOriginOffset.y
 
@@ -104,11 +114,12 @@ define [
     ondragstart = (e) ->
         controller = @context
         layer = @listener
+        model = controller.getAttachedModel(layer)
 
-        background = layer.__background__
+        background = layer.getBackground()
         node = e.targetNode
 
-        @context.selectionManager.select(node)
+        controller.selectionManager.select(node)
             
         return if node and node isnt background
 
@@ -120,7 +131,7 @@ define [
             x: @mousePointOnStart.x + @layerOffsetOnStart.x
             y: @mousePointOnStart.y + @layerOffsetOnStart.y
 
-        switch(controller.getEditMode())
+        switch(model.getEditMode())
             when 'SELECT'
                 @selectbox = new kin.Rect
                     stroke: 'black'
@@ -141,8 +152,9 @@ define [
     ondragmove = (e) ->
         controller = @context
         layer = @listener
+        model = controller.getAttachedModel(layer)
 
-        background = layer.__background__
+        background = layer.getBackground()
         node = e.targetNode
 
         return if node and node isnt background
@@ -152,7 +164,7 @@ define [
             x: mousePointCurrent.x - @mousePointOnStart.x
             y: mousePointCurrent.y - @mousePointOnStart.y
 
-        switch(controller.getEditMode())
+        switch(model.getEditMode())
             when 'SELECT'
                 @selectbox.setAttrs
                     width: moveDelta.x
@@ -175,6 +187,8 @@ define [
 
     ondragend = (e) ->
         controller = @context
+        layer = @listener
+        model = controller.getAttachedModel(layer)
         
         dragview = e.targetNode
         dragmodel = controller.getAttachedModel(dragview)
@@ -197,7 +211,7 @@ define [
 
         layer = @listener
 
-        background = layer.__background__
+        background = layer.getBackground()
 
         return if e.targetNode and e.targetNode isnt background
 
@@ -206,7 +220,7 @@ define [
             x: mousePointCurrent.x - @mousePointOnStart.x
             y: mousePointCurrent.y - @mousePointOnStart.y
 
-        switch(controller.getEditMode())
+        switch(model.getEditMode())
             when 'SELECT'
                 @selectbox.remove()
                 delete @selectbox
@@ -231,7 +245,7 @@ define [
     onresize = (e) ->
         layer = @listener
 
-        background = layer.__background__
+        background = layer.getBackground()
         background.setSize(e.after)
 
         layer.batchDraw()
@@ -277,6 +291,7 @@ define [
         }
         model_event_map: model_event_map
         view_event_map: view_event_map
+        model_initialize_fn: model_initialize
         view_factory_fn: view_factory
         toolbox_image: 'images/toolbox_content_edit_layer.png'
         exportable: exportable

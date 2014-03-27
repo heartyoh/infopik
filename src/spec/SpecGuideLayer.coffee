@@ -72,8 +72,8 @@ define [
         scale = node.getStage().scale()
 
         {
-            x: nodeAbsPosition.x / scale.x + nodeLayerOffset.x + nodeLayerOffset.x - guideLayerOffset.x
-            y: nodeAbsPosition.y / scale.y + nodeLayerOffset.y + nodeLayerOffset.y - guideLayerOffset.y
+            x: nodeAbsPosition.x / scale.x + guideLayerOffset.x # + nodeLayerOffset.x + nodeLayerOffset.x - guideLayerOffset.x
+            y: nodeAbsPosition.y / scale.y + guideLayerOffset.y # + nodeLayerOffset.y + nodeLayerOffset.y - guideLayerOffset.y
         }
 
     ondragstart = (e) ->
@@ -134,6 +134,15 @@ define [
             text: "[ #{guidePosition.x}(#{node.x()}), #{guidePosition.y}(#{node.y()}) ]"
             x: if Math.max(guidePosition.x, 0) > (@text.width() + 10) then guidePosition.x - (@text.width() + 10) else Math.max(guidePosition.x + 10, 10)
             y: if Math.max(guidePosition.y, 0) > (@text.height() + 10) then guidePosition.y - (@text.height() + 10) else Math.max(guidePosition.y + 10, 10)
+
+        # console.log guidePosition 
+        if(guidePosition.x < 0 || guidePosition.y < 0)
+            nodeLayer = node.getLayer()
+            oldOffset = nodeLayer.offset()
+            node.getLayer().offset
+                x: if oldOffset.x < 0 then oldOffset.x - 10 else oldOffset.x
+                y: if oldOffset.y < 0 then oldOffset.y - 10 else oldOffset.y
+            nodeLayer.fire('change-offset', nodeLayer.offset(), false);
 
         layer.batchDraw()
 

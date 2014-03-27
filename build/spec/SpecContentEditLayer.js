@@ -1,7 +1,7 @@
 (function() {
   define(['dou', 'KineticJS', '../EventTracker', '../ComponentSelector', '../command/CommandPropertyChange', './SpecContentEditLayerExportable'], function(dou, kin, EventTracker, ComponentSelector, CommandPropertyChange, exportable) {
     "use strict";
-    var model_event_map, onadded, onchange, onchangeeditmode, onchangemodel, onchangeselections, onclick, ondragend, ondragmove, ondragstart, onremoved, onresize, view_event_map, view_factory, _editmodechange, _mousePointOnEvent, _stuckBackgroundPosition;
+    var model_event_map, model_initialize, onadded, onchange, onchangeeditmode, onchangemodel, onchangeselections, onclick, ondragend, ondragmove, ondragstart, onremoved, onresize, view_event_map, view_factory, _editmodechange, _mousePointOnEvent, _stuckBackgroundPosition;
     view_factory = function(attributes) {
       var background, layer, offset, stage;
       stage = this.getView().getStage();
@@ -22,18 +22,38 @@
         fill: 'cyan',
         opacity: 0.1
       });
-      layer.__background__ = background;
-      layer.__origin_offset__ = offset;
+      layer.getBackground = function() {
+        return background;
+      };
+      layer.getOriginOffset = function() {
+        return offset;
+      };
       layer.add(background);
       return layer;
+    };
+    model_initialize = function() {
+      var editmode;
+      editmode = 'SELECT';
+      this.getEditMode = function() {
+        return editmode;
+      };
+      return this.setEditMode = function(mode) {
+        var old;
+        if (mode === editmode) {
+          return;
+        }
+        old = editmode;
+        editmode = mode;
+        return this.trigger('change-edit-mode', mode, old);
+      };
     };
     _editmodechange = function(after, before, layer, model, controller) {
       switch (after) {
         case 'MOVE':
-          layer.__background__.moveToTop();
+          layer.getBackground().moveToTop();
           break;
         case 'SELECT':
-          layer.__background__.moveToBottom();
+          layer.getBackground().moveToBottom();
           break;
       }
       return layer.batchDraw();
@@ -43,7 +63,7 @@
       controller = this;
       model = e.listener;
       layer = controller.getAttachedViews(model)[0];
-      return _editmodechange(controller.getEditMode(), null, layer, model, controller);
+      return _editmodechange(model.getEditMode(), null, layer, model, controller);
     };
     onremoved = function(container, component, e) {};
     onchangemodel = function(after, before, e) {
@@ -73,8 +93,8 @@
     _stuckBackgroundPosition = function(layer) {
       var layerOffset, layerOriginOffset;
       layerOffset = layer.offset();
-      layerOriginOffset = layer.__origin_offset__;
-      return layer.__background__.position({
+      layerOriginOffset = layer.getOriginOffset();
+      return layer.getBackground().position({
         x: layerOffset.x - layerOriginOffset.x,
         y: layerOffset.y - layerOriginOffset.y
       });
@@ -88,12 +108,13 @@
       };
     };
     ondragstart = function(e) {
-      var background, controller, layer, node, offset;
+      var background, controller, layer, model, node, offset;
       controller = this.context;
       layer = this.listener;
-      background = layer.__background__;
+      model = controller.getAttachedModel(layer);
+      background = layer.getBackground();
       node = e.targetNode;
-      this.context.selectionManager.select(node);
+      controller.selectionManager.select(node);
       if (node && node !== background) {
         return;
       }
@@ -103,7 +124,7 @@
         x: this.mousePointOnStart.x + this.layerOffsetOnStart.x,
         y: this.mousePointOnStart.y + this.layerOffsetOnStart.y
       };
-      switch (controller.getEditMode()) {
+      switch (model.getEditMode()) {
         case 'SELECT':
           this.selectbox = new kin.Rect({
             stroke: 'black',
@@ -121,10 +142,11 @@
       return e.cancelBubble = true;
     };
     ondragmove = function(e) {
-      var background, controller, layer, mousePointCurrent, moveDelta, node;
+      var background, controller, layer, model, mousePointCurrent, moveDelta, node;
       controller = this.context;
       layer = this.listener;
-      background = layer.__background__;
+      model = controller.getAttachedModel(layer);
+      background = layer.getBackground();
       node = e.targetNode;
       if (node && node !== background) {
         return;
@@ -134,7 +156,7 @@
         x: mousePointCurrent.x - this.mousePointOnStart.x,
         y: mousePointCurrent.y - this.mousePointOnStart.y
       };
-      switch (controller.getEditMode()) {
+      switch (model.getEditMode()) {
         case 'SELECT':
           this.selectbox.setAttrs({
             width: moveDelta.x,
@@ -154,8 +176,10 @@
       return e.cancelBubble = true;
     };
     ondragend = function(e) {
-      var background, cmd, controller, dragmodel, dragview, layer, mousePointCurrent, moveDelta;
+      var background, cmd, controller, dragmodel, dragview, layer, model, mousePointCurrent, moveDelta;
       controller = this.context;
+      layer = this.listener;
+      model = controller.getAttachedModel(layer);
       dragview = e.targetNode;
       dragmodel = controller.getAttachedModel(dragview);
       if (dragmodel) {
@@ -177,7 +201,7 @@
         controller.execute(cmd);
       }
       layer = this.listener;
-      background = layer.__background__;
+      background = layer.getBackground();
       if (e.targetNode && e.targetNode !== background) {
         return;
       }
@@ -186,7 +210,7 @@
         x: mousePointCurrent.x - this.mousePointOnStart.x,
         y: mousePointCurrent.y - this.mousePointOnStart.y
       };
-      switch (controller.getEditMode()) {
+      switch (model.getEditMode()) {
         case 'SELECT':
           this.selectbox.remove();
           delete this.selectbox;
@@ -211,7 +235,7 @@
     onresize = function(e) {
       var background, layer;
       layer = this.listener;
-      background = layer.__background__;
+      background = layer.getBackground();
       background.setSize(e.after);
       return layer.batchDraw();
     };
@@ -263,6 +287,7 @@
       },
       model_event_map: model_event_map,
       view_event_map: view_event_map,
+      model_initialize_fn: model_initialize,
       view_factory_fn: view_factory,
       toolbox_image: 'images/toolbox_content_edit_layer.png',
       exportable: exportable

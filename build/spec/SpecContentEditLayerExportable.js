@@ -1,16 +1,16 @@
 (function() {
   define(['../command/CommandPropertyChange', '../command/CommandMove'], function(CommandPropertyChange, CommandMove) {
-    var copy, cut, getEditMode, moveBackward, moveDelta, moveForward, moveToBack, moveToFront, paste, setEditMode, _move;
-    _move = function(context, to) {
+    var copy, cut, moveBackward, moveDelta, moveForward, moveToBack, moveToFront, offset, paste, _move;
+    _move = function(appcontext, to) {
       var view;
-      view = context.selectionManager.focus();
+      view = appcontext.selectionManager.focus();
       if (!view) {
         return;
       }
-      return context.execute(new CommandMove({
+      return appcontext.execute(new CommandMove({
         to: to,
         view: view,
-        model: context.getAttachedModel(view)
+        model: appcontext.getAttachedModel(view)
       }));
     };
     moveForward = function() {
@@ -45,21 +45,21 @@
       }).call(this);
       return this.selectionManager.select(nodes);
     };
-    moveDelta = function(delta) {
-      var after, attr, before, changes, component, node, nodes, _i, _len;
+    moveDelta = function(component, delta) {
+      var after, attr, before, changes, comp, node, nodes, _i, _len;
       nodes = this.selectionManager.get();
       changes = [];
       for (_i = 0, _len = nodes.length; _i < _len; _i++) {
         node = nodes[_i];
-        component = this.getAttachedModel(node);
+        comp = this.getAttachedModel(node);
         before = {};
         after = {};
         for (attr in delta) {
-          before[attr] = component.get(attr);
-          after[attr] = component.get(attr) + delta[attr];
+          before[attr] = comp.get(attr);
+          after[attr] = comp.get(attr) + delta[attr];
         }
         changes.push({
-          component: component,
+          component: comp,
           before: before,
           after: after
         });
@@ -68,39 +68,52 @@
         changes: changes
       }));
     };
-    setEditMode = function(mode) {
-      var old;
-      old = this.editMode || 'SELECT';
-      if (old === mode) {
-        return;
-      }
-      this.editMode = mode;
-      return this.application.trigger('change-edit-mode', mode, old);
+    offset = function(component, offset) {
+      var layer;
+      layer = component.getAttachedViews()[0];
+      return layer.offset(offset);
     };
-    getEditMode = function() {
-      if (this.editMode) {
-        return this.editMode;
-      }
-      return 'SELECT';
-    };
-    return function() {
+    return function(appcontext, component) {
       var exportableFunctions, func, name, _results;
       exportableFunctions = {
-        moveDelta: moveDelta,
-        moveForward: moveForward,
-        moveBackward: moveBackward,
-        moveToFront: moveToFront,
-        moveToBack: moveToBack,
-        cut: cut,
-        copy: copy,
-        paste: paste,
-        setEditMode: setEditMode,
-        getEditMode: getEditMode
+        moveDelta: function(delta) {
+          return moveDelta(component, delta);
+        },
+        moveForward: function() {
+          return moveForward(component);
+        },
+        moveBackward: function() {
+          return moveBackward(component);
+        },
+        moveToFront: function() {
+          return moveToFront(component);
+        },
+        moveToBack: function() {
+          return moveToBack(component);
+        },
+        offset: function(offset) {
+          return offset(component, offset);
+        },
+        cut: function() {
+          return cut(component);
+        },
+        copy: function() {
+          return copy(component);
+        },
+        paste: function() {
+          return paste(component);
+        },
+        setEditMode: function(mode) {
+          return component.setEditMode(mode);
+        },
+        getEditMode: function() {
+          return component.getEditMode();
+        }
       };
       _results = [];
       for (name in exportableFunctions) {
         func = exportableFunctions[name];
-        _results.push(this[name] = func);
+        _results.push(appcontext[name] = func);
       }
       return _results;
     };

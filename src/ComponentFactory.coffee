@@ -80,11 +80,12 @@ define [
                 component = new Component(obj.type)
 
             component.initialize(dou.util.shallow_merge(spec.defaults || {}, obj.attrs || {}));
+            spec.model_initialize_fn.call component if spec.model_initialize_fn
 
             component.set('id', @uniqueId()) if not component.get('id')
 
             if spec.exportable
-                dou.mixin controller, spec.exportable
+                spec.exportable(controller, component)
 
             @eventEngine.add(component, spec.model_event_map, controller) if spec.model_event_map
 

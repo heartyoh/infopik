@@ -59,8 +59,8 @@
       nodeAbsPosition = node.getAbsolutePosition();
       scale = node.getStage().scale();
       return {
-        x: nodeAbsPosition.x / scale.x + nodeLayerOffset.x + nodeLayerOffset.x - guideLayerOffset.x,
-        y: nodeAbsPosition.y / scale.y + nodeLayerOffset.y + nodeLayerOffset.y - guideLayerOffset.y
+        x: nodeAbsPosition.x / scale.x + guideLayerOffset.x,
+        y: nodeAbsPosition.y / scale.y + guideLayerOffset.y
       };
     };
     ondragstart = function(e) {
@@ -99,7 +99,7 @@
       return layer.batchDraw();
     };
     ondragmove = function(e) {
-      var guidePosition, layer, node, nodePositionCurrent;
+      var guidePosition, layer, node, nodeLayer, nodePositionCurrent, oldOffset;
       layer = this.listener;
       node = e.targetNode;
       nodePositionCurrent = node.position();
@@ -119,6 +119,15 @@
         x: Math.max(guidePosition.x, 0) > (this.text.width() + 10) ? guidePosition.x - (this.text.width() + 10) : Math.max(guidePosition.x + 10, 10),
         y: Math.max(guidePosition.y, 0) > (this.text.height() + 10) ? guidePosition.y - (this.text.height() + 10) : Math.max(guidePosition.y + 10, 10)
       });
+      if (guidePosition.x < 0 || guidePosition.y < 0) {
+        nodeLayer = node.getLayer();
+        oldOffset = nodeLayer.offset();
+        node.getLayer().offset({
+          x: oldOffset.x < 0 ? oldOffset.x - 10 : oldOffset.x,
+          y: oldOffset.y < 0 ? oldOffset.y - 10 : oldOffset.y
+        });
+        nodeLayer.fire('change-offset', nodeLayer.offset(), false);
+      }
       return layer.batchDraw();
     };
     ondragend = function(e) {

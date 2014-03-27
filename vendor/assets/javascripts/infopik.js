@@ -961,11 +961,14 @@
                     component = new Component(obj.type);
                 }
                 component.initialize(dou.util.shallow_merge(spec.defaults || {}, obj.attrs || {}));
+                if (spec.model_initialize_fn) {
+                    spec.model_initialize_fn.call(component);
+                }
                 if (!component.get('id')) {
                     component.set('id', this.uniqueId());
                 }
                 if (spec.exportable) {
-                    dou.mixin(controller, spec.exportable);
+                    spec.exportable(controller, component);
                 }
                 if (spec.model_event_map) {
                     this.eventEngine.add(component, spec.model_event_map, controller);
@@ -1448,17 +1451,17 @@ define("build/Clipboard",["module","require","exports"],function(module, require
         '../command/CommandPropertyChange',
         '../command/CommandMove'
     ], function (CommandPropertyChange, CommandMove) {
-        var copy, cut, getEditMode, moveBackward, moveDelta, moveForward, moveToBack, moveToFront, paste, setEditMode, _move;
-        _move = function (context, to) {
+        var copy, cut, moveBackward, moveDelta, moveForward, moveToBack, moveToFront, offset, paste, _move;
+        _move = function (appcontext, to) {
             var view;
-            view = context.selectionManager.focus();
+            view = appcontext.selectionManager.focus();
             if (!view) {
                 return;
             }
-            return context.execute(new CommandMove({
+            return appcontext.execute(new CommandMove({
                 to: to,
                 view: view,
-                model: context.getAttachedModel(view)
+                model: appcontext.getAttachedModel(view)
             }));
         };
         moveForward = function () {
@@ -1493,60 +1496,73 @@ define("build/Clipboard",["module","require","exports"],function(module, require
             }.call(this);
             return this.selectionManager.select(nodes);
         };
-        moveDelta = function (delta) {
-            var after, attr, before, changes, component, node, nodes, _i, _len;
+        moveDelta = function (component, delta) {
+            var after, attr, before, changes, comp, node, nodes, _i, _len;
             nodes = this.selectionManager.get();
             changes = [];
             for (_i = 0, _len = nodes.length; _i < _len; _i++) {
                 node = nodes[_i];
-                component = this.getAttachedModel(node);
+                comp = this.getAttachedModel(node);
                 before = {};
                 after = {};
                 for (attr in delta) {
-                    before[attr] = component.get(attr);
-                    after[attr] = component.get(attr) + delta[attr];
+                    before[attr] = comp.get(attr);
+                    after[attr] = comp.get(attr) + delta[attr];
                 }
                 changes.push({
-                    component: component,
+                    component: comp,
                     before: before,
                     after: after
                 });
             }
             return this.commandManager.execute(new CommandPropertyChange({ changes: changes }));
         };
-        setEditMode = function (mode) {
-            var old;
-            old = this.editMode || 'SELECT';
-            if (old === mode) {
-                return;
-            }
-            this.editMode = mode;
-            return this.application.trigger('change-edit-mode', mode, old);
+        offset = function (component, offset) {
+            var layer;
+            layer = component.getAttachedViews()[0];
+            return layer.offset(offset);
         };
-        getEditMode = function () {
-            if (this.editMode) {
-                return this.editMode;
-            }
-            return 'SELECT';
-        };
-        return function () {
+        return function (appcontext, component) {
             var exportableFunctions, func, name, _results;
             exportableFunctions = {
-                moveDelta: moveDelta,
-                moveForward: moveForward,
-                moveBackward: moveBackward,
-                moveToFront: moveToFront,
-                moveToBack: moveToBack,
-                cut: cut,
-                copy: copy,
-                paste: paste,
-                setEditMode: setEditMode,
-                getEditMode: getEditMode
+                moveDelta: function (delta) {
+                    return moveDelta(component, delta);
+                },
+                moveForward: function () {
+                    return moveForward(component);
+                },
+                moveBackward: function () {
+                    return moveBackward(component);
+                },
+                moveToFront: function () {
+                    return moveToFront(component);
+                },
+                moveToBack: function () {
+                    return moveToBack(component);
+                },
+                offset: function (offset) {
+                    return offset(component, offset);
+                },
+                cut: function () {
+                    return cut(component);
+                },
+                copy: function () {
+                    return copy(component);
+                },
+                paste: function () {
+                    return paste(component);
+                },
+                setEditMode: function (mode) {
+                    return component.setEditMode(mode);
+                },
+                getEditMode: function () {
+                    return component.getEditMode();
+                }
             };
             _results = [];
             for (name in exportableFunctions) {
                 func = exportableFunctions[name];
-                _results.push(this[name] = func);
+                _results.push(appcontext[name] = func);
             }
             return _results;
         };
@@ -1562,7 +1578,7 @@ define("build/Clipboard",["module","require","exports"],function(module, require
         './SpecContentEditLayerExportable'
     ], function (dou, kin, EventTracker, ComponentSelector, CommandPropertyChange, exportable) {
         'use strict';
-        var model_event_map, onadded, onchange, onchangeeditmode, onchangemodel, onchangeselections, onclick, ondragend, ondragmove, ondragstart, onremoved, onresize, view_event_map, view_factory, _editmodechange, _mousePointOnEvent, _stuckBackgroundPosition;
+        var model_event_map, model_initialize, onadded, onchange, onchangeeditmode, onchangemodel, onchangeselections, onclick, ondragend, ondragmove, ondragstart, onremoved, onresize, view_event_map, view_factory, _editmodechange, _mousePointOnEvent, _stuckBackgroundPosition;
         view_factory = function (attributes) {
             var background, layer, offset, stage;
             stage = this.getView().getStage();
@@ -1583,18 +1599,38 @@ define("build/Clipboard",["module","require","exports"],function(module, require
                 fill: 'cyan',
                 opacity: 0.1
             });
-            layer.__background__ = background;
-            layer.__origin_offset__ = offset;
+            layer.getBackground = function () {
+                return background;
+            };
+            layer.getOriginOffset = function () {
+                return offset;
+            };
             layer.add(background);
             return layer;
+        };
+        model_initialize = function () {
+            var editmode;
+            editmode = 'SELECT';
+            this.getEditMode = function () {
+                return editmode;
+            };
+            return this.setEditMode = function (mode) {
+                var old;
+                if (mode === editmode) {
+                    return;
+                }
+                old = editmode;
+                editmode = mode;
+                return this.trigger('change-edit-mode', mode, old);
+            };
         };
         _editmodechange = function (after, before, layer, model, controller) {
             switch (after) {
             case 'MOVE':
-                layer.__background__.moveToTop();
+                layer.getBackground().moveToTop();
                 break;
             case 'SELECT':
-                layer.__background__.moveToBottom();
+                layer.getBackground().moveToBottom();
                 break;
             }
             return layer.batchDraw();
@@ -1604,7 +1640,7 @@ define("build/Clipboard",["module","require","exports"],function(module, require
             controller = this;
             model = e.listener;
             layer = controller.getAttachedViews(model)[0];
-            return _editmodechange(controller.getEditMode(), null, layer, model, controller);
+            return _editmodechange(model.getEditMode(), null, layer, model, controller);
         };
         onremoved = function (container, component, e) {
         };
@@ -1635,8 +1671,8 @@ define("build/Clipboard",["module","require","exports"],function(module, require
         _stuckBackgroundPosition = function (layer) {
             var layerOffset, layerOriginOffset;
             layerOffset = layer.offset();
-            layerOriginOffset = layer.__origin_offset__;
-            return layer.__background__.position({
+            layerOriginOffset = layer.getOriginOffset();
+            return layer.getBackground().position({
                 x: layerOffset.x - layerOriginOffset.x,
                 y: layerOffset.y - layerOriginOffset.y
             });
@@ -1650,12 +1686,13 @@ define("build/Clipboard",["module","require","exports"],function(module, require
             };
         };
         ondragstart = function (e) {
-            var background, controller, layer, node, offset;
+            var background, controller, layer, model, node, offset;
             controller = this.context;
             layer = this.listener;
-            background = layer.__background__;
+            model = controller.getAttachedModel(layer);
+            background = layer.getBackground();
             node = e.targetNode;
-            this.context.selectionManager.select(node);
+            controller.selectionManager.select(node);
             if (node && node !== background) {
                 return;
             }
@@ -1665,7 +1702,7 @@ define("build/Clipboard",["module","require","exports"],function(module, require
                 x: this.mousePointOnStart.x + this.layerOffsetOnStart.x,
                 y: this.mousePointOnStart.y + this.layerOffsetOnStart.y
             };
-            switch (controller.getEditMode()) {
+            switch (model.getEditMode()) {
             case 'SELECT':
                 this.selectbox = new kin.Rect({
                     stroke: 'black',
@@ -1686,10 +1723,11 @@ define("build/Clipboard",["module","require","exports"],function(module, require
             return e.cancelBubble = true;
         };
         ondragmove = function (e) {
-            var background, controller, layer, mousePointCurrent, moveDelta, node;
+            var background, controller, layer, model, mousePointCurrent, moveDelta, node;
             controller = this.context;
             layer = this.listener;
-            background = layer.__background__;
+            model = controller.getAttachedModel(layer);
+            background = layer.getBackground();
             node = e.targetNode;
             if (node && node !== background) {
                 return;
@@ -1699,7 +1737,7 @@ define("build/Clipboard",["module","require","exports"],function(module, require
                 x: mousePointCurrent.x - this.mousePointOnStart.x,
                 y: mousePointCurrent.y - this.mousePointOnStart.y
             };
-            switch (controller.getEditMode()) {
+            switch (model.getEditMode()) {
             case 'SELECT':
                 this.selectbox.setAttrs({
                     width: moveDelta.x,
@@ -1719,8 +1757,10 @@ define("build/Clipboard",["module","require","exports"],function(module, require
             return e.cancelBubble = true;
         };
         ondragend = function (e) {
-            var background, cmd, controller, dragmodel, dragview, layer, mousePointCurrent, moveDelta;
+            var background, cmd, controller, dragmodel, dragview, layer, model, mousePointCurrent, moveDelta;
             controller = this.context;
+            layer = this.listener;
+            model = controller.getAttachedModel(layer);
             dragview = e.targetNode;
             dragmodel = controller.getAttachedModel(dragview);
             if (dragmodel) {
@@ -1740,7 +1780,7 @@ define("build/Clipboard",["module","require","exports"],function(module, require
                 controller.execute(cmd);
             }
             layer = this.listener;
-            background = layer.__background__;
+            background = layer.getBackground();
             if (e.targetNode && e.targetNode !== background) {
                 return;
             }
@@ -1749,7 +1789,7 @@ define("build/Clipboard",["module","require","exports"],function(module, require
                 x: mousePointCurrent.x - this.mousePointOnStart.x,
                 y: mousePointCurrent.y - this.mousePointOnStart.y
             };
-            switch (controller.getEditMode()) {
+            switch (model.getEditMode()) {
             case 'SELECT':
                 this.selectbox.remove();
                 delete this.selectbox;
@@ -1774,7 +1814,7 @@ define("build/Clipboard",["module","require","exports"],function(module, require
         onresize = function (e) {
             var background, layer;
             layer = this.listener;
-            background = layer.__background__;
+            background = layer.getBackground();
             background.setSize(e.after);
             return layer.batchDraw();
         };
@@ -1822,6 +1862,7 @@ define("build/Clipboard",["module","require","exports"],function(module, require
             },
             model_event_map: model_event_map,
             view_event_map: view_event_map,
+            model_initialize_fn: model_initialize,
             view_factory_fn: view_factory,
             toolbox_image: 'images/toolbox_content_edit_layer.png',
             exportable: exportable
@@ -1889,8 +1930,8 @@ define("build/Clipboard",["module","require","exports"],function(module, require
             nodeAbsPosition = node.getAbsolutePosition();
             scale = node.getStage().scale();
             return {
-                x: nodeAbsPosition.x / scale.x + nodeLayerOffset.x + nodeLayerOffset.x - guideLayerOffset.x,
-                y: nodeAbsPosition.y / scale.y + nodeLayerOffset.y + nodeLayerOffset.y - guideLayerOffset.y
+                x: nodeAbsPosition.x / scale.x + guideLayerOffset.x,
+                y: nodeAbsPosition.y / scale.y + guideLayerOffset.y
             };
         };
         ondragstart = function (e) {
@@ -1939,7 +1980,7 @@ define("build/Clipboard",["module","require","exports"],function(module, require
             return layer.batchDraw();
         };
         ondragmove = function (e) {
-            var guidePosition, layer, node, nodePositionCurrent;
+            var guidePosition, layer, node, nodeLayer, nodePositionCurrent, oldOffset;
             layer = this.listener;
             node = e.targetNode;
             nodePositionCurrent = node.position();
@@ -1969,6 +2010,15 @@ define("build/Clipboard",["module","require","exports"],function(module, require
                 x: Math.max(guidePosition.x, 0) > this.text.width() + 10 ? guidePosition.x - (this.text.width() + 10) : Math.max(guidePosition.x + 10, 10),
                 y: Math.max(guidePosition.y, 0) > this.text.height() + 10 ? guidePosition.y - (this.text.height() + 10) : Math.max(guidePosition.y + 10, 10)
             });
+            if (guidePosition.x < 0 || guidePosition.y < 0) {
+                nodeLayer = node.getLayer();
+                oldOffset = nodeLayer.offset();
+                node.getLayer().offset({
+                    x: oldOffset.x < 0 ? oldOffset.x - 10 : oldOffset.x,
+                    y: oldOffset.y < 0 ? oldOffset.y - 10 : oldOffset.y
+                });
+                nodeLayer.fire('change-offset', nodeLayer.offset(), false);
+            }
             return layer.batchDraw();
         };
         ondragend = function (e) {

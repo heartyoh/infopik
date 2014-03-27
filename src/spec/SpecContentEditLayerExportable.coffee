@@ -12,14 +12,14 @@ define [
     CommandMove
 ) ->
 
-    _move = (context, to) ->
-        view = context.selectionManager.focus()
+    _move = (appcontext, to) ->
+        view = appcontext.selectionManager.focus()
         return if not view
 
-        context.execute new CommandMove
+        appcontext.execute new CommandMove
             to: to
             view: view
-            model: context.getAttachedModel(view)
+            model: appcontext.getAttachedModel(view)
 
     moveForward = ->
         _move this, 'FORWARD'
@@ -44,22 +44,22 @@ define [
         nodes = (@getAttachedModel(component) for component in components)
         @selectionManager.select(nodes)
 
-    moveDelta = (delta) ->
+    moveDelta = (component, delta) ->
         nodes = @selectionManager.get()
         changes = []
     
         for node in nodes
-            component = @getAttachedModel(node)
+            comp = @getAttachedModel(node)
 
             before = {}
             after = {}
 
             for attr of delta
-                before[attr] = component.get(attr)
-                after[attr] = component.get(attr) + delta[attr]
+                before[attr] = comp.get(attr)
+                after[attr] = comp.get(attr) + delta[attr]
     
             changes.push
-                component : component
+                component : comp
                 before : before
                 after : after
     
@@ -67,27 +67,22 @@ define [
             changes : changes
         })
 
-    setEditMode = (mode) ->
-        old = @editMode or 'SELECT'
-        return if old is mode
-        @editMode = mode
-        @application.trigger 'change-edit-mode', mode, old
+    offset = (component, offset) ->
+        layer = component.getAttachedViews()[0]
+        layer.offset offset
 
-    getEditMode = ->
-        return @editMode if @editMode
-        return 'SELECT'
-
-    ->
+    (appcontext, component) ->
         exportableFunctions =
-            moveDelta: moveDelta
-            moveForward: moveForward
-            moveBackward: moveBackward
-            moveToFront: moveToFront
-            moveToBack: moveToBack
-            cut: cut
-            copy: copy
-            paste: paste
-            setEditMode: setEditMode
-            getEditMode: getEditMode
+            moveDelta: (delta) -> moveDelta(component, delta)
+            moveForward: -> moveForward(component)
+            moveBackward: -> moveBackward(component)
+            moveToFront: -> moveToFront(component)
+            moveToBack: -> moveToBack(component)
+            offset: (offset) -> offset(component, offset)
+            cut: -> cut(component)
+            copy: -> copy(component)
+            paste: -> paste(component)
+            setEditMode: (mode) -> component.setEditMode(mode)
+            getEditMode: -> component.getEditMode()
 
-        this[name] = func for name, func of exportableFunctions
+        appcontext[name] = func for name, func of exportableFunctions
