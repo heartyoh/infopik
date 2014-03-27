@@ -1503,7 +1503,7 @@ define("build/Clipboard",["module","require","exports"],function(module, require
             return e.cancelBubble = true;
         };
         ondragmove = function (e) {
-            var background, controller, layer, mousePointCurrent, node;
+            var background, controller, layer, mousePointCurrent, moveDelta, node;
             controller = this.context;
             layer = this.listener;
             background = layer.__background__;
@@ -1512,17 +1512,21 @@ define("build/Clipboard",["module","require","exports"],function(module, require
                 return;
             }
             mousePointCurrent = _mousePointOnEvent(layer, e);
+            moveDelta = {
+                x: mousePointCurrent.x - this.mousePointOnStart.x,
+                y: mousePointCurrent.y - this.mousePointOnStart.y
+            };
             switch (controller.getEditMode()) {
             case 'SELECT':
                 this.selectbox.setAttrs({
-                    width: mousePointCurrent.x - this.mousePointOnStart.x,
-                    height: mousePointCurrent.y - this.mousePointOnStart.y
+                    width: moveDelta.x,
+                    height: moveDelta.y
                 });
                 break;
             case 'MOVE':
                 layer.offset({
-                    x: this.layerOffsetOnStart.x - (mousePointCurrent.x - this.mousePointOnStart.x),
-                    y: this.layerOffsetOnStart.y - (mousePointCurrent.y - this.mousePointOnStart.y)
+                    x: this.layerOffsetOnStart.x - moveDelta.x,
+                    y: this.layerOffsetOnStart.y - moveDelta.y
                 });
                 layer.fire('change-offset', layer.offset(), false);
                 break;
@@ -1532,7 +1536,7 @@ define("build/Clipboard",["module","require","exports"],function(module, require
             return e.cancelBubble = true;
         };
         ondragend = function (e) {
-            var background, cmd, controller, dragmodel, dragview, layer, mousePointCurrent, x, y;
+            var background, cmd, controller, dragmodel, dragview, layer, mousePointCurrent, moveDelta;
             controller = this.context;
             dragview = e.targetNode;
             dragmodel = controller.getAttachedModel(dragview);
@@ -1558,22 +1562,21 @@ define("build/Clipboard",["module","require","exports"],function(module, require
                 return;
             }
             mousePointCurrent = _mousePointOnEvent(layer, e);
+            moveDelta = {
+                x: mousePointCurrent.x - this.mousePointOnStart.x,
+                y: mousePointCurrent.y - this.mousePointOnStart.y
+            };
             switch (controller.getEditMode()) {
             case 'SELECT':
                 this.selectbox.remove();
                 delete this.selectbox;
                 break;
             case 'MOVE':
-                x = Math.max(this.layerOffsetOnStart.x - (mousePointCurrent.x - this.mousePointOnStart.x), -20);
-                y = Math.max(this.layerOffsetOnStart.y - (mousePointCurrent.y - this.mousePointOnStart.y), -20);
                 layer.offset({
-                    x: x,
-                    y: y
+                    x: Math.max(this.layerOffsetOnStart.x - moveDelta.x, -20),
+                    y: Math.max(this.layerOffsetOnStart.y - moveDelta.y, -20)
                 });
-                layer.fire('change-offset', {
-                    x: x,
-                    y: y
-                }, false);
+                layer.fire('change-offset', layer.offset(), false);
                 break;
             }
             _stuckBackgroundPosition(layer);
@@ -1713,10 +1716,6 @@ define("build/Clipboard",["module","require","exports"],function(module, require
             this.scale = stage.getScale();
             this.width = stage.getWidth();
             this.height = stage.getHeight();
-            this.mouseOrigin = {
-                x: Math.round(e.x / this.scale.x),
-                y: Math.round(e.y / this.scale.y)
-            };
             guidePosition = _nodeTracker(layer, node);
             this.vert = new kin.Line({
                 stroke: 'red',
@@ -1755,21 +1754,13 @@ define("build/Clipboard",["module","require","exports"],function(module, require
             return layer.batchDraw();
         };
         ondragmove = function (e) {
-            var guidePosition, layer, mouseCurrent, moveDelta, node, nodePositionCurrent;
+            var guidePosition, layer, node, nodePositionCurrent;
             layer = this.listener;
             node = e.targetNode;
-            mouseCurrent = {
-                x: Math.round(e.x / this.scale.x),
-                y: Math.round(e.y / this.scale.y)
-            };
-            moveDelta = {
-                x: mouseCurrent.x - this.mouseOrigin.x,
-                y: mouseCurrent.y - this.mouseOrigin.y
-            };
             nodePositionCurrent = node.position();
             node.position({
-                x: Math.round((nodePositionCurrent.x + moveDelta.x) / 10) * 10,
-                y: Math.round((nodePositionCurrent.y + moveDelta.y) / 10) * 10
+                x: Math.round(nodePositionCurrent.x / 10) * 10,
+                y: Math.round(nodePositionCurrent.y / 10) * 10
             });
             guidePosition = _nodeTracker(layer, node);
             this.vert.setAttrs({

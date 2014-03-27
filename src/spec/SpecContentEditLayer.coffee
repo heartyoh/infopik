@@ -146,18 +146,21 @@ define [
         return if node and node isnt background
 
         mousePointCurrent = _mousePointOnEvent(layer, e)
+        moveDelta =
+            x: mousePointCurrent.x - @mousePointOnStart.x
+            y: mousePointCurrent.y - @mousePointOnStart.y
 
         switch(controller.getEditMode())
             when 'SELECT'
                 @selectbox.setAttrs
-                    width: mousePointCurrent.x - @mousePointOnStart.x
-                    height: mousePointCurrent.y - @mousePointOnStart.y
+                    width: moveDelta.x
+                    height: moveDelta.y
 
                 # TODO select components in the area of selectionbox
             when 'MOVE'
                 layer.offset
-                    x: @layerOffsetOnStart.x - (mousePointCurrent.x - @mousePointOnStart.x)
-                    y: @layerOffsetOnStart.y - (mousePointCurrent.y - @mousePointOnStart.y)
+                    x: @layerOffsetOnStart.x - moveDelta.x
+                    y: @layerOffsetOnStart.y - moveDelta.y
 
                 layer.fire('change-offset', layer.offset(), false);
             else
@@ -197,20 +200,20 @@ define [
         return if e.targetNode and e.targetNode isnt background
 
         mousePointCurrent = _mousePointOnEvent(layer, e)
+        moveDelta =
+            x: mousePointCurrent.x - @mousePointOnStart.x
+            y: mousePointCurrent.y - @mousePointOnStart.y
 
         switch(controller.getEditMode())
             when 'SELECT'
                 @selectbox.remove()
                 delete @selectbox
             when 'MOVE'
-                x = Math.max(@layerOffsetOnStart.x - (mousePointCurrent.x - @mousePointOnStart.x), -20)
-                y = Math.max(@layerOffsetOnStart.y - (mousePointCurrent.y - @mousePointOnStart.y), -20)
-
                 layer.offset
-                    x: x
-                    y: y
+                    x: Math.max(@layerOffsetOnStart.x - moveDelta.x, -20)
+                    y: Math.max(@layerOffsetOnStart.y - moveDelta.y, -20)
 
-                layer.fire('change-offset', {x: x, y: y}, false);
+                layer.fire('change-offset', layer.offset(), false);
             else
 
         _stuckBackgroundPosition layer

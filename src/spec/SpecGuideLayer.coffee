@@ -85,9 +85,9 @@ define [
         @width = stage.getWidth()
         @height = stage.getHeight()
 
-        @mouseOrigin =
-            x: Math.round(e.x / @scale.x)
-            y: Math.round(e.y / @scale.y)
+        # @mouseOrigin =
+        #     x: Math.round(e.x / @scale.x)
+        #     y: Math.round(e.y / @scale.y)
 
         guidePosition = _nodeTracker(layer, node)
 
@@ -122,19 +122,19 @@ define [
         layer = @listener
         node = e.targetNode
 
-        mouseCurrent = 
-            x: Math.round(e.x / @scale.x)
-            y: Math.round(e.y / @scale.y)
+        # mouseCurrent = 
+        #     x: Math.round(e.x / @scale.x)
+        #     y: Math.round(e.y / @scale.y)
 
-        moveDelta =
-            x: mouseCurrent.x - @mouseOrigin.x
-            y: mouseCurrent.y - @mouseOrigin.y
+        # moveDelta =
+        # #     x: mouseCurrent.x - @mouseOrigin.x
+        # #     y: mouseCurrent.y - @mouseOrigin.y
 
         nodePositionCurrent = node.position()
-        
+
         node.position
-            x: Math.round((nodePositionCurrent.x + moveDelta.x) / 10) * 10
-            y: Math.round((nodePositionCurrent.y + moveDelta.y) / 10) * 10
+            x: Math.round(nodePositionCurrent.x / 10) * 10
+            y: Math.round(nodePositionCurrent.y / 10) * 10
 
         guidePosition = _nodeTracker(layer, node)
 

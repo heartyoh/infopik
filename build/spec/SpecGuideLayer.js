@@ -70,10 +70,6 @@
       this.scale = stage.getScale();
       this.width = stage.getWidth();
       this.height = stage.getHeight();
-      this.mouseOrigin = {
-        x: Math.round(e.x / this.scale.x),
-        y: Math.round(e.y / this.scale.y)
-      };
       guidePosition = _nodeTracker(layer, node);
       this.vert = new kin.Line({
         stroke: 'red',
@@ -102,21 +98,13 @@
       return layer.batchDraw();
     };
     ondragmove = function(e) {
-      var guidePosition, layer, mouseCurrent, moveDelta, node, nodePositionCurrent;
+      var guidePosition, layer, node, nodePositionCurrent;
       layer = this.listener;
       node = e.targetNode;
-      mouseCurrent = {
-        x: Math.round(e.x / this.scale.x),
-        y: Math.round(e.y / this.scale.y)
-      };
-      moveDelta = {
-        x: mouseCurrent.x - this.mouseOrigin.x,
-        y: mouseCurrent.y - this.mouseOrigin.y
-      };
       nodePositionCurrent = node.position();
       node.position({
-        x: Math.round((nodePositionCurrent.x + moveDelta.x) / 10) * 10,
-        y: Math.round((nodePositionCurrent.y + moveDelta.y) / 10) * 10
+        x: Math.round(nodePositionCurrent.x / 10) * 10,
+        y: Math.round(nodePositionCurrent.y / 10) * 10
       });
       guidePosition = _nodeTracker(layer, node);
       this.vert.setAttrs({
