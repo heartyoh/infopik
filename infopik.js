@@ -1379,15 +1379,15 @@ define("build/Clipboard",["module","require","exports"],function(module, require
         '../command/CommandPropertyChange'
     ], function (dou, kin, EventTracker, ComponentSelector, CommandPropertyChange) {
         'use strict';
-        var createView, model_event_map, onadded, onchange, onchangeeditmode, onchangemodel, onchangeselections, onclick, ondragend, ondragmove, ondragstart, onremoved, onresize, stuck_background_position, view_event_map, _editmodechange;
-        createView = function (attributes) {
-            var background, offset, stage, view;
+        var model_event_map, onadded, onchange, onchangeeditmode, onchangemodel, onchangeselections, onclick, ondragend, ondragmove, ondragstart, onremoved, onresize, view_event_map, view_factory, _editmodechange, _mousePointOnEvent, _stuckBackgroundPosition;
+        view_factory = function (attributes) {
+            var background, layer, offset, stage;
             stage = this.getView().getStage();
             offset = attributes.offset || {
                 x: 0,
                 y: 0
             };
-            view = new kin.Layer(attributes);
+            layer = new kin.Layer(attributes);
             background = new kin.Rect({
                 name: 'background for ruler-layer',
                 draggable: true,
@@ -1400,28 +1400,28 @@ define("build/Clipboard",["module","require","exports"],function(module, require
                 fill: 'cyan',
                 opacity: 0.1
             });
-            view.__background__ = background;
-            view.__origin_offset__ = offset;
-            view.add(background);
-            return view;
+            layer.__background__ = background;
+            layer.__origin_offset__ = offset;
+            layer.add(background);
+            return layer;
         };
-        _editmodechange = function (after, before, view, model, controller) {
+        _editmodechange = function (after, before, layer, model, controller) {
             switch (after) {
             case 'MOVE':
-                view.__background__.moveToTop();
+                layer.__background__.moveToTop();
                 break;
             case 'SELECT':
-                view.__background__.moveToBottom();
+                layer.__background__.moveToBottom();
                 break;
             }
-            return view.batchDraw();
+            return layer.batchDraw();
         };
         onadded = function (container, component, index, e) {
-            var controller, model, view;
+            var controller, layer, model;
             controller = this;
             model = e.listener;
-            view = controller.getAttachedViews(model)[0];
-            return _editmodechange(controller.getEditMode(), null, view, model, controller);
+            layer = controller.getAttachedViews(model)[0];
+            return _editmodechange(controller.getEditMode(), null, layer, model, controller);
         };
         onremoved = function (container, component, e) {
         };
@@ -1444,38 +1444,43 @@ define("build/Clipboard",["module","require","exports"],function(module, require
             }
         };
         onchange = function (component, before, after) {
-            var view;
-            view = component.getViews()[0];
-            view.setAttrs(after);
-            return view.getLayer().batchDraw();
+            var node;
+            node = component.getViews()[0];
+            node.setAttrs(after);
+            return node.getLayer().batchDraw();
         };
-        stuck_background_position = function (view) {
-            var view_offset, view_origin_offset;
-            view_offset = view.offset();
-            view_origin_offset = view.__origin_offset__;
-            return view.__background__.position({
-                x: view_offset.x - view_origin_offset.x,
-                y: view_offset.y - view_origin_offset.y
+        _stuckBackgroundPosition = function (layer) {
+            var layerOffset, layerOriginOffset;
+            layerOffset = layer.offset();
+            layerOriginOffset = layer.__origin_offset__;
+            return layer.__background__.position({
+                x: layerOffset.x - layerOriginOffset.x,
+                y: layerOffset.y - layerOriginOffset.y
             });
         };
+        _mousePointOnEvent = function (layer, e) {
+            var scale;
+            scale = layer.getStage().scale();
+            return {
+                x: Math.round(e.offsetX / scale.x),
+                y: Math.round(e.offsetY / scale.y)
+            };
+        };
         ondragstart = function (e) {
-            var background, controller, node, offset, view;
+            var background, controller, layer, node, offset;
             controller = this.context;
-            view = this.listener;
-            background = view.__background__;
+            layer = this.listener;
+            background = layer.__background__;
             node = e.targetNode;
             this.context.selectionManager.select(node);
-            if (e.targetNode && e.targetNode !== background) {
+            if (node && node !== background) {
                 return;
             }
-            this.origin_offset = view.offset();
-            this.start_point = {
-                x: e.offsetX,
-                y: e.offsetY
-            };
+            this.layerOffsetOnStart = layer.offset();
+            this.mousePointOnStart = _mousePointOnEvent(layer, e);
             offset = {
-                x: this.start_point.x + this.origin_offset.x,
-                y: this.start_point.y + this.origin_offset.y
+                x: this.mousePointOnStart.x + this.layerOffsetOnStart.x,
+                y: this.mousePointOnStart.y + this.layerOffsetOnStart.y
             };
             switch (controller.getEditMode()) {
             case 'SELECT':
@@ -1487,54 +1492,47 @@ define("build/Clipboard",["module","require","exports"],function(module, require
                         3
                     ]
                 });
-                view.add(this.selectbox);
+                layer.add(this.selectbox);
                 this.selectbox.setAttrs(offset);
                 break;
             case 'MOVE':
                 break;
             }
-            stuck_background_position(view);
-            view.draw();
+            _stuckBackgroundPosition(layer);
+            layer.draw();
             return e.cancelBubble = true;
         };
         ondragmove = function (e) {
-            var background, controller, current_point, view, x, y;
+            var background, controller, layer, mousePointCurrent, node;
             controller = this.context;
-            view = this.listener;
-            background = view.__background__;
-            if (e.targetNode && e.targetNode !== background) {
+            layer = this.listener;
+            background = layer.__background__;
+            node = e.targetNode;
+            if (node && node !== background) {
                 return;
             }
-            current_point = {
-                x: e.offsetX,
-                y: e.offsetY
-            };
+            mousePointCurrent = _mousePointOnEvent(layer, e);
             switch (controller.getEditMode()) {
             case 'SELECT':
                 this.selectbox.setAttrs({
-                    width: current_point.x - this.start_point.x,
-                    height: current_point.y - this.start_point.y
+                    width: mousePointCurrent.x - this.mousePointOnStart.x,
+                    height: mousePointCurrent.y - this.mousePointOnStart.y
                 });
                 break;
             case 'MOVE':
-                x = this.origin_offset.x - (current_point.x - this.start_point.x);
-                y = this.origin_offset.y - (current_point.y - this.start_point.y);
-                view.offset({
-                    x: x,
-                    y: y
+                layer.offset({
+                    x: this.layerOffsetOnStart.x - (mousePointCurrent.x - this.mousePointOnStart.x),
+                    y: this.layerOffsetOnStart.y - (mousePointCurrent.y - this.mousePointOnStart.y)
                 });
-                view.fire('change-offset', {
-                    x: x,
-                    y: y
-                }, false);
+                layer.fire('change-offset', layer.offset(), false);
                 break;
             }
-            stuck_background_position(view);
-            view.batchDraw();
+            _stuckBackgroundPosition(layer);
+            layer.batchDraw();
             return e.cancelBubble = true;
         };
         ondragend = function (e) {
-            var background, cmd, controller, current_point, dragmodel, dragview, view, x, y;
+            var background, cmd, controller, dragmodel, dragview, layer, mousePointCurrent, x, y;
             controller = this.context;
             dragview = e.targetNode;
             dragmodel = controller.getAttachedModel(dragview);
@@ -1554,35 +1552,32 @@ define("build/Clipboard",["module","require","exports"],function(module, require
                 });
                 controller.execute(cmd);
             }
-            view = this.listener;
-            background = view.__background__;
+            layer = this.listener;
+            background = layer.__background__;
             if (e.targetNode && e.targetNode !== background) {
                 return;
             }
-            current_point = {
-                x: e.offsetX,
-                y: e.offsetY
-            };
+            mousePointCurrent = _mousePointOnEvent(layer, e);
             switch (controller.getEditMode()) {
             case 'SELECT':
                 this.selectbox.remove();
                 delete this.selectbox;
                 break;
             case 'MOVE':
-                x = Math.max(this.origin_offset.x - (current_point.x - this.start_point.x), -20);
-                y = Math.max(this.origin_offset.y - (current_point.y - this.start_point.y), -20);
-                view.offset({
+                x = Math.max(this.layerOffsetOnStart.x - (mousePointCurrent.x - this.mousePointOnStart.x), -20);
+                y = Math.max(this.layerOffsetOnStart.y - (mousePointCurrent.y - this.mousePointOnStart.y), -20);
+                layer.offset({
                     x: x,
                     y: y
                 });
-                view.fire('change-offset', {
+                layer.fire('change-offset', {
                     x: x,
                     y: y
                 }, false);
                 break;
             }
-            stuck_background_position(view);
-            view.draw();
+            _stuckBackgroundPosition(layer);
+            layer.draw();
             return e.cancelBubble = true;
         };
         onclick = function (e) {
@@ -1591,18 +1586,18 @@ define("build/Clipboard",["module","require","exports"],function(module, require
             return this.context.selectionManager.select(node);
         };
         onresize = function (e) {
-            var background, view;
-            view = this.listener;
-            background = view.__background__;
+            var background, layer;
+            layer = this.listener;
+            background = layer.__background__;
             background.setSize(e.after);
-            return view.batchDraw();
+            return layer.batchDraw();
         };
         onchangeeditmode = function (after, before, e) {
-            var controller, model, view;
+            var controller, layer, model;
             controller = this;
             model = e.listener;
-            view = controller.getAttachedViews(model)[0];
-            return _editmodechange(after, before, view, model, controller);
+            layer = controller.getAttachedViews(model)[0];
+            return _editmodechange(after, before, layer, model, controller);
         };
         model_event_map = {
             '(root)': {
@@ -1641,7 +1636,7 @@ define("build/Clipboard",["module","require","exports"],function(module, require
             },
             model_event_map: model_event_map,
             view_event_map: view_event_map,
-            view_factory_fn: createView,
+            view_factory_fn: view_factory,
             toolbox_image: 'images/toolbox_content_edit_layer.png'
         };
     });
@@ -1649,8 +1644,8 @@ define("build/Clipboard",["module","require","exports"],function(module, require
 (function () {
     define('build/spec/SpecGuideLayer', ['KineticJS'], function (kin) {
         'use strict';
-        var abs_calculator, createView, logic_calculator, model_event_map, onadded, onchange, ondragend, ondragmove, ondragstart, onremoved, view_event_map;
-        createView = function (attributes) {
+        var model_event_map, onadded, onchange, ondragend, ondragmove, ondragstart, onremoved, view_event_map, view_factory, _nodeTracker;
+        view_factory = function (attributes) {
             return new kin.Layer(attributes);
         };
         onchange = function (component, before, after, e) {
@@ -1700,44 +1695,36 @@ define("build/Clipboard",["module","require","exports"],function(module, require
                 }, 1000);
             }, 5000);
         };
-        abs_calculator = function (layer, pos) {
+        _nodeTracker = function (guideLayer, node) {
+            var guideLayerOffset, nodeLayerOffset, nodePosition;
+            guideLayerOffset = guideLayer.offset();
+            nodeLayerOffset = node.getLayer().offset();
+            nodePosition = node.position();
             return {
-                x: (layer.offsetX() + pos.x) * layer.getStage().getScale().x,
-                y: (layer.offsetY() + pos.y) * layer.getStage().getScale().y
-            };
-        };
-        logic_calculator = function (layer, pos) {
-            return {
-                x: pos.x / layer.getStage().getScale().x + layer.offsetX(),
-                y: pos.y / layer.getStage().getScale().y + layer.offsetY()
+                x: nodePosition.x + nodeLayerOffset.x - guideLayerOffset.x,
+                y: nodePosition.y + nodeLayerOffset.y - guideLayerOffset.y
             };
         };
         ondragstart = function (e) {
-            var layer, node, stage, textx, texty, x, y;
+            var guidePosition, layer, node, stage;
             layer = this.listener;
             node = e.targetNode;
             stage = layer.getStage();
             this.scale = stage.getScale();
             this.width = stage.getWidth();
             this.height = stage.getHeight();
-            this.mouse_origin = {
+            this.mouseOrigin = {
                 x: Math.round(e.x / this.scale.x),
                 y: Math.round(e.y / this.scale.y)
             };
-            this.node_origin = node.position();
-            this.layer_offset = {
-                x: node.getLayer().offset().x - layer.offset().x,
-                y: node.getLayer().offset().y - layer.offset().y
-            };
-            x = this.node_origin.x - this.layer_offset.x;
-            y = this.node_origin.y - this.layer_offset.y;
+            guidePosition = _nodeTracker(layer, node);
             this.vert = new kin.Line({
                 stroke: 'red',
                 tension: 1,
                 points: [
-                    x,
+                    guidePosition.x,
                     0,
-                    x,
+                    guidePosition.x,
                     this.height
                 ]
             });
@@ -1746,9 +1733,9 @@ define("build/Clipboard",["module","require","exports"],function(module, require
                 tension: 1,
                 points: [
                     0,
-                    y,
+                    guidePosition.y,
                     this.width,
-                    y
+                    guidePosition.y
                 ]
             });
             this.text = new kin.Text({
@@ -1757,12 +1744,10 @@ define("build/Clipboard",["module","require","exports"],function(module, require
                 fontFamily: 'Calibri',
                 fill: 'green'
             });
-            this.text.setAttr('text', '[ ' + x + '(' + node.x() + '), ' + y + '(' + node.y() + ') ]');
-            textx = Math.max(x, 0) > this.text.width() + 10 ? x - (this.text.width() + 10) : Math.max(x + 10, 10);
-            texty = Math.max(y, 0) > this.text.height() + 10 ? y - (this.text.height() + 10) : Math.max(y + 10, 10);
             this.text.setAttrs({
-                x: textx,
-                y: texty
+                text: '[ ' + guidePosition.x + '(' + node.x() + '), ' + guidePosition.y + '(' + node.y() + ') ]',
+                x: Math.max(guidePosition.x, 0) > this.text.width() + 10 ? guidePosition.x - (this.text.width() + 10) : Math.max(guidePosition.x + 10, 10),
+                y: Math.max(guidePosition.y, 0) > this.text.height() + 10 ? guidePosition.y - (this.text.height() + 10) : Math.max(guidePosition.y + 10, 10)
             });
             layer.add(this.vert);
             layer.add(this.hori);
@@ -1770,47 +1755,43 @@ define("build/Clipboard",["module","require","exports"],function(module, require
             return layer.batchDraw();
         };
         ondragmove = function (e) {
-            var layer, mouse_current, node, node_current, node_x, node_y, textx, texty, x, y;
+            var guidePosition, layer, mouseCurrent, moveDelta, node, nodePositionCurrent;
             layer = this.listener;
             node = e.targetNode;
-            mouse_current = {
+            mouseCurrent = {
                 x: Math.round(e.x / this.scale.x),
                 y: Math.round(e.y / this.scale.y)
             };
-            node_current = {
-                x: mouse_current.x - this.mouse_origin.x + this.node_origin.x,
-                y: mouse_current.y - this.mouse_origin.y + this.node_origin.y
+            moveDelta = {
+                x: mouseCurrent.x - this.mouseOrigin.x,
+                y: mouseCurrent.y - this.mouseOrigin.y
             };
-            node_x = Math.round(node_current.x / 10) * 10;
-            node_y = Math.round(node_current.y / 10) * 10;
+            nodePositionCurrent = node.position();
             node.position({
-                x: node_x,
-                y: node_y
+                x: Math.round((nodePositionCurrent.x + moveDelta.x) / 10) * 10,
+                y: Math.round((nodePositionCurrent.y + moveDelta.y) / 10) * 10
             });
-            x = node_x - this.layer_offset.x;
-            y = node_y - this.layer_offset.y;
+            guidePosition = _nodeTracker(layer, node);
             this.vert.setAttrs({
                 points: [
-                    x,
+                    guidePosition.x,
                     0,
-                    x,
+                    guidePosition.x,
                     this.height
                 ]
             });
             this.hori.setAttrs({
                 points: [
                     0,
-                    y,
+                    guidePosition.y,
                     this.width,
-                    y
+                    guidePosition.y
                 ]
             });
-            this.text.setAttr('text', '[ ' + x + '(' + node.x() + '), ' + y + '(' + node.y() + ') ]');
-            textx = Math.max(x, 0) > this.text.width() + 10 ? x - (this.text.width() + 10) : Math.max(x + 10, 10);
-            texty = Math.max(y, 0) > this.text.height() + 10 ? y - (this.text.height() + 10) : Math.max(y + 10, 10);
             this.text.setAttrs({
-                x: textx,
-                y: texty
+                text: '[ ' + guidePosition.x + '(' + node.x() + '), ' + guidePosition.y + '(' + node.y() + ') ]',
+                x: Math.max(guidePosition.x, 0) > this.text.width() + 10 ? guidePosition.x - (this.text.width() + 10) : Math.max(guidePosition.x + 10, 10),
+                y: Math.max(guidePosition.y, 0) > this.text.height() + 10 ? guidePosition.y - (this.text.height() + 10) : Math.max(guidePosition.y + 10, 10)
             });
             return layer.batchDraw();
         };
@@ -1854,7 +1835,7 @@ define("build/Clipboard",["module","require","exports"],function(module, require
             defaults: { draggable: false },
             model_event_map: model_event_map,
             view_event_map: view_event_map,
-            view_factory_fn: createView,
+            view_factory_fn: view_factory,
             toolbox_image: 'images/toolbox_guide_layer.png'
         };
     });

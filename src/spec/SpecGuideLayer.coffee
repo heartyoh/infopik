@@ -12,7 +12,7 @@ define [
 
     "use strict"
 
-    createView = (attributes) ->
+    view_factory = (attributes) ->
         new kin.Layer(attributes)
 
     onchange = (component, before, after, e) ->
@@ -20,12 +20,7 @@ define [
         model = e.listener
         view = controller.getAttachedViews(model)[0]
 
-        self = model._track = model._track || {} # if not model._track
-
-        # self = model._track
-
-        # self.view = controller.getAttachedViews(model)[0] if not self.view
-        # view = self.view
+        self = model._track = model._track || {}
 
         self.changes = (self.changes || 0) + 1
         if not self.text
@@ -70,13 +65,15 @@ define [
             , 1000
         , 5000
 
-    abs_calculator = (layer, pos) ->
-        x: (layer.offsetX() + pos.x) * layer.getStage().getScale().x
-        y: (layer.offsetY() + pos.y) * layer.getStage().getScale().y
+    _nodeTracker = (guideLayer, node) ->
+        guideLayerOffset = guideLayer.offset()
+        nodeLayerOffset = node.getLayer().offset()
+        nodePosition = node.position()
 
-    logic_calculator = (layer, pos) ->
-        x: pos.x / layer.getStage().getScale().x + layer.offsetX()
-        y: pos.y / layer.getStage().getScale().y + layer.offsetY()
+        {
+            x: nodePosition.x + nodeLayerOffset.x - guideLayerOffset.x
+            y: nodePosition.y + nodeLayerOffset.y - guideLayerOffset.y
+        }
 
     ondragstart = (e) ->
         layer = @listener
@@ -88,21 +85,21 @@ define [
         @width = stage.getWidth()
         @height = stage.getHeight()
 
-        @mouse_origin =
+        @mouseOrigin =
             x: Math.round(e.x / @scale.x)
             y: Math.round(e.y / @scale.y)
 
-        @node_origin = node.position()
+        guidePosition = _nodeTracker(layer, node)
 
-        @layer_offset =
-            x: node.getLayer().offset().x - layer.offset().x
-            y: node.getLayer().offset().y - layer.offset().y 
+        @vert = new kin.Line
+            stroke: 'red'
+            tension: 1
+            points: [guidePosition.x, 0, guidePosition.x, @height]
 
-        x = @node_origin.x - @layer_offset.x
-        y = @node_origin.y - @layer_offset.y
-
-        @vert = new kin.Line({stroke:'red', tension: 1, points:[x, 0, x, @height]})
-        @hori = new kin.Line({stroke:'red', tension: 1, points:[0, y, @width, y]})
+        @hori = new kin.Line
+            stroke: 'red'
+            tension: 1
+            points: [0, guidePosition.y, @width, guidePosition.y]
 
         @text = new kin.Text
             listening: false
@@ -110,10 +107,10 @@ define [
             fontFamily: 'Calibri'
             fill: 'green'
 
-        @text.setAttr('text', "[ #{x}(#{node.x()}), #{y}(#{node.y()}) ]")
-        textx = if Math.max(x, 0) > (@text.width() + 10) then x - (@text.width() + 10) else Math.max(x + 10, 10)
-        texty = if Math.max(y, 0) > (@text.height() + 10) then y - (@text.height() + 10) else Math.max(y + 10, 10)
-        @text.setAttrs({x: textx, y: texty})
+        @text.setAttrs
+            text: "[ #{guidePosition.x}(#{node.x()}), #{guidePosition.y}(#{node.y()}) ]"
+            x: if Math.max(guidePosition.x, 0) > (@text.width() + 10) then guidePosition.x - (@text.width() + 10) else Math.max(guidePosition.x + 10, 10)
+            y: if Math.max(guidePosition.y, 0) > (@text.height() + 10) then guidePosition.y - (@text.height() + 10) else Math.max(guidePosition.y + 10, 10)
 
         layer.add(@vert)
         layer.add(@hori)
@@ -125,32 +122,29 @@ define [
         layer = @listener
         node = e.targetNode
 
-        mouse_current = 
+        mouseCurrent = 
             x: Math.round(e.x / @scale.x)
             y: Math.round(e.y / @scale.y)
 
-        node_current = {
-            x: (mouse_current.x - @mouse_origin.x) + @node_origin.x,
-            y: (mouse_current.y - @mouse_origin.y) + @node_origin.y
-        }
+        moveDelta =
+            x: mouseCurrent.x - @mouseOrigin.x
+            y: mouseCurrent.y - @mouseOrigin.y
 
-        node_x = Math.round(node_current.x / 10) * 10
-        node_y = Math.round(node_current.y / 10) * 10
+        nodePositionCurrent = node.position()
+        
+        node.position
+            x: Math.round((nodePositionCurrent.x + moveDelta.x) / 10) * 10
+            y: Math.round((nodePositionCurrent.y + moveDelta.y) / 10) * 10
 
-        node.position({x: node_x, y: node_y})
+        guidePosition = _nodeTracker(layer, node)
 
-        # layer_offset = layer.offset()
+        @vert.setAttrs({points:[guidePosition.x, 0, guidePosition.x, @height]})
+        @hori.setAttrs({points:[0, guidePosition.y, @width, guidePosition.y]})
 
-        x = node_x - @layer_offset.x
-        y = node_y - @layer_offset.y
-
-        @vert.setAttrs({points:[x, 0, x, @height]})
-        @hori.setAttrs({points:[0, y, @width, y]})
-
-        @text.setAttr('text', "[ #{x}(#{node.x()}), #{y}(#{node.y()}) ]")
-        textx = if Math.max(x, 0) > (@text.width() + 10) then x - (@text.width() + 10) else Math.max(x + 10, 10)
-        texty = if Math.max(y, 0) > (@text.height() + 10) then y - (@text.height() + 10) else Math.max(y + 10, 10)
-        @text.setAttrs({x: textx, y: texty})
+        @text.setAttrs
+            text: "[ #{guidePosition.x}(#{node.x()}), #{guidePosition.y}(#{node.y()}) ]"
+            x: if Math.max(guidePosition.x, 0) > (@text.width() + 10) then guidePosition.x - (@text.width() + 10) else Math.max(guidePosition.x + 10, 10)
+            y: if Math.max(guidePosition.y, 0) > (@text.height() + 10) then guidePosition.y - (@text.height() + 10) else Math.max(guidePosition.y + 10, 10)
 
         layer.batchDraw()
 
@@ -168,7 +162,6 @@ define [
     onremoved = (container, component, e) ->
         controller = this
         view = controller.getView() # root view
-        # @getEventHandler().off(view, guide_handler)
 
     model_event_map =
         '(root)' :
@@ -196,6 +189,6 @@ define [
         }
         model_event_map: model_event_map
         view_event_map: view_event_map
-        view_factory_fn: createView
+        view_factory_fn: view_factory
         toolbox_image: 'images/toolbox_guide_layer.png'
     }

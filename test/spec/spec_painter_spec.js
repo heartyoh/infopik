@@ -41,7 +41,6 @@ define([
     it('should ...', function () {
 
       app.setModel(infographic);
-      // app.setEditMode('MOVE');
 
       // infographic.forEach(function(child) {
       //   var view = app.getAttachedViews(child)[0];
@@ -56,6 +55,8 @@ define([
 
       // app.setModel(null);
       app.setModel(app.createComponent(sample_01))      
+
+      // app.setEditMode('MOVE');
 
       app.setScale(2)
     });

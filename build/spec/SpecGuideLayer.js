@@ -1,8 +1,8 @@
 (function() {
   define(['KineticJS'], function(kin) {
     "use strict";
-    var abs_calculator, createView, logic_calculator, model_event_map, onadded, onchange, ondragend, ondragmove, ondragstart, onremoved, view_event_map;
-    createView = function(attributes) {
+    var model_event_map, onadded, onchange, ondragend, ondragmove, ondragstart, onremoved, view_event_map, view_factory, _nodeTracker;
+    view_factory = function(attributes) {
       return new kin.Layer(attributes);
     };
     onchange = function(component, before, after, e) {
@@ -52,46 +52,38 @@
         }, 1000);
       }, 5000);
     };
-    abs_calculator = function(layer, pos) {
+    _nodeTracker = function(guideLayer, node) {
+      var guideLayerOffset, nodeLayerOffset, nodePosition;
+      guideLayerOffset = guideLayer.offset();
+      nodeLayerOffset = node.getLayer().offset();
+      nodePosition = node.position();
       return {
-        x: (layer.offsetX() + pos.x) * layer.getStage().getScale().x,
-        y: (layer.offsetY() + pos.y) * layer.getStage().getScale().y
-      };
-    };
-    logic_calculator = function(layer, pos) {
-      return {
-        x: pos.x / layer.getStage().getScale().x + layer.offsetX(),
-        y: pos.y / layer.getStage().getScale().y + layer.offsetY()
+        x: nodePosition.x + nodeLayerOffset.x - guideLayerOffset.x,
+        y: nodePosition.y + nodeLayerOffset.y - guideLayerOffset.y
       };
     };
     ondragstart = function(e) {
-      var layer, node, stage, textx, texty, x, y;
+      var guidePosition, layer, node, stage;
       layer = this.listener;
       node = e.targetNode;
       stage = layer.getStage();
       this.scale = stage.getScale();
       this.width = stage.getWidth();
       this.height = stage.getHeight();
-      this.mouse_origin = {
+      this.mouseOrigin = {
         x: Math.round(e.x / this.scale.x),
         y: Math.round(e.y / this.scale.y)
       };
-      this.node_origin = node.position();
-      this.layer_offset = {
-        x: node.getLayer().offset().x - layer.offset().x,
-        y: node.getLayer().offset().y - layer.offset().y
-      };
-      x = this.node_origin.x - this.layer_offset.x;
-      y = this.node_origin.y - this.layer_offset.y;
+      guidePosition = _nodeTracker(layer, node);
       this.vert = new kin.Line({
         stroke: 'red',
         tension: 1,
-        points: [x, 0, x, this.height]
+        points: [guidePosition.x, 0, guidePosition.x, this.height]
       });
       this.hori = new kin.Line({
         stroke: 'red',
         tension: 1,
-        points: [0, y, this.width, y]
+        points: [0, guidePosition.y, this.width, guidePosition.y]
       });
       this.text = new kin.Text({
         listening: false,
@@ -99,12 +91,10 @@
         fontFamily: 'Calibri',
         fill: 'green'
       });
-      this.text.setAttr('text', "[ " + x + "(" + (node.x()) + "), " + y + "(" + (node.y()) + ") ]");
-      textx = Math.max(x, 0) > (this.text.width() + 10) ? x - (this.text.width() + 10) : Math.max(x + 10, 10);
-      texty = Math.max(y, 0) > (this.text.height() + 10) ? y - (this.text.height() + 10) : Math.max(y + 10, 10);
       this.text.setAttrs({
-        x: textx,
-        y: texty
+        text: "[ " + guidePosition.x + "(" + (node.x()) + "), " + guidePosition.y + "(" + (node.y()) + ") ]",
+        x: Math.max(guidePosition.x, 0) > (this.text.width() + 10) ? guidePosition.x - (this.text.width() + 10) : Math.max(guidePosition.x + 10, 10),
+        y: Math.max(guidePosition.y, 0) > (this.text.height() + 10) ? guidePosition.y - (this.text.height() + 10) : Math.max(guidePosition.y + 10, 10)
       });
       layer.add(this.vert);
       layer.add(this.hori);
@@ -112,37 +102,33 @@
       return layer.batchDraw();
     };
     ondragmove = function(e) {
-      var layer, mouse_current, node, node_current, node_x, node_y, textx, texty, x, y;
+      var guidePosition, layer, mouseCurrent, moveDelta, node, nodePositionCurrent;
       layer = this.listener;
       node = e.targetNode;
-      mouse_current = {
+      mouseCurrent = {
         x: Math.round(e.x / this.scale.x),
         y: Math.round(e.y / this.scale.y)
       };
-      node_current = {
-        x: (mouse_current.x - this.mouse_origin.x) + this.node_origin.x,
-        y: (mouse_current.y - this.mouse_origin.y) + this.node_origin.y
+      moveDelta = {
+        x: mouseCurrent.x - this.mouseOrigin.x,
+        y: mouseCurrent.y - this.mouseOrigin.y
       };
-      node_x = Math.round(node_current.x / 10) * 10;
-      node_y = Math.round(node_current.y / 10) * 10;
+      nodePositionCurrent = node.position();
       node.position({
-        x: node_x,
-        y: node_y
+        x: Math.round((nodePositionCurrent.x + moveDelta.x) / 10) * 10,
+        y: Math.round((nodePositionCurrent.y + moveDelta.y) / 10) * 10
       });
-      x = node_x - this.layer_offset.x;
-      y = node_y - this.layer_offset.y;
+      guidePosition = _nodeTracker(layer, node);
       this.vert.setAttrs({
-        points: [x, 0, x, this.height]
+        points: [guidePosition.x, 0, guidePosition.x, this.height]
       });
       this.hori.setAttrs({
-        points: [0, y, this.width, y]
+        points: [0, guidePosition.y, this.width, guidePosition.y]
       });
-      this.text.setAttr('text', "[ " + x + "(" + (node.x()) + "), " + y + "(" + (node.y()) + ") ]");
-      textx = Math.max(x, 0) > (this.text.width() + 10) ? x - (this.text.width() + 10) : Math.max(x + 10, 10);
-      texty = Math.max(y, 0) > (this.text.height() + 10) ? y - (this.text.height() + 10) : Math.max(y + 10, 10);
       this.text.setAttrs({
-        x: textx,
-        y: texty
+        text: "[ " + guidePosition.x + "(" + (node.x()) + "), " + guidePosition.y + "(" + (node.y()) + ") ]",
+        x: Math.max(guidePosition.x, 0) > (this.text.width() + 10) ? guidePosition.x - (this.text.width() + 10) : Math.max(guidePosition.x + 10, 10),
+        y: Math.max(guidePosition.y, 0) > (this.text.height() + 10) ? guidePosition.y - (this.text.height() + 10) : Math.max(guidePosition.y + 10, 10)
       });
       return layer.batchDraw();
     };
@@ -191,7 +177,7 @@
       },
       model_event_map: model_event_map,
       view_event_map: view_event_map,
-      view_factory_fn: createView,
+      view_factory_fn: view_factory,
       toolbox_image: 'images/toolbox_guide_layer.png'
     };
   });

@@ -1,15 +1,15 @@
 (function() {
   define(['dou', 'KineticJS', '../EventTracker', '../ComponentSelector', '../command/CommandPropertyChange'], function(dou, kin, EventTracker, ComponentSelector, CommandPropertyChange) {
     "use strict";
-    var createView, model_event_map, onadded, onchange, onchangeeditmode, onchangemodel, onchangeselections, onclick, ondragend, ondragmove, ondragstart, onremoved, onresize, stuck_background_position, view_event_map, _editmodechange;
-    createView = function(attributes) {
-      var background, offset, stage, view;
+    var model_event_map, onadded, onchange, onchangeeditmode, onchangemodel, onchangeselections, onclick, ondragend, ondragmove, ondragstart, onremoved, onresize, view_event_map, view_factory, _editmodechange, _mousePointOnEvent, _stuckBackgroundPosition;
+    view_factory = function(attributes) {
+      var background, layer, offset, stage;
       stage = this.getView().getStage();
       offset = attributes.offset || {
         x: 0,
         y: 0
       };
-      view = new kin.Layer(attributes);
+      layer = new kin.Layer(attributes);
       background = new kin.Rect({
         name: 'background for ruler-layer',
         draggable: true,
@@ -22,28 +22,28 @@
         fill: 'cyan',
         opacity: 0.1
       });
-      view.__background__ = background;
-      view.__origin_offset__ = offset;
-      view.add(background);
-      return view;
+      layer.__background__ = background;
+      layer.__origin_offset__ = offset;
+      layer.add(background);
+      return layer;
     };
-    _editmodechange = function(after, before, view, model, controller) {
+    _editmodechange = function(after, before, layer, model, controller) {
       switch (after) {
         case 'MOVE':
-          view.__background__.moveToTop();
+          layer.__background__.moveToTop();
           break;
         case 'SELECT':
-          view.__background__.moveToBottom();
+          layer.__background__.moveToBottom();
           break;
       }
-      return view.batchDraw();
+      return layer.batchDraw();
     };
     onadded = function(container, component, index, e) {
-      var controller, model, view;
+      var controller, layer, model;
       controller = this;
       model = e.listener;
-      view = controller.getAttachedViews(model)[0];
-      return _editmodechange(controller.getEditMode(), null, view, model, controller);
+      layer = controller.getAttachedViews(model)[0];
+      return _editmodechange(controller.getEditMode(), null, layer, model, controller);
     };
     onremoved = function(container, component, e) {};
     onchangemodel = function(after, before, e) {
@@ -65,38 +65,43 @@
       }
     };
     onchange = function(component, before, after) {
-      var view;
-      view = component.getViews()[0];
-      view.setAttrs(after);
-      return view.getLayer().batchDraw();
+      var node;
+      node = component.getViews()[0];
+      node.setAttrs(after);
+      return node.getLayer().batchDraw();
     };
-    stuck_background_position = function(view) {
-      var view_offset, view_origin_offset;
-      view_offset = view.offset();
-      view_origin_offset = view.__origin_offset__;
-      return view.__background__.position({
-        x: view_offset.x - view_origin_offset.x,
-        y: view_offset.y - view_origin_offset.y
+    _stuckBackgroundPosition = function(layer) {
+      var layerOffset, layerOriginOffset;
+      layerOffset = layer.offset();
+      layerOriginOffset = layer.__origin_offset__;
+      return layer.__background__.position({
+        x: layerOffset.x - layerOriginOffset.x,
+        y: layerOffset.y - layerOriginOffset.y
       });
     };
+    _mousePointOnEvent = function(layer, e) {
+      var scale;
+      scale = layer.getStage().scale();
+      return {
+        x: Math.round(e.offsetX / scale.x),
+        y: Math.round(e.offsetY / scale.y)
+      };
+    };
     ondragstart = function(e) {
-      var background, controller, node, offset, view;
+      var background, controller, layer, node, offset;
       controller = this.context;
-      view = this.listener;
-      background = view.__background__;
+      layer = this.listener;
+      background = layer.__background__;
       node = e.targetNode;
       this.context.selectionManager.select(node);
-      if (e.targetNode && e.targetNode !== background) {
+      if (node && node !== background) {
         return;
       }
-      this.origin_offset = view.offset();
-      this.start_point = {
-        x: e.offsetX,
-        y: e.offsetY
-      };
+      this.layerOffsetOnStart = layer.offset();
+      this.mousePointOnStart = _mousePointOnEvent(layer, e);
       offset = {
-        x: this.start_point.x + this.origin_offset.x,
-        y: this.start_point.y + this.origin_offset.y
+        x: this.mousePointOnStart.x + this.layerOffsetOnStart.x,
+        y: this.mousePointOnStart.y + this.layerOffsetOnStart.y
       };
       switch (controller.getEditMode()) {
         case 'SELECT':
@@ -105,54 +110,47 @@
             strokeWidth: 1,
             dash: [3, 3]
           });
-          view.add(this.selectbox);
+          layer.add(this.selectbox);
           this.selectbox.setAttrs(offset);
           break;
         case 'MOVE':
           break;
       }
-      stuck_background_position(view);
-      view.draw();
+      _stuckBackgroundPosition(layer);
+      layer.draw();
       return e.cancelBubble = true;
     };
     ondragmove = function(e) {
-      var background, controller, current_point, view, x, y;
+      var background, controller, layer, mousePointCurrent, node;
       controller = this.context;
-      view = this.listener;
-      background = view.__background__;
-      if (e.targetNode && e.targetNode !== background) {
+      layer = this.listener;
+      background = layer.__background__;
+      node = e.targetNode;
+      if (node && node !== background) {
         return;
       }
-      current_point = {
-        x: e.offsetX,
-        y: e.offsetY
-      };
+      mousePointCurrent = _mousePointOnEvent(layer, e);
       switch (controller.getEditMode()) {
         case 'SELECT':
           this.selectbox.setAttrs({
-            width: current_point.x - this.start_point.x,
-            height: current_point.y - this.start_point.y
+            width: mousePointCurrent.x - this.mousePointOnStart.x,
+            height: mousePointCurrent.y - this.mousePointOnStart.y
           });
           break;
         case 'MOVE':
-          x = this.origin_offset.x - (current_point.x - this.start_point.x);
-          y = this.origin_offset.y - (current_point.y - this.start_point.y);
-          view.offset({
-            x: x,
-            y: y
+          layer.offset({
+            x: this.layerOffsetOnStart.x - (mousePointCurrent.x - this.mousePointOnStart.x),
+            y: this.layerOffsetOnStart.y - (mousePointCurrent.y - this.mousePointOnStart.y)
           });
-          view.fire('change-offset', {
-            x: x,
-            y: y
-          }, false);
+          layer.fire('change-offset', layer.offset(), false);
           break;
       }
-      stuck_background_position(view);
-      view.batchDraw();
+      _stuckBackgroundPosition(layer);
+      layer.batchDraw();
       return e.cancelBubble = true;
     };
     ondragend = function(e) {
-      var background, cmd, controller, current_point, dragmodel, dragview, view, x, y;
+      var background, cmd, controller, dragmodel, dragview, layer, mousePointCurrent, x, y;
       controller = this.context;
       dragview = e.targetNode;
       dragmodel = controller.getAttachedModel(dragview);
@@ -174,35 +172,32 @@
         });
         controller.execute(cmd);
       }
-      view = this.listener;
-      background = view.__background__;
+      layer = this.listener;
+      background = layer.__background__;
       if (e.targetNode && e.targetNode !== background) {
         return;
       }
-      current_point = {
-        x: e.offsetX,
-        y: e.offsetY
-      };
+      mousePointCurrent = _mousePointOnEvent(layer, e);
       switch (controller.getEditMode()) {
         case 'SELECT':
           this.selectbox.remove();
           delete this.selectbox;
           break;
         case 'MOVE':
-          x = Math.max(this.origin_offset.x - (current_point.x - this.start_point.x), -20);
-          y = Math.max(this.origin_offset.y - (current_point.y - this.start_point.y), -20);
-          view.offset({
+          x = Math.max(this.layerOffsetOnStart.x - (mousePointCurrent.x - this.mousePointOnStart.x), -20);
+          y = Math.max(this.layerOffsetOnStart.y - (mousePointCurrent.y - this.mousePointOnStart.y), -20);
+          layer.offset({
             x: x,
             y: y
           });
-          view.fire('change-offset', {
+          layer.fire('change-offset', {
             x: x,
             y: y
           }, false);
           break;
       }
-      stuck_background_position(view);
-      view.draw();
+      _stuckBackgroundPosition(layer);
+      layer.draw();
       return e.cancelBubble = true;
     };
     onclick = function(e) {
@@ -211,18 +206,18 @@
       return this.context.selectionManager.select(node);
     };
     onresize = function(e) {
-      var background, view;
-      view = this.listener;
-      background = view.__background__;
+      var background, layer;
+      layer = this.listener;
+      background = layer.__background__;
       background.setSize(e.after);
-      return view.batchDraw();
+      return layer.batchDraw();
     };
     onchangeeditmode = function(after, before, e) {
-      var controller, model, view;
+      var controller, layer, model;
       controller = this;
       model = e.listener;
-      view = controller.getAttachedViews(model)[0];
-      return _editmodechange(after, before, view, model, controller);
+      layer = controller.getAttachedViews(model)[0];
+      return _editmodechange(after, before, layer, model, controller);
     };
     model_event_map = {
       '(root)': {
@@ -265,7 +260,7 @@
       },
       model_event_map: model_event_map,
       view_event_map: view_event_map,
-      view_factory_fn: createView,
+      view_factory_fn: view_factory,
       toolbox_image: 'images/toolbox_content_edit_layer.png'
     };
   });

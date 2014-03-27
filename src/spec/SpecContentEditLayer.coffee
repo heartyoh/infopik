@@ -20,12 +20,12 @@ define [
 
     "use strict"
 
-    createView = (attributes) ->
-        stage = this.getView().getStage()
+    view_factory = (attributes) ->
+        stage = @getView().getStage()
 
         offset = attributes.offset || {x:0, y:0}
 
-        view = new kin.Layer(attributes)
+        layer = new kin.Layer(attributes)
 
         background = new kin.Rect
             name: 'background for ruler-layer'
@@ -40,29 +40,29 @@ define [
             opacity: 0.1
             # id: undefined
 
-        view.__background__ = background
-        view.__origin_offset__ = offset
+        layer.__background__ = background
+        layer.__origin_offset__ = offset
 
-        view.add background
+        layer.add background
 
-        view
+        layer
 
-    _editmodechange = (after, before, view, model, controller) ->
+    _editmodechange = (after, before, layer, model, controller) ->
         switch after
             when 'MOVE'
-                view.__background__.moveToTop()
+                layer.__background__.moveToTop()
             when 'SELECT'
-                view.__background__.moveToBottom()
+                layer.__background__.moveToBottom()
             else
                 
-        view.batchDraw()
+        layer.batchDraw()
 
     onadded = (container, component, index, e) ->
         controller = this
         model = e.listener
-        view = controller.getAttachedViews(model)[0]
+        layer = controller.getAttachedViews(model)[0]
 
-        _editmodechange(controller.getEditMode(), null, view, model, controller)
+        _editmodechange(controller.getEditMode(), null, layer, model, controller)
 
     onremoved = (container, component, e) ->
 
@@ -80,92 +80,96 @@ define [
         console.log 'selection-changed', after[0], controller.getAttachedModel(after[0]) if after.length > 0
 
     onchange = (component, before, after) ->
-        view = component.getViews()[0]
-        view.setAttrs after
-        view.getLayer().batchDraw()
+        node = component.getViews()[0]
+        node.setAttrs after
+        node.getLayer().batchDraw()
 
-    stuck_background_position = (view) ->
-        view_offset = view.offset()
-        view_origin_offset = view.__origin_offset__
-        view.__background__.position
-            x: view_offset.x - view_origin_offset.x
-            y: view_offset.y - view_origin_offset.y
+    _stuckBackgroundPosition = (layer) ->
+        layerOffset = layer.offset()
+        layerOriginOffset = layer.__origin_offset__
+        layer.__background__.position
+            x: layerOffset.x - layerOriginOffset.x
+            y: layerOffset.y - layerOriginOffset.y
+
+    _mousePointOnEvent = (layer, e) ->
+        scale = layer.getStage().scale()
+
+        {
+            x: Math.round(e.offsetX / scale.x) # e.clientX
+            y: Math.round(e.offsetY / scale.y) # e.clientY
+        }
 
     ondragstart = (e) ->
-        controller = this.context
-        view = this.listener
+        controller = @context
+        layer = @listener
 
-        background = view.__background__
-
+        background = layer.__background__
         node = e.targetNode
-        this.context.selectionManager.select(node)
+
+        @context.selectionManager.select(node)
             
-        return if e.targetNode and e.targetNode isnt background
+        return if node and node isnt background
 
-        this.origin_offset = view.offset()
+        @layerOffsetOnStart = layer.offset()
 
-        this.start_point =
-            x: e.offsetX # e.clientX
-            y: e.offsetY # e.clientY
+        @mousePointOnStart = _mousePointOnEvent(layer, e)
 
         offset = 
-            x: this.start_point.x + this.origin_offset.x
-            y: this.start_point.y + this.origin_offset.y
+            x: @mousePointOnStart.x + @layerOffsetOnStart.x
+            y: @mousePointOnStart.y + @layerOffsetOnStart.y
 
         switch(controller.getEditMode())
             when 'SELECT'
-                this.selectbox = new kin.Rect
+                @selectbox = new kin.Rect
                     stroke: 'black'
                     strokeWidth: 1
                     dash: [3, 3]
 
-                view.add this.selectbox
-                this.selectbox.setAttrs(offset)
+                layer.add @selectbox
+                @selectbox.setAttrs offset
             when 'MOVE'
             else
 
-        stuck_background_position view
+        _stuckBackgroundPosition layer
 
-        view.draw();
+        layer.draw();
 
         e.cancelBubble = true
 
     ondragmove = (e) ->
-        controller = this.context
-        view = this.listener
+        controller = @context
+        layer = @listener
 
-        background = view.__background__
+        background = layer.__background__
+        node = e.targetNode
 
-        return if e.targetNode and e.targetNode isnt background
+        return if node and node isnt background
 
-        current_point = 
-            x: e.offsetX # e.clientX
-            y: e.offsetY # e.clientY
+        mousePointCurrent = _mousePointOnEvent(layer, e)
 
         switch(controller.getEditMode())
             when 'SELECT'
-                this.selectbox.setAttrs({width: current_point.x - this.start_point.x, height: current_point.y - this.start_point.y})
+                @selectbox.setAttrs
+                    width: mousePointCurrent.x - @mousePointOnStart.x
+                    height: mousePointCurrent.y - @mousePointOnStart.y
 
                 # TODO select components in the area of selectionbox
             when 'MOVE'
-                x = this.origin_offset.x - (current_point.x - this.start_point.x)
-                y = this.origin_offset.y - (current_point.y - this.start_point.y)
+                layer.offset
+                    x: @layerOffsetOnStart.x - (mousePointCurrent.x - @mousePointOnStart.x)
+                    y: @layerOffsetOnStart.y - (mousePointCurrent.y - @mousePointOnStart.y)
 
-                view.offset
-                    x: x
-                    y: y
-
-                view.fire('change-offset', {x: x, y: y}, false);
+                layer.fire('change-offset', layer.offset(), false);
             else
 
-        stuck_background_position view
+        _stuckBackgroundPosition layer
 
-        view.batchDraw();
+        layer.batchDraw();
 
         e.cancelBubble = true
 
     ondragend = (e) ->
-        controller = this.context
+        controller = @context
         
         dragview = e.targetNode
         dragmodel = controller.getAttachedModel(dragview)
@@ -186,55 +190,53 @@ define [
 
         # ...
 
-        view = this.listener
+        layer = @listener
 
-        background = view.__background__
+        background = layer.__background__
 
         return if e.targetNode and e.targetNode isnt background
 
-        current_point = 
-            x: e.offsetX # e.clientX
-            y: e.offsetY # e.clientY
+        mousePointCurrent = _mousePointOnEvent(layer, e)
 
         switch(controller.getEditMode())
             when 'SELECT'
-                this.selectbox.remove()
-                delete this.selectbox
+                @selectbox.remove()
+                delete @selectbox
             when 'MOVE'
-                x = Math.max(this.origin_offset.x - (current_point.x - this.start_point.x), -20)
-                y = Math.max(this.origin_offset.y - (current_point.y - this.start_point.y), -20)
+                x = Math.max(@layerOffsetOnStart.x - (mousePointCurrent.x - @mousePointOnStart.x), -20)
+                y = Math.max(@layerOffsetOnStart.y - (mousePointCurrent.y - @mousePointOnStart.y), -20)
 
-                view.offset
+                layer.offset
                     x: x
                     y: y
 
-                view.fire('change-offset', {x: x, y: y}, false);
+                layer.fire('change-offset', {x: x, y: y}, false);
             else
 
-        stuck_background_position view
+        _stuckBackgroundPosition layer
 
-        view.draw();
+        layer.draw();
 
         e.cancelBubble = true
 
     onclick = (e) ->
         node = e.targetNode
-        this.context.selectionManager.select(node)
+        @context.selectionManager.select(node)
 
     onresize = (e) ->
-        view = this.listener
+        layer = @listener
 
-        background = view.__background__
+        background = layer.__background__
         background.setSize(e.after)
 
-        view.batchDraw()
+        layer.batchDraw()
 
     onchangeeditmode = (after, before, e) ->
         controller = this
         model = e.listener
-        view = controller.getAttachedViews(model)[0]
+        layer = controller.getAttachedViews(model)[0]
 
-        _editmodechange(after, before, view, model, controller)
+        _editmodechange(after, before, layer, model, controller)
 
     model_event_map =
         '(root)' :
@@ -270,6 +272,6 @@ define [
         }
         model_event_map: model_event_map
         view_event_map: view_event_map
-        view_factory_fn: createView
+        view_factory_fn: view_factory
         toolbox_image: 'images/toolbox_content_edit_layer.png'
     }
