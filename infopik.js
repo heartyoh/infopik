@@ -1464,45 +1464,45 @@ define("build/Clipboard",["module","require","exports"],function(module, require
                 model: appcontext.getAttachedModel(view)
             }));
         };
-        moveForward = function () {
-            return _move(this, 'FORWARD');
+        moveForward = function (appcontext) {
+            return _move(appcontext, 'FORWARD');
         };
-        moveBackward = function () {
-            return _move(this, 'BACKWARD');
+        moveBackward = function (appcontext) {
+            return _move(appcontext, 'BACKWARD');
         };
-        moveToFront = function () {
-            return _move(this, 'FRONT');
+        moveToFront = function (appcontext) {
+            return _move(appcontext, 'FRONT');
         };
-        moveToBack = function () {
-            return _move(this, 'BACK');
+        moveToBack = function (appcontext) {
+            return _move(appcontext, 'BACK');
         };
-        cut = function () {
-            return this.clipboard.cut(this.selectionManager.get());
+        cut = function (appcontext) {
+            return appcontext.clipboard.cut(appcontext.selectionManager.get());
         };
-        copy = function () {
-            return this.clipboard.copy(this.selectionManager.get());
+        copy = function (appcontext) {
+            return appcontext.clipboard.copy(appcontext.selectionManager.get());
         };
-        paste = function () {
+        paste = function (appcontext) {
             var component, components, nodes;
-            components = this.clipboard.paste();
+            components = appcontext.clipboard.paste();
             nodes = function () {
                 var _i, _len, _results;
                 _results = [];
                 for (_i = 0, _len = components.length; _i < _len; _i++) {
                     component = components[_i];
-                    _results.push(this.getAttachedModel(component));
+                    _results.push(appcontext.getAttachedModel(component));
                 }
                 return _results;
-            }.call(this);
-            return this.selectionManager.select(nodes);
+            }();
+            return appcontext.selectionManager.select(nodes);
         };
-        moveDelta = function (component, delta) {
+        moveDelta = function (appcontext, component, delta) {
             var after, attr, before, changes, comp, node, nodes, _i, _len;
-            nodes = this.selectionManager.get();
+            nodes = appcontext.selectionManager.get();
             changes = [];
             for (_i = 0, _len = nodes.length; _i < _len; _i++) {
                 node = nodes[_i];
-                comp = this.getAttachedModel(node);
+                comp = appcontext.getAttachedModel(node);
                 before = {};
                 after = {};
                 for (attr in delta) {
@@ -1515,9 +1515,9 @@ define("build/Clipboard",["module","require","exports"],function(module, require
                     after: after
                 });
             }
-            return this.commandManager.execute(new CommandPropertyChange({ changes: changes }));
+            return appcontext.commandManager.execute(new CommandPropertyChange({ changes: changes }));
         };
-        offset = function (component, offset) {
+        offset = function (appcontext, component, offset) {
             var layer;
             layer = component.getAttachedViews()[0];
             return layer.offset(offset);
@@ -1526,31 +1526,31 @@ define("build/Clipboard",["module","require","exports"],function(module, require
             var exportableFunctions, func, name, _results;
             exportableFunctions = {
                 moveDelta: function (delta) {
-                    return moveDelta(component, delta);
+                    return moveDelta(appcontext, component, delta);
                 },
                 moveForward: function () {
-                    return moveForward(component);
+                    return moveForward(appcontext, component);
                 },
                 moveBackward: function () {
-                    return moveBackward(component);
+                    return moveBackward(appcontext, component);
                 },
                 moveToFront: function () {
-                    return moveToFront(component);
+                    return moveToFront(appcontext, component);
                 },
                 moveToBack: function () {
-                    return moveToBack(component);
+                    return moveToBack(appcontext, component);
                 },
                 offset: function (offset) {
-                    return offset(component, offset);
+                    return offset(appcontext, component, offset);
                 },
                 cut: function () {
-                    return cut(component);
+                    return cut(appcontext, component);
                 },
                 copy: function () {
-                    return copy(component);
+                    return copy(appcontext, component);
                 },
                 paste: function () {
-                    return paste(component);
+                    return paste(appcontext, component);
                 },
                 setEditMode: function (mode) {
                     return component.setEditMode(mode);

@@ -21,35 +21,35 @@ define [
             view: view
             model: appcontext.getAttachedModel(view)
 
-    moveForward = ->
-        _move this, 'FORWARD'
+    moveForward = (appcontext) ->
+        _move appcontext, 'FORWARD'
 
-    moveBackward = ->
-        _move this, 'BACKWARD'
+    moveBackward = (appcontext) ->
+        _move appcontext, 'BACKWARD'
 
-    moveToFront = ->
-        _move this, 'FRONT'
+    moveToFront = (appcontext) ->
+        _move appcontext, 'FRONT'
 
-    moveToBack = ->
-        _move this, 'BACK'
+    moveToBack = (appcontext) ->
+        _move appcontext, 'BACK'
 
-    cut = ->
-        @clipboard.cut @selectionManager.get()
+    cut = (appcontext) ->
+        appcontext.clipboard.cut appcontext.selectionManager.get()
 
-    copy = ->
-        @clipboard.copy @selectionManager.get()
+    copy = (appcontext) ->
+        appcontext.clipboard.copy appcontext.selectionManager.get()
 
-    paste = ->
-        components = @clipboard.paste()
-        nodes = (@getAttachedModel(component) for component in components)
-        @selectionManager.select(nodes)
+    paste = (appcontext) ->
+        components = appcontext.clipboard.paste()
+        nodes = (appcontext.getAttachedModel(component) for component in components)
+        appcontext.selectionManager.select(nodes)
 
-    moveDelta = (component, delta) ->
-        nodes = @selectionManager.get()
+    moveDelta = (appcontext, component, delta) ->
+        nodes = appcontext.selectionManager.get()
         changes = []
     
         for node in nodes
-            comp = @getAttachedModel(node)
+            comp = appcontext.getAttachedModel(node)
 
             before = {}
             after = {}
@@ -63,25 +63,25 @@ define [
                 before : before
                 after : after
     
-        @commandManager.execute(new CommandPropertyChange {
+        appcontext.commandManager.execute(new CommandPropertyChange {
             changes : changes
         })
 
-    offset = (component, offset) ->
+    offset = (appcontext, component, offset) ->
         layer = component.getAttachedViews()[0]
         layer.offset offset
 
     (appcontext, component) ->
         exportableFunctions =
-            moveDelta: (delta) -> moveDelta(component, delta)
-            moveForward: -> moveForward(component)
-            moveBackward: -> moveBackward(component)
-            moveToFront: -> moveToFront(component)
-            moveToBack: -> moveToBack(component)
-            offset: (offset) -> offset(component, offset)
-            cut: -> cut(component)
-            copy: -> copy(component)
-            paste: -> paste(component)
+            moveDelta: (delta) -> moveDelta(appcontext, component, delta)
+            moveForward: -> moveForward(appcontext, component)
+            moveBackward: -> moveBackward(appcontext, component)
+            moveToFront: -> moveToFront(appcontext, component)
+            moveToBack: -> moveToBack(appcontext, component)
+            offset: (offset) -> offset(appcontext, component, offset)
+            cut: -> cut(appcontext, component)
+            copy: -> copy(appcontext, component)
+            paste: -> paste(appcontext, component)
             setEditMode: (mode) -> component.setEditMode(mode)
             getEditMode: -> component.getEditMode()
 
