@@ -68,11 +68,12 @@ define [
     _nodeTracker = (guideLayer, node) ->
         guideLayerOffset = guideLayer.offset()
         nodeLayerOffset = node.getLayer().offset()
-        nodePosition = node.position()
+        nodeAbsPosition = node.getAbsolutePosition()
+        scale = node.getStage().scale()
 
         {
-            x: nodePosition.x + nodeLayerOffset.x - guideLayerOffset.x
-            y: nodePosition.y + nodeLayerOffset.y - guideLayerOffset.y
+            x: nodeAbsPosition.x / scale.x + nodeLayerOffset.x + nodeLayerOffset.x - guideLayerOffset.x
+            y: nodeAbsPosition.y / scale.y + nodeLayerOffset.y + nodeLayerOffset.y - guideLayerOffset.y
         }
 
     ondragstart = (e) ->
@@ -84,10 +85,6 @@ define [
         @scale = stage.getScale()
         @width = stage.getWidth()
         @height = stage.getHeight()
-
-        # @mouseOrigin =
-        #     x: Math.round(e.x / @scale.x)
-        #     y: Math.round(e.y / @scale.y)
 
         guidePosition = _nodeTracker(layer, node)
 
@@ -121,14 +118,6 @@ define [
     ondragmove = (e) ->
         layer = @listener
         node = e.targetNode
-
-        # mouseCurrent = 
-        #     x: Math.round(e.x / @scale.x)
-        #     y: Math.round(e.y / @scale.y)
-
-        # moveDelta =
-        # #     x: mouseCurrent.x - @mouseOrigin.x
-        # #     y: mouseCurrent.y - @mouseOrigin.y
 
         nodePositionCurrent = node.position()
 

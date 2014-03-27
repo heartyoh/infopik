@@ -1699,13 +1699,14 @@ define("build/Clipboard",["module","require","exports"],function(module, require
             }, 5000);
         };
         _nodeTracker = function (guideLayer, node) {
-            var guideLayerOffset, nodeLayerOffset, nodePosition;
+            var guideLayerOffset, nodeAbsPosition, nodeLayerOffset, scale;
             guideLayerOffset = guideLayer.offset();
             nodeLayerOffset = node.getLayer().offset();
-            nodePosition = node.position();
+            nodeAbsPosition = node.getAbsolutePosition();
+            scale = node.getStage().scale();
             return {
-                x: nodePosition.x + nodeLayerOffset.x - guideLayerOffset.x,
-                y: nodePosition.y + nodeLayerOffset.y - guideLayerOffset.y
+                x: nodeAbsPosition.x / scale.x + nodeLayerOffset.x + nodeLayerOffset.x - guideLayerOffset.x,
+                y: nodeAbsPosition.y / scale.y + nodeLayerOffset.y + nodeLayerOffset.y - guideLayerOffset.y
             };
         };
         ondragstart = function (e) {
