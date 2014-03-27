@@ -86,6 +86,18 @@
         if (!component.get('id')) {
           component.set('id', this.uniqueId());
         }
+        if (spec.exportable) {
+          dou.mixin(controller, function() {
+            var impl, member, _ref2, _results;
+            _ref2 = spec.exportable;
+            _results = [];
+            for (member in _ref2) {
+              impl = _ref2[member];
+              _results.push(this[member] = impl);
+            }
+            return _results;
+          });
+        }
         if (spec.model_event_map) {
           this.eventEngine.add(component, spec.model_event_map, controller);
         }

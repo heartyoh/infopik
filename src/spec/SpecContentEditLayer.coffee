@@ -10,12 +10,14 @@ define [
     '../EventTracker'
     '../ComponentSelector'
     '../command/CommandPropertyChange'
+    './SpecContentEditLayerExportable'
 ], (
     dou
     kin
     EventTracker
     ComponentSelector
     CommandPropertyChange
+    exportable
 ) ->
 
     "use strict"
@@ -277,4 +279,5 @@ define [
         view_event_map: view_event_map
         view_factory_fn: view_factory
         toolbox_image: 'images/toolbox_content_edit_layer.png'
+        exportable: exportable
     }

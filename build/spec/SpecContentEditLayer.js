@@ -1,5 +1,5 @@
 (function() {
-  define(['dou', 'KineticJS', '../EventTracker', '../ComponentSelector', '../command/CommandPropertyChange'], function(dou, kin, EventTracker, ComponentSelector, CommandPropertyChange) {
+  define(['dou', 'KineticJS', '../EventTracker', '../ComponentSelector', '../command/CommandPropertyChange', './SpecContentEditLayerExportable'], function(dou, kin, EventTracker, ComponentSelector, CommandPropertyChange, exportable) {
     "use strict";
     var model_event_map, onadded, onchange, onchangeeditmode, onchangemodel, onchangeselections, onclick, ondragend, ondragmove, ondragstart, onremoved, onresize, view_event_map, view_factory, _editmodechange, _mousePointOnEvent, _stuckBackgroundPosition;
     view_factory = function(attributes) {
@@ -264,7 +264,8 @@
       model_event_map: model_event_map,
       view_event_map: view_event_map,
       view_factory_fn: view_factory,
-      toolbox_image: 'images/toolbox_content_edit_layer.png'
+      toolbox_image: 'images/toolbox_content_edit_layer.png',
+      exportable: exportable
     };
   });
 

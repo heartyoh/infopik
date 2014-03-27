@@ -158,23 +158,6 @@
         });
       };
 
-      ApplicationContext.prototype.setEditMode = function(mode) {
-        var old;
-        old = this.editMode || 'SELECT';
-        if (old === mode) {
-          return;
-        }
-        this.editMode = mode;
-        return this.application.trigger('change-edit-mode', mode, old);
-      };
-
-      ApplicationContext.prototype.getEditMode = function() {
-        if (this.editMode) {
-          return this.editMode;
-        }
-        return 'SELECT';
-      };
-
       ApplicationContext.prototype.onadd = function(container, component, index, e) {
         var vcomponent, vcontainer;
         vcontainer = container === this.application ? this.view : this.findViewByComponent(container);
@@ -192,35 +175,6 @@
 
       ApplicationContext.prototype.onselectionchange = function(changes) {
         return this.application.trigger('change-selections', changes.after, changes.before, changes.added, changes.removed);
-      };
-
-      ApplicationContext.prototype._move = function(to) {
-        var view;
-        view = this.selectionManager.focus();
-        if (!view) {
-          return;
-        }
-        return this.execute(new CommandMove({
-          to: to,
-          view: view,
-          model: this.getAttachedModel(view)
-        }));
-      };
-
-      ApplicationContext.prototype.moveForward = function() {
-        return this._move('FORWARD');
-      };
-
-      ApplicationContext.prototype.moveBackward = function() {
-        return this._move('BACKWARD');
-      };
-
-      ApplicationContext.prototype.moveToFront = function() {
-        return this._move('FRONT');
-      };
-
-      ApplicationContext.prototype.moveToBack = function() {
-        return this._move('BACK');
       };
 
       ApplicationContext.prototype.redo = function() {
@@ -249,53 +203,6 @@
         var scale;
         scale = this.getView().scaleX();
         return this.setScale((scale - 1 < 1 ? 1 : scale - 1));
-      };
-
-      ApplicationContext.prototype.cut = function() {
-        return this.clipboard.cut(this.selectionManager.get());
-      };
-
-      ApplicationContext.prototype.copy = function() {
-        return this.clipboard.copy(this.selectionManager.get());
-      };
-
-      ApplicationContext.prototype.paste = function() {
-        var component, components, nodes;
-        components = this.clipboard.paste();
-        nodes = (function() {
-          var _i, _len, _results;
-          _results = [];
-          for (_i = 0, _len = components.length; _i < _len; _i++) {
-            component = components[_i];
-            _results.push(this.getAttachedModel(component));
-          }
-          return _results;
-        }).call(this);
-        return this.selectionManager.select(nodes);
-      };
-
-      ApplicationContext.prototype.moveDelta = function(delta) {
-        var after, attr, before, changes, component, node, nodes, _i, _len;
-        nodes = this.selectionManager.get();
-        changes = [];
-        for (_i = 0, _len = nodes.length; _i < _len; _i++) {
-          node = nodes[_i];
-          component = this.getAttachedModel(node);
-          before = {};
-          after = {};
-          for (attr in delta) {
-            before[attr] = component.get(attr);
-            after[attr] = component.get(attr) + delta[attr];
-          }
-          changes.push({
-            component: component,
-            before: before,
-            after: after
-          });
-        }
-        return this.commandManager.execute(new CommandPropertyChange({
-          changes: changes
-        }));
       };
 
       return ApplicationContext;

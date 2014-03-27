@@ -964,6 +964,18 @@
                 if (!component.get('id')) {
                     component.set('id', this.uniqueId());
                 }
+                if (spec.exportable) {
+                    dou.mixin(controller, function () {
+                        var impl, member, _ref2, _results;
+                        _ref2 = spec.exportable;
+                        _results = [];
+                        for (member in _ref2) {
+                            impl = _ref2[member];
+                            _results.push(this[member] = impl);
+                        }
+                        return _results;
+                    });
+                }
                 if (spec.model_event_map) {
                     this.eventEngine.add(component, spec.model_event_map, controller);
                 }
@@ -1371,13 +1383,184 @@ define("build/Clipboard",["module","require","exports"],function(module, require
     });
 }.call(this));
 (function () {
+    var __hasProp = {}.hasOwnProperty, __extends = function (child, parent) {
+            for (var key in parent) {
+                if (__hasProp.call(parent, key))
+                    child[key] = parent[key];
+            }
+            function ctor() {
+                this.constructor = child;
+            }
+            ctor.prototype = parent.prototype;
+            child.prototype = new ctor();
+            child.__super__ = parent.prototype;
+            return child;
+        };
+    define('build/command/CommandMove', [
+        'dou',
+        '../Command'
+    ], function (dou, Command) {
+        'use strict';
+        var CommandMove;
+        return CommandMove = function (_super) {
+            __extends(CommandMove, _super);
+            function CommandMove() {
+                return CommandMove.__super__.constructor.apply(this, arguments);
+            }
+            CommandMove.prototype.execute = function () {
+                var layer, model, to, view;
+                to = this.params.to;
+                model = this.params.model;
+                view = this.params.view;
+                this.i_model = model.getContainer().indexOf(model);
+                this.i_view = view.getZIndex();
+                switch (to) {
+                case 'FORWARD':
+                    view.moveUp();
+                    model.moveForward();
+                    break;
+                case 'BACKWARD':
+                    view.moveDown();
+                    model.moveBackward();
+                    break;
+                case 'FRONT':
+                    view.moveToTop();
+                    model.moveToFront();
+                    break;
+                case 'BACK':
+                    view.moveToBottom();
+                    model.moveToBack();
+                }
+                layer = view.getLayer();
+                if (layer) {
+                    return layer.draw();
+                }
+            };
+            CommandMove.prototype.unexecute = function () {
+                var layer, model, to, view;
+                to = this.params.to;
+                model = this.params.model;
+                view = this.params.view;
+                view.setZIndex(this.i_view);
+                model.moveAt(this.i_model);
+                layer = view.getLayer();
+                if (layer) {
+                    return layer.draw();
+                }
+            };
+            return CommandMove;
+        }(Command);
+    });
+}.call(this));
+(function () {
+    define('build/spec/SpecContentEditLayerExportable', [
+        '../command/CommandPropertyChange',
+        '../command/CommandMove'
+    ], function (CommandPropertyChange, CommandMove) {
+        var copy, cut, getEditMode, moveBackward, moveDelta, moveForward, moveToBack, moveToFront, paste, setEditMode, _move;
+        _move = function (context, to) {
+            var view;
+            view = context.selectionManager.focus();
+            if (!view) {
+                return;
+            }
+            return context.execute(new CommandMove({
+                to: to,
+                view: view,
+                model: this.getAttachedModel(view)
+            }));
+        };
+        moveForward = function () {
+            return _move(this, 'FORWARD');
+        };
+        moveBackward = function () {
+            return _move(this, 'BACKWARD');
+        };
+        moveToFront = function () {
+            return _move(this, 'FRONT');
+        };
+        moveToBack = function () {
+            return _move(this, 'BACK');
+        };
+        cut = function () {
+            return this.clipboard.cut(this.selectionManager.get());
+        };
+        copy = function () {
+            return this.clipboard.copy(this.selectionManager.get());
+        };
+        paste = function () {
+            var component, components, nodes;
+            components = this.clipboard.paste();
+            nodes = function () {
+                var _i, _len, _results;
+                _results = [];
+                for (_i = 0, _len = components.length; _i < _len; _i++) {
+                    component = components[_i];
+                    _results.push(this.getAttachedModel(component));
+                }
+                return _results;
+            }.call(this);
+            return this.selectionManager.select(nodes);
+        };
+        moveDelta = function (delta) {
+            var after, attr, before, changes, component, node, nodes, _i, _len;
+            nodes = this.selectionManager.get();
+            changes = [];
+            for (_i = 0, _len = nodes.length; _i < _len; _i++) {
+                node = nodes[_i];
+                component = this.getAttachedModel(node);
+                before = {};
+                after = {};
+                for (attr in delta) {
+                    before[attr] = component.get(attr);
+                    after[attr] = component.get(attr) + delta[attr];
+                }
+                changes.push({
+                    component: component,
+                    before: before,
+                    after: after
+                });
+            }
+            return this.commandManager.execute(new CommandPropertyChange({ changes: changes }));
+        };
+        setEditMode = function (mode) {
+            var old;
+            old = this.editMode || 'SELECT';
+            if (old === mode) {
+                return;
+            }
+            this.editMode = mode;
+            return this.application.trigger('change-edit-mode', mode, old);
+        };
+        getEditMode = function () {
+            if (this.editMode) {
+                return this.editMode;
+            }
+            return 'SELECT';
+        };
+        return {
+            moveDelta: moveDelta,
+            moveForward: moveForward,
+            moveBackward: moveBackward,
+            moveToFront: moveToFront,
+            moveToBack: moveToBack,
+            cut: cut,
+            copy: copy,
+            paste: paste,
+            setEditMode: setEditMode,
+            getEditMode: getEditMode
+        };
+    });
+}.call(this));
+(function () {
     define('build/spec/SpecContentEditLayer', [
         'dou',
         'KineticJS',
         '../EventTracker',
         '../ComponentSelector',
-        '../command/CommandPropertyChange'
-    ], function (dou, kin, EventTracker, ComponentSelector, CommandPropertyChange) {
+        '../command/CommandPropertyChange',
+        './SpecContentEditLayerExportable'
+    ], function (dou, kin, EventTracker, ComponentSelector, CommandPropertyChange, exportable) {
         'use strict';
         var model_event_map, onadded, onchange, onchangeeditmode, onchangemodel, onchangeselections, onclick, ondragend, ondragmove, ondragstart, onremoved, onresize, view_event_map, view_factory, _editmodechange, _mousePointOnEvent, _stuckBackgroundPosition;
         view_factory = function (attributes) {
@@ -1640,7 +1823,8 @@ define("build/Clipboard",["module","require","exports"],function(module, require
             model_event_map: model_event_map,
             view_event_map: view_event_map,
             view_factory_fn: view_factory,
-            toolbox_image: 'images/toolbox_content_edit_layer.png'
+            toolbox_image: 'images/toolbox_content_edit_layer.png',
+            exportable: exportable
         };
     });
 }.call(this));
@@ -2829,76 +3013,6 @@ define("build/Clipboard",["module","require","exports"],function(module, require
     });
 }.call(this));
 (function () {
-    var __hasProp = {}.hasOwnProperty, __extends = function (child, parent) {
-            for (var key in parent) {
-                if (__hasProp.call(parent, key))
-                    child[key] = parent[key];
-            }
-            function ctor() {
-                this.constructor = child;
-            }
-            ctor.prototype = parent.prototype;
-            child.prototype = new ctor();
-            child.__super__ = parent.prototype;
-            return child;
-        };
-    define('build/command/CommandMove', [
-        'dou',
-        '../Command'
-    ], function (dou, Command) {
-        'use strict';
-        var CommandMove;
-        return CommandMove = function (_super) {
-            __extends(CommandMove, _super);
-            function CommandMove() {
-                return CommandMove.__super__.constructor.apply(this, arguments);
-            }
-            CommandMove.prototype.execute = function () {
-                var layer, model, to, view;
-                to = this.params.to;
-                model = this.params.model;
-                view = this.params.view;
-                this.i_model = model.getContainer().indexOf(model);
-                this.i_view = view.getZIndex();
-                switch (to) {
-                case 'FORWARD':
-                    view.moveUp();
-                    model.moveForward();
-                    break;
-                case 'BACKWARD':
-                    view.moveDown();
-                    model.moveBackward();
-                    break;
-                case 'FRONT':
-                    view.moveToTop();
-                    model.moveToFront();
-                    break;
-                case 'BACK':
-                    view.moveToBottom();
-                    model.moveToBack();
-                }
-                layer = view.getLayer();
-                if (layer) {
-                    return layer.draw();
-                }
-            };
-            CommandMove.prototype.unexecute = function () {
-                var layer, model, to, view;
-                to = this.params.to;
-                model = this.params.model;
-                view = this.params.view;
-                view.setZIndex(this.i_view);
-                model.moveAt(this.i_model);
-                layer = view.getLayer();
-                if (layer) {
-                    return layer.draw();
-                }
-            };
-            return CommandMove;
-        }(Command);
-    });
-}.call(this));
-(function () {
     define('build/ApplicationContext', [
         'dou',
         'KineticJS',
@@ -3066,21 +3180,6 @@ define("build/Clipboard",["module","require","exports"],function(module, require
                     }
                 });
             };
-            ApplicationContext.prototype.setEditMode = function (mode) {
-                var old;
-                old = this.editMode || 'SELECT';
-                if (old === mode) {
-                    return;
-                }
-                this.editMode = mode;
-                return this.application.trigger('change-edit-mode', mode, old);
-            };
-            ApplicationContext.prototype.getEditMode = function () {
-                if (this.editMode) {
-                    return this.editMode;
-                }
-                return 'SELECT';
-            };
             ApplicationContext.prototype.onadd = function (container, component, index, e) {
                 var vcomponent, vcontainer;
                 vcontainer = container === this.application ? this.view : this.findViewByComponent(container);
@@ -3096,30 +3195,6 @@ define("build/Clipboard",["module","require","exports"],function(module, require
             };
             ApplicationContext.prototype.onselectionchange = function (changes) {
                 return this.application.trigger('change-selections', changes.after, changes.before, changes.added, changes.removed);
-            };
-            ApplicationContext.prototype._move = function (to) {
-                var view;
-                view = this.selectionManager.focus();
-                if (!view) {
-                    return;
-                }
-                return this.execute(new CommandMove({
-                    to: to,
-                    view: view,
-                    model: this.getAttachedModel(view)
-                }));
-            };
-            ApplicationContext.prototype.moveForward = function () {
-                return this._move('FORWARD');
-            };
-            ApplicationContext.prototype.moveBackward = function () {
-                return this._move('BACKWARD');
-            };
-            ApplicationContext.prototype.moveToFront = function () {
-                return this._move('FRONT');
-            };
-            ApplicationContext.prototype.moveToBack = function () {
-                return this._move('BACK');
             };
             ApplicationContext.prototype.redo = function () {
                 return this.commandManager.redo();
@@ -3143,47 +3218,6 @@ define("build/Clipboard",["module","require","exports"],function(module, require
                 var scale;
                 scale = this.getView().scaleX();
                 return this.setScale(scale - 1 < 1 ? 1 : scale - 1);
-            };
-            ApplicationContext.prototype.cut = function () {
-                return this.clipboard.cut(this.selectionManager.get());
-            };
-            ApplicationContext.prototype.copy = function () {
-                return this.clipboard.copy(this.selectionManager.get());
-            };
-            ApplicationContext.prototype.paste = function () {
-                var component, components, nodes;
-                components = this.clipboard.paste();
-                nodes = function () {
-                    var _i, _len, _results;
-                    _results = [];
-                    for (_i = 0, _len = components.length; _i < _len; _i++) {
-                        component = components[_i];
-                        _results.push(this.getAttachedModel(component));
-                    }
-                    return _results;
-                }.call(this);
-                return this.selectionManager.select(nodes);
-            };
-            ApplicationContext.prototype.moveDelta = function (delta) {
-                var after, attr, before, changes, component, node, nodes, _i, _len;
-                nodes = this.selectionManager.get();
-                changes = [];
-                for (_i = 0, _len = nodes.length; _i < _len; _i++) {
-                    node = nodes[_i];
-                    component = this.getAttachedModel(node);
-                    before = {};
-                    after = {};
-                    for (attr in delta) {
-                        before[attr] = component.get(attr);
-                        after[attr] = component.get(attr) + delta[attr];
-                    }
-                    changes.push({
-                        component: component,
-                        before: before,
-                        after: after
-                    });
-                }
-                return this.commandManager.execute(new CommandPropertyChange({ changes: changes }));
             };
             return ApplicationContext;
         }();

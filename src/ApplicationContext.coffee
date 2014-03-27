@@ -194,16 +194,6 @@ define [
                     width: width
                     height: height
 
-        setEditMode: (mode) ->
-            old = @editMode or 'SELECT'
-            return if old is mode
-            @editMode = mode
-            @application.trigger 'change-edit-mode', mode, old
-
-        getEditMode: ->
-            return @editMode if @editMode
-            return 'SELECT'
-
         onadd: (container, component, index, e) ->
             vcontainer = if container is @application then @view else this.findViewByComponent container
             vcomponent = this.createView(component);
@@ -225,27 +215,6 @@ define [
 
         onselectionchange: (changes) ->
             @application.trigger 'change-selections', changes.after, changes.before, changes.added, changes.removed
-
-        _move: (to) ->
-            view = @selectionManager.focus()
-            return if not view
-
-            @execute new CommandMove
-                to: to
-                view: view
-                model: this.getAttachedModel(view)
-
-        moveForward: ->
-            @_move 'FORWARD'
-
-        moveBackward: ->
-            @_move 'BACKWARD'
-
-        moveToFront: ->
-            @_move 'FRONT'
-
-        moveToBack: ->
-            @_move 'BACK'
 
         redo: ->
             @commandManager.redo()
@@ -269,39 +238,6 @@ define [
             scale = @getView().scaleX()
             
             @setScale (if (scale - 1 < 1) then 1 else scale - 1)
-
-        cut: ->
-            @clipboard.cut @selectionManager.get()
-        copy: ->
-            @clipboard.copy @selectionManager.get()
-
-        paste: ->
-            components = @clipboard.paste()
-            nodes = (@getAttachedModel(component) for component in components)
-            @selectionManager.select(nodes)
-
-        moveDelta: (delta) ->
-            nodes = @selectionManager.get()
-            changes = []
-        
-            for node in nodes
-                component = @getAttachedModel(node)
-
-                before = {}
-                after = {}
-
-                for attr of delta
-                    before[attr] = component.get(attr)
-                    after[attr] = component.get(attr) + delta[attr]
-        
-                changes.push
-                    component : component
-                    before : before
-                    after : after
-        
-            @commandManager.execute(new CommandPropertyChange {
-                changes : changes
-            })
 
     dou.mixin ApplicationContext, MVCMixin.controller
     
