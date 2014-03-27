@@ -77,15 +77,17 @@ define [
         return @editMode if @editMode
         return 'SELECT'
 
-    {
-        moveDelta: moveDelta
-        moveForward: moveForward
-        moveBackward: moveBackward
-        moveToFront: moveToFront
-        moveToBack: moveToBack
-        cut: cut
-        copy: copy
-        paste: paste
-        setEditMode: setEditMode
-        getEditMode: getEditMode
-    }
+    ->
+        exportableFunctions =
+            moveDelta: moveDelta
+            moveForward: moveForward
+            moveBackward: moveBackward
+            moveToFront: moveToFront
+            moveToBack: moveToBack
+            cut: cut
+            copy: copy
+            paste: paste
+            setEditMode: setEditMode
+            getEditMode: getEditMode
+
+        this[name] = func for name, func of exportableFunctions

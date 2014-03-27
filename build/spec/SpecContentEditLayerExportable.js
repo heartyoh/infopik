@@ -83,17 +83,26 @@
       }
       return 'SELECT';
     };
-    return {
-      moveDelta: moveDelta,
-      moveForward: moveForward,
-      moveBackward: moveBackward,
-      moveToFront: moveToFront,
-      moveToBack: moveToBack,
-      cut: cut,
-      copy: copy,
-      paste: paste,
-      setEditMode: setEditMode,
-      getEditMode: getEditMode
+    return function() {
+      var exportableFunctions, func, name, _results;
+      exportableFunctions = {
+        moveDelta: moveDelta,
+        moveForward: moveForward,
+        moveBackward: moveBackward,
+        moveToFront: moveToFront,
+        moveToBack: moveToBack,
+        cut: cut,
+        copy: copy,
+        paste: paste,
+        setEditMode: setEditMode,
+        getEditMode: getEditMode
+      };
+      _results = [];
+      for (name in exportableFunctions) {
+        func = exportableFunctions[name];
+        _results.push(this[name] = func);
+      }
+      return _results;
     };
   });
 

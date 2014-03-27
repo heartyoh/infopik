@@ -84,9 +84,7 @@ define [
             component.set('id', @uniqueId()) if not component.get('id')
 
             if spec.exportable
-                dou.mixin controller, ->
-                    for member, impl of spec.exportable
-                        this[member] = impl
+                dou.mixin controller, spec.exportable
 
             @eventEngine.add(component, spec.model_event_map, controller) if spec.model_event_map
 
