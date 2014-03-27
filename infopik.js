@@ -1467,7 +1467,7 @@ define("build/Clipboard",["module","require","exports"],function(module, require
             return context.execute(new CommandMove({
                 to: to,
                 view: view,
-                model: this.getAttachedModel(view)
+                model: context.getAttachedModel(view)
             }));
         };
         moveForward = function () {

@@ -19,7 +19,7 @@ define [
         context.execute new CommandMove
             to: to
             view: view
-            model: this.getAttachedModel(view)
+            model: context.getAttachedModel(view)
 
     moveForward = ->
         _move this, 'FORWARD'
