@@ -1578,7 +1578,7 @@ define("build/Clipboard",["module","require","exports"],function(module, require
         './SpecContentEditLayerExportable'
     ], function (dou, kin, EventTracker, ComponentSelector, CommandPropertyChange, exportable) {
         'use strict';
-        var model_event_map, model_initialize, onadded, onchange, onchangeeditmode, onchangemodel, onchangeselections, onclick, ondragend, ondragmove, ondragstart, onremoved, onresize, view_event_map, view_factory, _editmodechange, _mousePointOnEvent, _stuckBackgroundPosition;
+        var model_event_map, model_initialize, onadded, onchange, onchangeeditmode, onchangemodel, onchangeoffset, onchangeselections, onclick, ondragend, ondragmove, ondragstart, onremoved, onresize, view_event_map, view_factory, _editmodechange, _mousePointOnEvent, _stuckBackgroundPosition;
         view_factory = function (attributes) {
             var background, layer, offset, stage;
             stage = this.getView().getStage();
@@ -1825,6 +1825,11 @@ define("build/Clipboard",["module","require","exports"],function(module, require
             layer = controller.getAttachedViews(model)[0];
             return _editmodechange(after, before, layer, model, controller);
         };
+        onchangeoffset = function (e) {
+            var layer;
+            layer = this.listener;
+            return _stuckBackgroundPosition(layer);
+        };
         model_event_map = {
             '(root)': {
                 '(root)': {
@@ -1846,7 +1851,8 @@ define("build/Clipboard",["module","require","exports"],function(module, require
                 dragstart: ondragstart,
                 dragmove: ondragmove,
                 dragend: ondragend,
-                click: onclick
+                click: onclick,
+                'change-offset': onchangeoffset
             },
             '(root)': { resize: onresize }
         };

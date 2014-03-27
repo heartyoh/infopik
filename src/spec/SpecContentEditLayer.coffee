@@ -257,6 +257,11 @@ define [
 
         _editmodechange(after, before, layer, model, controller)
 
+    onchangeoffset = (e) ->
+        layer = @listener
+
+        _stuckBackgroundPosition(layer)
+
     model_event_map =
         '(root)' :
             '(root)' :
@@ -276,6 +281,7 @@ define [
             dragmove : ondragmove
             dragend : ondragend
             click : onclick
+            'change-offset': onchangeoffset
         '(root)' :
             resize : onresize
 
