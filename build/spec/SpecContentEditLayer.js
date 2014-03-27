@@ -255,14 +255,14 @@
       '(root)': {
         '(root)': {
           'change-model': onchangemodel,
-          'change-selections': onchangeselections,
-          'change-edit-mode': onchangeeditmode
+          'change-selections': onchangeselections
         }
       },
       '(self)': {
         '(self)': {
           'added': onadded,
-          'removed': onremoved
+          'removed': onremoved,
+          'change-edit-mode': onchangeeditmode
         },
         '(all)': {
           'change': onchange

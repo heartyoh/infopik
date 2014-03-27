@@ -267,11 +267,11 @@ define [
             '(root)' :
                 'change-model' : onchangemodel
                 'change-selections' : onchangeselections
-                'change-edit-mode' : onchangeeditmode
         '(self)' :
             '(self)' :
                 'added' : onadded
                 'removed' : onremoved
+                'change-edit-mode' : onchangeeditmode
             '(all)' :
                 'change' : onchange
 
