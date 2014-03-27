@@ -140,8 +140,8 @@ define [
             nodeLayer = node.getLayer()
             oldOffset = nodeLayer.offset()
             node.getLayer().offset
-                x: if oldOffset.x < 0 then oldOffset.x - 10 else oldOffset.x
-                y: if oldOffset.y < 0 then oldOffset.y - 10 else oldOffset.y
+                x: if guidePosition.x < 0 and oldOffset.x > -20 then Math.max(oldOffset.x - 10, -20) else oldOffset.x
+                y: if guidePosition.y < 0 and oldOffset.y > -20  then Math.max(oldOffset.y - 10, -20) else oldOffset.y
             nodeLayer.fire('change-offset', nodeLayer.offset(), false);
 
         layer.batchDraw()

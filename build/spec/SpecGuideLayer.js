@@ -123,8 +123,8 @@
         nodeLayer = node.getLayer();
         oldOffset = nodeLayer.offset();
         node.getLayer().offset({
-          x: oldOffset.x < 0 ? oldOffset.x - 10 : oldOffset.x,
-          y: oldOffset.y < 0 ? oldOffset.y - 10 : oldOffset.y
+          x: guidePosition.x < 0 && oldOffset.x > -20 ? Math.max(oldOffset.x - 10, -20) : oldOffset.x,
+          y: guidePosition.y < 0 && oldOffset.y > -20 ? Math.max(oldOffset.y - 10, -20) : oldOffset.y
         });
         nodeLayer.fire('change-offset', nodeLayer.offset(), false);
       }
