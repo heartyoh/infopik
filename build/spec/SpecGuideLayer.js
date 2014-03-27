@@ -1,7 +1,7 @@
 (function() {
   define(['KineticJS'], function(kin) {
     "use strict";
-    var createView, model_event_map, onadded, onchange, ondragend, ondragmove, ondragstart, onremoved, view_event_map;
+    var abs_calculator, createView, logic_calculator, model_event_map, onadded, onchange, ondragend, ondragmove, ondragstart, onremoved, view_event_map;
     createView = function(attributes) {
       return new kin.Layer(attributes);
     };
@@ -52,30 +52,46 @@
         }, 1000);
       }, 5000);
     };
+    abs_calculator = function(layer, pos) {
+      return {
+        x: (layer.offsetX() + pos.x) * layer.getStage().getScale().x,
+        y: (layer.offsetY() + pos.y) * layer.getStage().getScale().y
+      };
+    };
+    logic_calculator = function(layer, pos) {
+      return {
+        x: pos.x / layer.getStage().getScale().x + layer.offsetX(),
+        y: pos.y / layer.getStage().getScale().y + layer.offsetY()
+      };
+    };
     ondragstart = function(e) {
-      var node, offset_x, offset_y, stage, textx, texty, view, view_offset;
-      view = this.listener;
-      stage = view.getStage();
+      var layer, node, stage, textx, texty, x, y;
+      layer = this.listener;
+      node = e.targetNode;
+      stage = layer.getStage();
+      this.scale = stage.getScale();
       this.width = stage.getWidth();
       this.height = stage.getHeight();
       this.mouse_origin = {
-        x: e.x,
-        y: e.y
+        x: Math.round(e.x / this.scale.x),
+        y: Math.round(e.y / this.scale.y)
       };
-      node = e.targetNode;
-      this.node_origin = node.getAbsolutePosition();
-      view_offset = view.offset();
-      offset_x = this.node_origin.x + view_offset.x;
-      offset_y = this.node_origin.y + view_offset.y;
+      this.node_origin = node.position();
+      this.layer_offset = {
+        x: node.getLayer().offset().x - layer.offset().x,
+        y: node.getLayer().offset().y - layer.offset().y
+      };
+      x = this.node_origin.x - this.layer_offset.x;
+      y = this.node_origin.y - this.layer_offset.y;
       this.vert = new kin.Line({
         stroke: 'red',
         tension: 1,
-        points: [offset_x, 0, offset_x, this.height]
+        points: [x, 0, x, this.height]
       });
       this.hori = new kin.Line({
         stroke: 'red',
         tension: 1,
-        points: [0, offset_y, this.width, offset_y]
+        points: [0, y, this.width, y]
       });
       this.text = new kin.Text({
         listening: false,
@@ -83,57 +99,60 @@
         fontFamily: 'Calibri',
         fill: 'green'
       });
-      this.text.setAttr('text', "[ " + offset_x + "(" + (node.x()) + "), " + offset_y + "(" + (node.y()) + ") ]");
-      textx = Math.max(offset_x, 0) > (this.text.width() + 10) ? offset_x - (this.text.width() + 10) : Math.max(offset_x + 10, 10);
-      texty = Math.max(offset_y, 0) > (this.text.height() + 10) ? offset_y - (this.text.height() + 10) : Math.max(offset_y + 10, 10);
+      this.text.setAttr('text', "[ " + x + "(" + (node.x()) + "), " + y + "(" + (node.y()) + ") ]");
+      textx = Math.max(x, 0) > (this.text.width() + 10) ? x - (this.text.width() + 10) : Math.max(x + 10, 10);
+      texty = Math.max(y, 0) > (this.text.height() + 10) ? y - (this.text.height() + 10) : Math.max(y + 10, 10);
       this.text.setAttrs({
         x: textx,
         y: texty
       });
-      view.add(this.vert);
-      view.add(this.hori);
-      view.add(this.text);
-      return view.batchDraw();
+      layer.add(this.vert);
+      layer.add(this.hori);
+      layer.add(this.text);
+      return layer.batchDraw();
     };
     ondragmove = function(e) {
-      var node, node_new_pos, offset_x, offset_y, textx, texty, view, view_offset, x, y;
-      view = this.listener;
-      node_new_pos = {
-        x: (e.x - this.mouse_origin.x) + this.node_origin.x,
-        y: (e.y - this.mouse_origin.y) + this.node_origin.y
-      };
-      x = Math.round(node_new_pos.x / 10) * 10;
-      y = Math.round(node_new_pos.y / 10) * 10;
+      var layer, mouse_current, node, node_current, node_x, node_y, textx, texty, x, y;
+      layer = this.listener;
       node = e.targetNode;
-      node.setAbsolutePosition({
-        x: x,
-        y: y
+      mouse_current = {
+        x: Math.round(e.x / this.scale.x),
+        y: Math.round(e.y / this.scale.y)
+      };
+      node_current = {
+        x: (mouse_current.x - this.mouse_origin.x) + this.node_origin.x,
+        y: (mouse_current.y - this.mouse_origin.y) + this.node_origin.y
+      };
+      node_x = Math.round(node_current.x / 10) * 10;
+      node_y = Math.round(node_current.y / 10) * 10;
+      node.position({
+        x: node_x,
+        y: node_y
       });
-      view_offset = view.offset();
-      offset_x = x + view_offset.x;
-      offset_y = y + view_offset.y;
+      x = node_x - this.layer_offset.x;
+      y = node_y - this.layer_offset.y;
       this.vert.setAttrs({
-        points: [offset_x, 0, offset_x, this.height]
+        points: [x, 0, x, this.height]
       });
       this.hori.setAttrs({
-        points: [0, offset_y, this.width, offset_y]
+        points: [0, y, this.width, y]
       });
-      this.text.setAttr('text', "[ " + offset_x + "(" + (node.x()) + "), " + offset_y + "(" + (node.y()) + ") ]");
-      textx = Math.max(offset_x, 0) > (this.text.width() + 10) ? offset_x - (this.text.width() + 10) : Math.max(offset_x + 10, 10);
-      texty = Math.max(offset_y, 0) > (this.text.height() + 10) ? offset_y - (this.text.height() + 10) : Math.max(offset_y + 10, 10);
+      this.text.setAttr('text', "[ " + x + "(" + (node.x()) + "), " + y + "(" + (node.y()) + ") ]");
+      textx = Math.max(x, 0) > (this.text.width() + 10) ? x - (this.text.width() + 10) : Math.max(x + 10, 10);
+      texty = Math.max(y, 0) > (this.text.height() + 10) ? y - (this.text.height() + 10) : Math.max(y + 10, 10);
       this.text.setAttrs({
         x: textx,
         y: texty
       });
-      return view.draw();
+      return layer.batchDraw();
     };
     ondragend = function(e) {
-      var view;
-      view = this.listener;
+      var layer;
+      layer = this.listener;
       this.vert.remove();
       this.hori.remove();
       this.text.remove();
-      return view.draw();
+      return layer.batchDraw();
     };
     onadded = function(container, component, index, e) {};
     onremoved = function(container, component, e) {

@@ -33,6 +33,7 @@ define [
     './spec/SpecPainter'
     './spec/SpecPresenter'
     './spec/SpecRect'
+    './spec/SpecCircle'
     './spec/SpecRing'
     './spec/SpecRuler'
     './spec/SpecRulerLayer'
@@ -67,6 +68,7 @@ define [
     SpecPainter
     SpecPresenter
     SpecRect
+    SpecCircle
     SpecRing
     SpecRuler
     SpecRulerLayer
@@ -83,6 +85,7 @@ define [
             painter         : SpecPainter
             presenter       : SpecPresenter
             rect            : SpecRect
+            circle          : SpecCircle
             ring            : SpecRing
             ruler           : SpecRuler
             star            : SpecStar

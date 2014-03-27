@@ -1,5 +1,5 @@
 (function() {
-  define(['KineticJS', './SpecInfographic', './SpecContentEditLayer', './SpecGuideLayer', './SpecRulerLayer', './SpecHandleLayer', './SpecGroup', './SpecRect', './SpecRing', './SpecRuler', './SpecImage', './SpecText', './SpecStar', './SpecBarcode', '../handle/HandleChecker'], function(kin, SpecInfographic, SpecContentEditLayer, SpecGuideLayer, SpecRulerLayer, SpecHandleLayer, SpecGroup, SpecRect, SpecRing, SpecRuler, SpecImage, SpecText, SpecStar, SpecBarcode, HandleChecker) {
+  define(['KineticJS', './SpecInfographic', './SpecContentEditLayer', './SpecGuideLayer', './SpecRulerLayer', './SpecHandleLayer', './SpecGroup', './SpecRect', './SpecCircle', './SpecRing', './SpecRuler', './SpecImage', './SpecText', './SpecStar', './SpecBarcode', '../handle/HandleChecker'], function(kin, SpecInfographic, SpecContentEditLayer, SpecGuideLayer, SpecRulerLayer, SpecHandleLayer, SpecGroup, SpecRect, SpecCircle, SpecRing, SpecRuler, SpecImage, SpecText, SpecStar, SpecBarcode, HandleChecker) {
     "use strict";
     var createView;
     createView = function(attributes) {
@@ -21,6 +21,7 @@
         'handle-layer': SpecHandleLayer,
         'group': SpecGroup,
         'rect': SpecRect,
+        'circle': SpecCircle,
         'ring': SpecRing,
         'ruler': SpecRuler,
         'image': SpecImage,

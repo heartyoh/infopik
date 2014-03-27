@@ -9,6 +9,7 @@ define([
     component_specs: {
       'group': '*',
       'rectangle' : '*',
+      'circle' : '*',
       'ring' : '*',
       'ruler' : '*',
       'image' : '*',

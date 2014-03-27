@@ -70,88 +70,105 @@ define [
             , 1000
         , 5000
 
+    abs_calculator = (layer, pos) ->
+        x: (layer.offsetX() + pos.x) * layer.getStage().getScale().x
+        y: (layer.offsetY() + pos.y) * layer.getStage().getScale().y
+
+    logic_calculator = (layer, pos) ->
+        x: pos.x / layer.getStage().getScale().x + layer.offsetX()
+        y: pos.y / layer.getStage().getScale().y + layer.offsetY()
+
     ondragstart = (e) ->
-        view = this.listener
-
-        stage = view.getStage()
-        this.width = stage.getWidth()
-        this.height = stage.getHeight()
-
-        this.mouse_origin =
-            x: e.x
-            y: e.y
-
+        layer = @listener
         node = e.targetNode
 
-        this.node_origin = node.getAbsolutePosition()
-        view_offset = view.offset()
+        stage = layer.getStage()
 
-        offset_x = this.node_origin.x + view_offset.x
-        offset_y = this.node_origin.y + view_offset.y
+        @scale = stage.getScale()
+        @width = stage.getWidth()
+        @height = stage.getHeight()
 
-        this.vert = new kin.Line({stroke:'red', tension: 1, points:[offset_x, 0, offset_x, this.height]})
-        this.hori = new kin.Line({stroke:'red', tension: 1, points:[0, offset_y, this.width, offset_y]})
+        @mouse_origin =
+            x: Math.round(e.x / @scale.x)
+            y: Math.round(e.y / @scale.y)
 
-        this.text = new kin.Text
+        @node_origin = node.position()
+
+        @layer_offset =
+            x: node.getLayer().offset().x - layer.offset().x
+            y: node.getLayer().offset().y - layer.offset().y 
+
+        x = @node_origin.x - @layer_offset.x
+        y = @node_origin.y - @layer_offset.y
+
+        @vert = new kin.Line({stroke:'red', tension: 1, points:[x, 0, x, @height]})
+        @hori = new kin.Line({stroke:'red', tension: 1, points:[0, y, @width, y]})
+
+        @text = new kin.Text
             listening: false
             fontSize: 12
             fontFamily: 'Calibri'
             fill: 'green'
 
-        this.text.setAttr('text', "[ #{offset_x}(#{node.x()}), #{offset_y}(#{node.y()}) ]")
-        textx = if Math.max(offset_x, 0) > (this.text.width() + 10) then offset_x - (this.text.width() + 10) else Math.max(offset_x + 10, 10)
-        texty = if Math.max(offset_y, 0) > (this.text.height() + 10) then offset_y - (this.text.height() + 10) else Math.max(offset_y + 10, 10)
-        this.text.setAttrs({x: textx, y: texty})
+        @text.setAttr('text', "[ #{x}(#{node.x()}), #{y}(#{node.y()}) ]")
+        textx = if Math.max(x, 0) > (@text.width() + 10) then x - (@text.width() + 10) else Math.max(x + 10, 10)
+        texty = if Math.max(y, 0) > (@text.height() + 10) then y - (@text.height() + 10) else Math.max(y + 10, 10)
+        @text.setAttrs({x: textx, y: texty})
 
-        view.add(this.vert)
-        view.add(this.hori)
-        view.add(this.text)
+        layer.add(@vert)
+        layer.add(@hori)
+        layer.add(@text)
 
-        view.batchDraw()
+        layer.batchDraw()
 
     ondragmove = (e) ->
-        view = this.listener
-
-        node_new_pos = {
-            x: (e.x - this.mouse_origin.x) + this.node_origin.x,
-            y: (e.y - this.mouse_origin.y) + this.node_origin.y
-        }
-        x = Math.round(node_new_pos.x / 10) * 10
-        y = Math.round(node_new_pos.y / 10) * 10
-
+        layer = @listener
         node = e.targetNode
-        node.setAbsolutePosition({x: x, y: y})
 
-        view_offset = view.offset()
+        mouse_current = 
+            x: Math.round(e.x / @scale.x)
+            y: Math.round(e.y / @scale.y)
 
-        offset_x = x + view_offset.x
-        offset_y = y + view_offset.y
+        node_current = {
+            x: (mouse_current.x - @mouse_origin.x) + @node_origin.x,
+            y: (mouse_current.y - @mouse_origin.y) + @node_origin.y
+        }
 
-        this.vert.setAttrs({points:[offset_x, 0, offset_x, this.height]})
-        this.hori.setAttrs({points:[0, offset_y, this.width, offset_y]})
+        node_x = Math.round(node_current.x / 10) * 10
+        node_y = Math.round(node_current.y / 10) * 10
 
-        this.text.setAttr('text', "[ #{offset_x}(#{node.x()}), #{offset_y}(#{node.y()}) ]")
-        textx = if Math.max(offset_x, 0) > (this.text.width() + 10) then offset_x - (this.text.width() + 10) else Math.max(offset_x + 10, 10)
-        texty = if Math.max(offset_y, 0) > (this.text.height() + 10) then offset_y - (this.text.height() + 10) else Math.max(offset_y + 10, 10)
-        this.text.setAttrs({x: textx, y: texty})
+        node.position({x: node_x, y: node_y})
 
-        view.draw()
+        # layer_offset = layer.offset()
+
+        x = node_x - @layer_offset.x
+        y = node_y - @layer_offset.y
+
+        @vert.setAttrs({points:[x, 0, x, @height]})
+        @hori.setAttrs({points:[0, y, @width, y]})
+
+        @text.setAttr('text', "[ #{x}(#{node.x()}), #{y}(#{node.y()}) ]")
+        textx = if Math.max(x, 0) > (@text.width() + 10) then x - (@text.width() + 10) else Math.max(x + 10, 10)
+        texty = if Math.max(y, 0) > (@text.height() + 10) then y - (@text.height() + 10) else Math.max(y + 10, 10)
+        @text.setAttrs({x: textx, y: texty})
+
+        layer.batchDraw()
 
     ondragend = (e) ->
-        view = this.listener
+        layer = @listener
 
-        this.vert.remove()
-        this.hori.remove()
-        this.text.remove()
+        @vert.remove()
+        @hori.remove()
+        @text.remove()
 
-        view.draw()
+        layer.batchDraw()
 
     onadded = (container, component, index, e) ->
 
     onremoved = (container, component, e) ->
         controller = this
         view = controller.getView() # root view
-        # this.getEventHandler().off(view, guide_handler)
+        # @getEventHandler().off(view, guide_handler)
 
     model_event_map =
         '(root)' :

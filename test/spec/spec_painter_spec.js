@@ -35,7 +35,7 @@ define([
     });
 
     afterEach(function() {
-      app.dispose();
+      // app.dispose();
     });
 
     it('should ...', function () {
@@ -56,6 +56,8 @@ define([
 
       // app.setModel(null);
       app.setModel(app.createComponent(sample_01))      
+
+      app.setScale(2)
     });
 
   });

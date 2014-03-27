@@ -13,6 +13,7 @@ define [
     './SpecHandleLayer'
     './SpecGroup'
     './SpecRect'
+    './SpecCircle'
     './SpecRing'
     './SpecRuler'
     './SpecImage'
@@ -29,6 +30,7 @@ define [
     SpecHandleLayer
     SpecGroup
     SpecRect
+    SpecCircle
     SpecRing
     SpecRuler
     SpecImage
@@ -61,6 +63,7 @@ define [
             'handle-layer' : SpecHandleLayer
             'group' : SpecGroup
             'rect' : SpecRect
+            'circle' : SpecCircle
             'ring' : SpecRing
             'ruler' : SpecRuler
             'image' : SpecImage
