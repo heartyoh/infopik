@@ -138,7 +138,7 @@ define [
         container_type: 'layer'
         description: 'Minimap Layer Specification'
         defaults: {
-            visible: true
+            visible: false
             listening: true
         }
         model_event_map: model_event_map

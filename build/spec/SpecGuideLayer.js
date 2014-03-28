@@ -99,7 +99,8 @@
       return layer.batchDraw();
     };
     ondragmove = function(e) {
-      var guidePosition, layer, node, nodeLayer, nodePositionCurrent, oldOffset;
+      var controller, guidePosition, layer, node, nodeLayer, nodePositionCurrent, oldOffset;
+      controller = this.context;
       layer = this.listener;
       node = e.targetNode;
       nodePositionCurrent = node.position();
@@ -122,7 +123,7 @@
       if (guidePosition.x < 0 || guidePosition.y < 0) {
         nodeLayer = node.getLayer();
         oldOffset = nodeLayer.offset();
-        this.context.offset({
+        controller.offset({
           x: guidePosition.x < 0 && oldOffset.x > -20 ? Math.max(oldOffset.x - 10, -20) : oldOffset.x,
           y: guidePosition.y < 0 && oldOffset.y > -20 ? Math.max(oldOffset.y - 10, -20) : oldOffset.y
         });

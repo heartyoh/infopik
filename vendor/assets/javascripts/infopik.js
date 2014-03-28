@@ -1909,7 +1909,8 @@ define("build/Clipboard",["module","require","exports"],function(module, require
             return layer.batchDraw();
         };
         ondragmove = function (e) {
-            var guidePosition, layer, node, nodeLayer, nodePositionCurrent, oldOffset;
+            var controller, guidePosition, layer, node, nodeLayer, nodePositionCurrent, oldOffset;
+            controller = this.context;
             layer = this.listener;
             node = e.targetNode;
             nodePositionCurrent = node.position();
@@ -1942,7 +1943,7 @@ define("build/Clipboard",["module","require","exports"],function(module, require
             if (guidePosition.x < 0 || guidePosition.y < 0) {
                 nodeLayer = node.getLayer();
                 oldOffset = nodeLayer.offset();
-                this.context.offset({
+                controller.offset({
                     x: guidePosition.x < 0 && oldOffset.x > -20 ? Math.max(oldOffset.x - 10, -20) : oldOffset.x,
                     y: guidePosition.y < 0 && oldOffset.y > -20 ? Math.max(oldOffset.y - 10, -20) : oldOffset.y
                 });
@@ -2329,7 +2330,7 @@ define("build/Clipboard",["module","require","exports"],function(module, require
             container_type: 'layer',
             description: 'Minimap Layer Specification',
             defaults: {
-                visible: true,
+                visible: false,
                 listening: true
             },
             model_event_map: model_event_map,
