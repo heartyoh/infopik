@@ -1,13 +1,14 @@
 (function() {
   define(['KineticJS'], function(kin) {
     "use strict";
-    var model_event_map, onchange, ondragend, ondragmove, ondragstart, onresize, view_event_map, view_factory, _mousePointOnEvent;
+    var model_event_map, onchange, ondragend, ondragmove, ondragstart, onresize, view_event_map, view_factory, _mousePointOnEvent, _stuckHandleOnCenter;
     view_factory = function(attributes) {
-      var background, controller, layer, stage, targetLayer, zeroOffset;
+      var background, controller, handle, layer, scale, stage, targetLayer, zeroOffset;
       stage = this.getView().getStage();
       layer = new kin.Layer(attributes);
       controller = this;
       targetLayer = null;
+      scale = stage.scale();
       zeroOffset = {
         x: 0,
         y: 0
@@ -22,10 +23,21 @@
         height: stage.height(),
         stroke: attributes.stroke,
         fill: 'white',
-        opacity: 0.5,
+        opacity: 0,
         dragBoundFunc: function() {
           return zeroOffset;
         }
+      });
+      handle = new kin.Circle({
+        name: 'handle for minimap-layer',
+        draggable: true,
+        listening: true,
+        x: stage.width() / scale.x / 2,
+        y: stage.height() / scale.y / 2,
+        radius: 50,
+        stroke: 'red',
+        fill: 'red',
+        opacity: 0.5
       });
       layer.getTargetLayer = function() {
         var targetComponent;
@@ -47,7 +59,11 @@
       layer.getBackground = function() {
         return background;
       };
+      layer.getHandle = function() {
+        return handle;
+      };
       layer.add(background);
+      layer.add(handle);
       return layer;
     };
     _mousePointOnEvent = function(layer, e) {
@@ -58,30 +74,44 @@
         y: Math.round(e.offsetY / scale.y)
       };
     };
+    _stuckHandleOnCenter = function(layer) {
+      var handle, scale, stage;
+      stage = layer.getStage();
+      scale = stage.scale();
+      handle = layer.getHandle();
+      return handle.position({
+        x: stage.width() / scale.x / 2,
+        y: stage.height() / scale.y / 2
+      });
+    };
     onresize = function(e) {
-      var background, layer;
+      var background, layer, scale, stage;
       layer = this.listener;
+      stage = layer.getStage();
+      scale = stage.scale();
       background = layer.getBackground();
       background.setSize(e.after);
+      _stuckHandleOnCenter(layer);
       return layer.batchDraw();
     };
     ondragstart = function(e) {
       var layer, targetLayer;
+      e.cancelBubble = true;
       layer = this.listener;
       targetLayer = layer.getTargetLayer();
       if (!targetLayer) {
         return;
       }
       this.targetLayerOffsetOnStart = targetLayer.offset();
-      this.mousePointOnStart = _mousePointOnEvent(layer, e);
-      return e.cancelBubble = true;
+      return this.mousePointOnStart = _mousePointOnEvent(layer, e);
     };
     ondragmove = function(e) {
       var controller, layer, mousePointCurrent, moveDelta, targetLayer;
+      e.cancelBubble = true;
       controller = this.context;
       layer = this.listener;
       targetLayer = layer.getTargetLayer();
-      if (!targetLayer) {
+      if (!targetLayer || e.targetNode === layer.getHandle()) {
         return;
       }
       mousePointCurrent = _mousePointOnEvent(layer, e);
@@ -93,18 +123,22 @@
         x: this.targetLayerOffsetOnStart.x - moveDelta.x,
         y: this.targetLayerOffsetOnStart.y - moveDelta.y
       });
-      layer.batchDraw();
-      return e.cancelBubble = true;
+      return layer.batchDraw();
     };
     ondragend = function(e) {
       var layer;
+      e.cancelBubble = true;
+      if (this.interval) {
+        clearInterval(this.interval);
+        this.interval = null;
+      }
       layer = this.listener;
       layer.offset({
         x: 0,
         y: 0
       });
-      layer.batchDraw();
-      return e.cancelBubble = true;
+      _stuckHandleOnCenter(layer);
+      return layer.batchDraw();
     };
     onchange = function(component, before, after) {
       var node;

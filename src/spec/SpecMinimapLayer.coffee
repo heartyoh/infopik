@@ -19,7 +19,9 @@ define [
         controller = this
         targetLayer = null
 
+        scale = stage.scale()
         zeroOffset = {x: 0, y: 0}
+
         background = new kin.Rect
             name: 'background for minimap-layer'
             draggable: true
@@ -30,8 +32,19 @@ define [
             height: stage.height()
             stroke: attributes.stroke
             fill: 'white'
-            opacity: 0.5
+            opacity: 0
             dragBoundFunc: -> zeroOffset
+
+        handle = new kin.Circle
+            name: 'handle for minimap-layer'
+            draggable: true
+            listening: true
+            x: stage.width() / scale.x / 2
+            y: stage.height() / scale.y / 2
+            radius: 50
+            stroke: 'red'
+            fill: 'red'
+            opacity: 0.5
 
         layer.getTargetLayer = -> 
             return targetLayer if targetLayer
@@ -48,8 +61,11 @@ define [
             targetLayer 
 
         layer.getBackground = -> background
+        layer.getHandle = -> handle
 
         layer.add background
+        layer.add handle
+
         layer
 
     _mousePointOnEvent = (layer, e) ->
@@ -60,32 +76,57 @@ define [
             y: Math.round(e.offsetY / scale.y)
         }
 
+    _stuckHandleOnCenter = (layer) ->
+        stage = layer.getStage()
+        scale = stage.scale()
+
+        handle = layer.getHandle()
+        handle.position
+            x: stage.width() / scale.x / 2
+            y: stage.height() / scale.y / 2
+
     onresize = (e) ->
         layer = @listener
+        stage = layer.getStage()
+        scale = stage.scale()
 
         background = layer.getBackground()
         background.setSize(e.after)
 
+        _stuckHandleOnCenter(layer)
+
         layer.batchDraw()
 
     ondragstart = (e) ->
+        e.cancelBubble = true
+
         layer = @listener
         targetLayer = layer.getTargetLayer()
         
         return if not targetLayer
 
         @targetLayerOffsetOnStart = targetLayer.offset()
-
         @mousePointOnStart = _mousePointOnEvent(layer, e)
 
-        e.cancelBubble = true
+        # if e.targetNode is layer.getHandle()
+        #     @interval = setInterval =>
+        #         if not @dragging
+        #             clearInterval interval
+        #             return
+
+        #         controller.offset
+        #             x: @targetLayerOffsetOnStart.x - moveDelta.x
+        #             y: @targetLayerOffsetOnStart.y - moveDelta.y
+        #     , 200
 
     ondragmove = (e) ->
+        e.cancelBubble = true
+
         controller = @context
         layer = @listener
         targetLayer = layer.getTargetLayer()
 
-        return if not targetLayer
+        return if not targetLayer or e.targetNode is layer.getHandle()
 
         mousePointCurrent = _mousePointOnEvent(layer, e)
 
@@ -100,18 +141,22 @@ define [
 
         layer.batchDraw();
 
+    ondragend = (e) ->
         e.cancelBubble = true
 
-    ondragend = (e) ->
+        if @interval
+            clearInterval @interval
+            @interval = null
+
         layer = @listener
 
         layer.offset
             x: 0
             y: 0
 
-        layer.batchDraw();
+        _stuckHandleOnCenter(layer)
 
-        e.cancelBubble = true
+        layer.batchDraw();
 
     onchange = (component, before, after) ->
         node = component.getViews()[0]
