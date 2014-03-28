@@ -98,6 +98,7 @@ define [
         layer.batchDraw()
 
     ondragstart = (e) ->
+        controller = @context
         e.cancelBubble = true
 
         layer = @listener
@@ -105,19 +106,24 @@ define [
         
         return if not targetLayer
 
-        @targetLayerOffsetOnStart = targetLayer.offset()
-        @mousePointOnStart = _mousePointOnEvent(layer, e)
+        handle = layer.getHandle()
+        if e.targetNode is handle
+            handleInitialPosition = handle.position()
 
-        # if e.targetNode is layer.getHandle()
-        #     @interval = setInterval =>
-        #         if not @dragging
-        #             clearInterval interval
-        #             return
+            @interval = setInterval =>
+                handleCurrentPosition = handle.position()
+                moveDelta =
+                    x: handleCurrentPosition.x - handleInitialPosition.x
+                    y: handleCurrentPosition.y - handleInitialPosition.y
 
-        #         controller.offset
-        #             x: @targetLayerOffsetOnStart.x - moveDelta.x
-        #             y: @targetLayerOffsetOnStart.y - moveDelta.y
-        #     , 200
+                targetCurrentOffset = targetLayer.offset()
+                controller.offset
+                    x: targetCurrentOffset.x + moveDelta.x
+                    y: targetCurrentOffset.y + moveDelta.y
+            , 200
+        else
+            @targetLayerOffsetOnStart = targetLayer.offset()
+            @mousePointOnStart = _mousePointOnEvent(layer, e)
 
     ondragmove = (e) ->
         e.cancelBubble = true

@@ -2308,15 +2308,36 @@ define("build/Clipboard",["module","require","exports"],function(module, require
             return layer.batchDraw();
         };
         ondragstart = function (e) {
-            var layer, targetLayer;
+            var controller, handle, handleInitialPosition, layer, targetLayer;
+            controller = this.context;
             e.cancelBubble = true;
             layer = this.listener;
             targetLayer = layer.getTargetLayer();
             if (!targetLayer) {
                 return;
             }
-            this.targetLayerOffsetOnStart = targetLayer.offset();
-            return this.mousePointOnStart = _mousePointOnEvent(layer, e);
+            handle = layer.getHandle();
+            if (e.targetNode === handle) {
+                handleInitialPosition = handle.position();
+                return this.interval = setInterval(function (_this) {
+                    return function () {
+                        var handleCurrentPosition, moveDelta, targetCurrentOffset;
+                        handleCurrentPosition = handle.position();
+                        moveDelta = {
+                            x: handleCurrentPosition.x - handleInitialPosition.x,
+                            y: handleCurrentPosition.y - handleInitialPosition.y
+                        };
+                        targetCurrentOffset = targetLayer.offset();
+                        return controller.offset({
+                            x: targetCurrentOffset.x + moveDelta.x,
+                            y: targetCurrentOffset.y + moveDelta.y
+                        });
+                    };
+                }(this), 200);
+            } else {
+                this.targetLayerOffsetOnStart = targetLayer.offset();
+                return this.mousePointOnStart = _mousePointOnEvent(layer, e);
+            }
         };
         ondragmove = function (e) {
             var controller, layer, mousePointCurrent, moveDelta, targetLayer;
