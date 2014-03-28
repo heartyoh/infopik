@@ -118,9 +118,9 @@ define [
 
                 targetCurrentOffset = targetLayer.offset()
                 controller.offset
-                    x: targetCurrentOffset.x + moveDelta.x
-                    y: targetCurrentOffset.y + moveDelta.y
-            , 200
+                    x: targetCurrentOffset.x + moveDelta.x / 5
+                    y: targetCurrentOffset.y + moveDelta.y / 5
+            , 100
         else
             @targetLayerOffsetOnStart = targetLayer.offset()
             @mousePointOnStart = _mousePointOnEvent(layer, e)

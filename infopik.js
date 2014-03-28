@@ -2329,11 +2329,11 @@ define("build/Clipboard",["module","require","exports"],function(module, require
                         };
                         targetCurrentOffset = targetLayer.offset();
                         return controller.offset({
-                            x: targetCurrentOffset.x + moveDelta.x,
-                            y: targetCurrentOffset.y + moveDelta.y
+                            x: targetCurrentOffset.x + moveDelta.x / 5,
+                            y: targetCurrentOffset.y + moveDelta.y / 5
                         });
                     };
-                }(this), 200);
+                }(this), 100);
             } else {
                 this.targetLayerOffsetOnStart = targetLayer.offset();
                 return this.mousePointOnStart = _mousePointOnEvent(layer, e);
