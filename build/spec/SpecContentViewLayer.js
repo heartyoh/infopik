@@ -1,33 +1,37 @@
 (function() {
-  define(['KineticJS', '../EventTracker', '../ComponentSelector', '../command/CommandPropertyChange'], function(kin, EventTracker, ComponentSelector, CommandPropertyChange) {
+  define(['dou', 'KineticJS'], function(dou, kin) {
     "use strict";
-    var createView, model_event_map, onadded, onchange, onchangemodel, onremoved, view_event_map;
-    createView = function(attributes) {
+    var model_event_map, model_initialize, onadded, onchange, onchangemodel, onremoved, view_event_map, view_factory, _mousePointOnEvent;
+    view_factory = function(attributes) {
       return new kin.Layer(attributes);
     };
+    model_initialize = function() {};
     onadded = function(container, component, index, e) {};
     onremoved = function(container, component, e) {};
-    onchangemodel = function(after, before) {
-      var layer, _i, _len, _ref, _results;
-      _ref = this.findComponent('content-view-layer');
-      _results = [];
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        layer = _ref[_i];
-        if (before) {
-          layer.remove(before);
-        }
-        if (after) {
-          layer.add(after);
-        }
-        _results.push(this.findView("\#" + (layer.get('id'))));
+    onchangemodel = function(after, before, e) {
+      var model;
+      model = e.listener;
+      if (before) {
+        model.remove(before);
+        before.dispose();
       }
-      return _results;
+      if (after) {
+        return model.add(after);
+      }
     };
     onchange = function(component, before, after) {
-      var view;
-      view = this.findViewByComponent(component);
-      view.setAttrs(after);
-      return this.drawView();
+      var node;
+      node = component.getViews()[0];
+      node.setAttrs(after);
+      return node.getLayer().batchDraw();
+    };
+    _mousePointOnEvent = function(layer, e) {
+      var scale;
+      scale = layer.getStage().scale();
+      return {
+        x: Math.round(e.offsetX / scale.x),
+        y: Math.round(e.offsetY / scale.y)
+      };
     };
     model_event_map = {
       '(root)': {
@@ -36,22 +40,16 @@
         }
       },
       '(self)': {
-        '(all)': {
-          'change': onchange
-        },
         '(self)': {
+          'added': onadded,
+          'removed': onremoved
+        },
+        '(all)': {
           'change': onchange
         }
       }
     };
-    view_event_map = {
-      click: function(e) {
-        var node;
-        node = e.targetNode;
-        return this.selectionManager.select(node);
-      }
-    };
-    return {
+    return view_event_map = {
       type: 'content-view-layer',
       name: 'content-view-layer',
       containable: true,
@@ -60,7 +58,8 @@
       defaults: {},
       model_event_map: model_event_map,
       view_event_map: view_event_map,
-      view_factory_fn: createView,
+      model_initialize_fn: model_initialize,
+      view_factory_fn: view_factory,
       toolbox_image: 'images/toolbox_content_view_layer.png'
     };
   });

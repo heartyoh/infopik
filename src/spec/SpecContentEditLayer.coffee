@@ -7,15 +7,11 @@
 define [
     'dou'
     'KineticJS'
-    '../EventTracker'
-    '../ComponentSelector'
     '../command/CommandPropertyChange'
     './SpecContentEditLayerExportable'
 ], (
     dou
     kin
-    EventTracker
-    ComponentSelector
     CommandPropertyChange
     exportable
 ) ->
@@ -50,31 +46,8 @@ define [
         layer
 
     model_initialize =  ->
-        editmode = 'SELECT'
-
-        @getEditMode = -> editmode
-        @setEditMode = (mode) ->
-            return if mode is editmode
-            old = editmode
-            editmode = mode
-            @trigger 'change-edit-mode', mode, old
-
-    _editmodechange = (after, before, layer, model, controller) ->
-        switch after
-            when 'MOVE'
-                layer.getBackground().moveToTop()
-            when 'SELECT'
-                layer.getBackground().moveToBottom()
-            else
-                
-        layer.batchDraw()
 
     onadded = (container, component, index, e) ->
-        controller = this
-        model = e.listener
-        layer = controller.getAttachedViews(model)[0]
-
-        _editmodechange(model.getEditMode(), null, layer, model, controller)
 
     onremoved = (container, component, e) ->
 
@@ -131,17 +104,13 @@ define [
             x: @mousePointOnStart.x + @layerOffsetOnStart.x
             y: @mousePointOnStart.y + @layerOffsetOnStart.y
 
-        switch(model.getEditMode())
-            when 'SELECT'
-                @selectbox = new kin.Rect
-                    stroke: 'black'
-                    strokeWidth: 1
-                    dash: [3, 3]
+        @selectbox = new kin.Rect
+            stroke: 'black'
+            strokeWidth: 1
+            dash: [3, 3]
 
-                layer.add @selectbox
-                @selectbox.setAttrs offset
-            when 'MOVE'
-            else
+        layer.add @selectbox
+        @selectbox.setAttrs offset
 
         _stuckBackgroundPosition layer
 
@@ -164,20 +133,9 @@ define [
             x: mousePointCurrent.x - @mousePointOnStart.x
             y: mousePointCurrent.y - @mousePointOnStart.y
 
-        switch(model.getEditMode())
-            when 'SELECT'
-                @selectbox.setAttrs
-                    width: moveDelta.x
-                    height: moveDelta.y
-
-                # TODO select components in the area of selectionbox
-            when 'MOVE'
-                layer.offset
-                    x: @layerOffsetOnStart.x - moveDelta.x
-                    y: @layerOffsetOnStart.y - moveDelta.y
-
-                layer.fire('change-offset', layer.offset(), false);
-            else
+        @selectbox.setAttrs
+            width: moveDelta.x
+            height: moveDelta.y
 
         _stuckBackgroundPosition layer
 
@@ -215,22 +173,13 @@ define [
 
         return if e.targetNode and e.targetNode isnt background
 
-        mousePointCurrent = _mousePointOnEvent(layer, e)
-        moveDelta =
-            x: mousePointCurrent.x - @mousePointOnStart.x
-            y: mousePointCurrent.y - @mousePointOnStart.y
+        # mousePointCurrent = _mousePointOnEvent(layer, e)
+        # moveDelta =
+        #     x: mousePointCurrent.x - @mousePointOnStart.x
+        #     y: mousePointCurrent.y - @mousePointOnStart.y
 
-        switch(model.getEditMode())
-            when 'SELECT'
-                @selectbox.remove()
-                delete @selectbox
-            when 'MOVE'
-                layer.offset
-                    x: Math.max(@layerOffsetOnStart.x - moveDelta.x, -20)
-                    y: Math.max(@layerOffsetOnStart.y - moveDelta.y, -20)
-
-                layer.fire('change-offset', layer.offset(), false);
-            else
+        @selectbox.remove()
+        delete @selectbox
 
         _stuckBackgroundPosition layer
 
@@ -250,13 +199,6 @@ define [
 
         layer.batchDraw()
 
-    onchangeeditmode = (after, before, e) ->
-        controller = this
-        model = e.listener
-        layer = controller.getAttachedViews(model)[0]
-
-        _editmodechange(after, before, layer, model, controller)
-
     onchangeoffset = (e) ->
         layer = @listener
 
@@ -271,7 +213,6 @@ define [
             '(self)' :
                 'added' : onadded
                 'removed' : onremoved
-                'change-edit-mode' : onchangeeditmode
             '(all)' :
                 'change' : onchange
 

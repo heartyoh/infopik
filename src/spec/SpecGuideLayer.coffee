@@ -72,8 +72,8 @@ define [
         scale = node.getStage().scale()
 
         {
-            x: nodeAbsPosition.x / scale.x + guideLayerOffset.x # + nodeLayerOffset.x + nodeLayerOffset.x - guideLayerOffset.x
-            y: nodeAbsPosition.y / scale.y + guideLayerOffset.y # + nodeLayerOffset.y + nodeLayerOffset.y - guideLayerOffset.y
+            x: nodeAbsPosition.x / scale.x + guideLayerOffset.x
+            y: nodeAbsPosition.y / scale.y + guideLayerOffset.y
         }
 
     ondragstart = (e) ->
@@ -135,14 +135,14 @@ define [
             x: if Math.max(guidePosition.x, 0) > (@text.width() + 10) then guidePosition.x - (@text.width() + 10) else Math.max(guidePosition.x + 10, 10)
             y: if Math.max(guidePosition.y, 0) > (@text.height() + 10) then guidePosition.y - (@text.height() + 10) else Math.max(guidePosition.y + 10, 10)
 
-        # console.log guidePosition 
         if(guidePosition.x < 0 || guidePosition.y < 0)
             nodeLayer = node.getLayer()
             oldOffset = nodeLayer.offset()
+
+            # TODO remove implicit dependency to content-edit-layer
             node.getLayer().offset
                 x: if guidePosition.x < 0 and oldOffset.x > -20 then Math.max(oldOffset.x - 10, -20) else oldOffset.x
                 y: if guidePosition.y < 0 and oldOffset.y > -20  then Math.max(oldOffset.y - 10, -20) else oldOffset.y
-            nodeLayer.fire('change-offset', nodeLayer.offset(), false);
 
         layer.batchDraw()
 
@@ -158,8 +158,6 @@ define [
     onadded = (container, component, index, e) ->
 
     onremoved = (container, component, e) ->
-        controller = this
-        view = controller.getView() # root view
 
     model_event_map =
         '(root)' :

@@ -5,57 +5,58 @@
 # ==========================================
 
 define [
+    'dou'
     'KineticJS'
-    '../EventTracker'
-    '../ComponentSelector'
-    '../command/CommandPropertyChange'
 ], (
+    dou
     kin
-    EventTracker
-    ComponentSelector
-    CommandPropertyChange
 ) ->
 
     "use strict"
 
-    createView = (attributes) ->
-        return new kin.Layer(attributes)
+    view_factory = (attributes) ->
+        new kin.Layer(attributes)
+
+    model_initialize =  ->
 
     onadded = (container, component, index, e) ->
-        # stage <= container
-        # layer <= component
 
     onremoved = (container, component, e) ->
 
-    onchangemodel = (after, before) ->
-        for layer in this.findComponent 'content-view-layer'
-            
-            layer.remove before if before
-            layer.add after if after
-            this.findView "\##{layer.get('id')}"
+    onchangemodel = (after, before, e) ->
+        model = e.listener
+        
+        if before
+            model.remove before
+            before.dispose()
+
+        model.add after if after
 
     onchange = (component, before, after) ->
-        view = this.findViewByComponent component
-        view.setAttrs after
+        node = component.getViews()[0]
+        node.setAttrs after
+        node.getLayer().batchDraw()
 
-        this.drawView()
+    _mousePointOnEvent = (layer, e) ->
+        scale = layer.getStage().scale()
+
+        {
+            x: Math.round(e.offsetX / scale.x)
+            y: Math.round(e.offsetY / scale.y)
+        }
 
     model_event_map =
         '(root)' :
             '(root)' :
                 'change-model' : onchangemodel
         '(self)' :
-            '(all)':
-                'change' : onchange
             '(self)' :
-                # 'added' : onadded
-                # 'removed' : onremoved
+                'added' : onadded
+                'removed' : onremoved
+            '(all)' :
                 'change' : onchange
 
     view_event_map =
-        click : (e) ->
-            node = e.targetNode
-            this.selectionManager.select(node)
 
     {
         type: 'content-view-layer'
@@ -67,6 +68,9 @@ define [
         }
         model_event_map: model_event_map
         view_event_map: view_event_map
-        view_factory_fn: createView
+        model_initialize_fn: model_initialize
+        view_factory_fn: view_factory
         toolbox_image: 'images/toolbox_content_view_layer.png'
+        # exportable: exportable
     }
+

@@ -126,7 +126,6 @@
           x: guidePosition.x < 0 && oldOffset.x > -20 ? Math.max(oldOffset.x - 10, -20) : oldOffset.x,
           y: guidePosition.y < 0 && oldOffset.y > -20 ? Math.max(oldOffset.y - 10, -20) : oldOffset.y
         });
-        nodeLayer.fire('change-offset', nodeLayer.offset(), false);
       }
       return layer.batchDraw();
     };
@@ -139,11 +138,7 @@
       return layer.batchDraw();
     };
     onadded = function(container, component, index, e) {};
-    onremoved = function(container, component, e) {
-      var controller, view;
-      controller = this;
-      return view = controller.getView();
-    };
+    onremoved = function(container, component, e) {};
     model_event_map = {
       '(root)': {
         '(all)': {

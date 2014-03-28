@@ -67,9 +67,13 @@ define [
             changes : changes
         })
 
-    offset = (appcontext, component, offset) ->
-        layer = component.getAttachedViews()[0]
-        layer.offset offset
+    offset = (appcontext, component, position) ->
+        layer = component.getViews()[0]
+        layer.offset position
+
+        layer.fire('change-offset', layer.offset(), false);
+
+        layer.batchDraw()
 
     (appcontext, component) ->
         exportableFunctions =
@@ -78,11 +82,9 @@ define [
             moveBackward: -> moveBackward(appcontext, component)
             moveToFront: -> moveToFront(appcontext, component)
             moveToBack: -> moveToBack(appcontext, component)
-            offset: (offset) -> offset(appcontext, component, offset)
+            offset: (position) -> offset(appcontext, component, position)
             cut: -> cut(appcontext, component)
             copy: -> copy(appcontext, component)
             paste: -> paste(appcontext, component)
-            setEditMode: (mode) -> component.setEditMode(mode)
-            getEditMode: -> component.getEditMode()
 
         appcontext[name] = func for name, func of exportableFunctions

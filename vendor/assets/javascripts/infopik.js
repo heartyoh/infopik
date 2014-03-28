@@ -1517,10 +1517,12 @@ define("build/Clipboard",["module","require","exports"],function(module, require
             }
             return appcontext.commandManager.execute(new CommandPropertyChange({ changes: changes }));
         };
-        offset = function (appcontext, component, offset) {
+        offset = function (appcontext, component, position) {
             var layer;
-            layer = component.getAttachedViews()[0];
-            return layer.offset(offset);
+            layer = component.getViews()[0];
+            layer.offset(position);
+            layer.fire('change-offset', layer.offset(), false);
+            return layer.batchDraw();
         };
         return function (appcontext, component) {
             var exportableFunctions, func, name, _results;
@@ -1540,8 +1542,8 @@ define("build/Clipboard",["module","require","exports"],function(module, require
                 moveToBack: function () {
                     return moveToBack(appcontext, component);
                 },
-                offset: function (offset) {
-                    return offset(appcontext, component, offset);
+                offset: function (position) {
+                    return offset(appcontext, component, position);
                 },
                 cut: function () {
                     return cut(appcontext, component);
@@ -1551,12 +1553,6 @@ define("build/Clipboard",["module","require","exports"],function(module, require
                 },
                 paste: function () {
                     return paste(appcontext, component);
-                },
-                setEditMode: function (mode) {
-                    return component.setEditMode(mode);
-                },
-                getEditMode: function () {
-                    return component.getEditMode();
                 }
             };
             _results = [];
@@ -1572,13 +1568,11 @@ define("build/Clipboard",["module","require","exports"],function(module, require
     define('build/spec/SpecContentEditLayer', [
         'dou',
         'KineticJS',
-        '../EventTracker',
-        '../ComponentSelector',
         '../command/CommandPropertyChange',
         './SpecContentEditLayerExportable'
-    ], function (dou, kin, EventTracker, ComponentSelector, CommandPropertyChange, exportable) {
+    ], function (dou, kin, CommandPropertyChange, exportable) {
         'use strict';
-        var model_event_map, model_initialize, onadded, onchange, onchangeeditmode, onchangemodel, onchangeoffset, onchangeselections, onclick, ondragend, ondragmove, ondragstart, onremoved, onresize, view_event_map, view_factory, _editmodechange, _mousePointOnEvent, _stuckBackgroundPosition;
+        var model_event_map, model_initialize, onadded, onchange, onchangemodel, onchangeoffset, onchangeselections, onclick, ondragend, ondragmove, ondragstart, onremoved, onresize, view_event_map, view_factory, _mousePointOnEvent, _stuckBackgroundPosition;
         view_factory = function (attributes) {
             var background, layer, offset, stage;
             stage = this.getView().getStage();
@@ -1609,38 +1603,8 @@ define("build/Clipboard",["module","require","exports"],function(module, require
             return layer;
         };
         model_initialize = function () {
-            var editmode;
-            editmode = 'SELECT';
-            this.getEditMode = function () {
-                return editmode;
-            };
-            return this.setEditMode = function (mode) {
-                var old;
-                if (mode === editmode) {
-                    return;
-                }
-                old = editmode;
-                editmode = mode;
-                return this.trigger('change-edit-mode', mode, old);
-            };
-        };
-        _editmodechange = function (after, before, layer, model, controller) {
-            switch (after) {
-            case 'MOVE':
-                layer.getBackground().moveToTop();
-                break;
-            case 'SELECT':
-                layer.getBackground().moveToBottom();
-                break;
-            }
-            return layer.batchDraw();
         };
         onadded = function (container, component, index, e) {
-            var controller, layer, model;
-            controller = this;
-            model = e.listener;
-            layer = controller.getAttachedViews(model)[0];
-            return _editmodechange(model.getEditMode(), null, layer, model, controller);
         };
         onremoved = function (container, component, e) {
         };
@@ -1702,22 +1666,16 @@ define("build/Clipboard",["module","require","exports"],function(module, require
                 x: this.mousePointOnStart.x + this.layerOffsetOnStart.x,
                 y: this.mousePointOnStart.y + this.layerOffsetOnStart.y
             };
-            switch (model.getEditMode()) {
-            case 'SELECT':
-                this.selectbox = new kin.Rect({
-                    stroke: 'black',
-                    strokeWidth: 1,
-                    dash: [
-                        3,
-                        3
-                    ]
-                });
-                layer.add(this.selectbox);
-                this.selectbox.setAttrs(offset);
-                break;
-            case 'MOVE':
-                break;
-            }
+            this.selectbox = new kin.Rect({
+                stroke: 'black',
+                strokeWidth: 1,
+                dash: [
+                    3,
+                    3
+                ]
+            });
+            layer.add(this.selectbox);
+            this.selectbox.setAttrs(offset);
             _stuckBackgroundPosition(layer);
             layer.draw();
             return e.cancelBubble = true;
@@ -1737,27 +1695,16 @@ define("build/Clipboard",["module","require","exports"],function(module, require
                 x: mousePointCurrent.x - this.mousePointOnStart.x,
                 y: mousePointCurrent.y - this.mousePointOnStart.y
             };
-            switch (model.getEditMode()) {
-            case 'SELECT':
-                this.selectbox.setAttrs({
-                    width: moveDelta.x,
-                    height: moveDelta.y
-                });
-                break;
-            case 'MOVE':
-                layer.offset({
-                    x: this.layerOffsetOnStart.x - moveDelta.x,
-                    y: this.layerOffsetOnStart.y - moveDelta.y
-                });
-                layer.fire('change-offset', layer.offset(), false);
-                break;
-            }
+            this.selectbox.setAttrs({
+                width: moveDelta.x,
+                height: moveDelta.y
+            });
             _stuckBackgroundPosition(layer);
             layer.batchDraw();
             return e.cancelBubble = true;
         };
         ondragend = function (e) {
-            var background, cmd, controller, dragmodel, dragview, layer, model, mousePointCurrent, moveDelta;
+            var background, cmd, controller, dragmodel, dragview, layer, model;
             controller = this.context;
             layer = this.listener;
             model = controller.getAttachedModel(layer);
@@ -1784,24 +1731,8 @@ define("build/Clipboard",["module","require","exports"],function(module, require
             if (e.targetNode && e.targetNode !== background) {
                 return;
             }
-            mousePointCurrent = _mousePointOnEvent(layer, e);
-            moveDelta = {
-                x: mousePointCurrent.x - this.mousePointOnStart.x,
-                y: mousePointCurrent.y - this.mousePointOnStart.y
-            };
-            switch (model.getEditMode()) {
-            case 'SELECT':
-                this.selectbox.remove();
-                delete this.selectbox;
-                break;
-            case 'MOVE':
-                layer.offset({
-                    x: Math.max(this.layerOffsetOnStart.x - moveDelta.x, -20),
-                    y: Math.max(this.layerOffsetOnStart.y - moveDelta.y, -20)
-                });
-                layer.fire('change-offset', layer.offset(), false);
-                break;
-            }
+            this.selectbox.remove();
+            delete this.selectbox;
             _stuckBackgroundPosition(layer);
             layer.draw();
             return e.cancelBubble = true;
@@ -1818,13 +1749,6 @@ define("build/Clipboard",["module","require","exports"],function(module, require
             background.setSize(e.after);
             return layer.batchDraw();
         };
-        onchangeeditmode = function (after, before, e) {
-            var controller, layer, model;
-            controller = this;
-            model = e.listener;
-            layer = controller.getAttachedViews(model)[0];
-            return _editmodechange(after, before, layer, model, controller);
-        };
         onchangeoffset = function (e) {
             var layer;
             layer = this.listener;
@@ -1840,8 +1764,7 @@ define("build/Clipboard",["module","require","exports"],function(module, require
             '(self)': {
                 '(self)': {
                     'added': onadded,
-                    'removed': onremoved,
-                    'change-edit-mode': onchangeeditmode
+                    'removed': onremoved
                 },
                 '(all)': { 'change': onchange }
             }
@@ -2023,7 +1946,6 @@ define("build/Clipboard",["module","require","exports"],function(module, require
                     x: guidePosition.x < 0 && oldOffset.x > -20 ? Math.max(oldOffset.x - 10, -20) : oldOffset.x,
                     y: guidePosition.y < 0 && oldOffset.y > -20 ? Math.max(oldOffset.y - 10, -20) : oldOffset.y
                 });
-                nodeLayer.fire('change-offset', nodeLayer.offset(), false);
             }
             return layer.batchDraw();
         };
@@ -2038,9 +1960,6 @@ define("build/Clipboard",["module","require","exports"],function(module, require
         onadded = function (container, component, index, e) {
         };
         onremoved = function (container, component, e) {
-            var controller, view;
-            controller = this;
-            return view = controller.getView();
         };
         model_event_map = {
             '(root)': { '(all)': { 'change': onchange } },
@@ -2277,6 +2196,154 @@ define("build/Clipboard",["module","require","exports"],function(module, require
             view_event_map: view_event_map,
             view_factory_fn: createView,
             toolbox_image: 'images/toolbox_handle_layer.png'
+        };
+    });
+}.call(this));
+(function () {
+    define('build/spec/SpecMinimapLayer', ['KineticJS'], function (kin) {
+        'use strict';
+        var model_event_map, onchange, ondragend, ondragmove, ondragstart, onresize, view_event_map, view_factory, _mousePointOnEvent;
+        view_factory = function (attributes) {
+            var background, controller, layer, stage, targetLayer, zeroOffset;
+            stage = this.getView().getStage();
+            layer = new kin.Layer(attributes);
+            controller = this;
+            targetLayer = null;
+            zeroOffset = {
+                x: 0,
+                y: 0
+            };
+            background = new kin.Rect({
+                name: 'background for minimap-layer',
+                draggable: true,
+                listening: true,
+                x: 0,
+                y: 0,
+                width: stage.width(),
+                height: stage.height(),
+                stroke: attributes.stroke,
+                fill: 'white',
+                opacity: 0.5,
+                dragBoundFunc: function () {
+                    return zeroOffset;
+                }
+            });
+            layer.getTargetLayer = function () {
+                var targetComponent;
+                if (targetLayer) {
+                    return targetLayer;
+                }
+                targetComponent = controller.findComponent(attributes['target_layer'])[0];
+                if (!targetComponent) {
+                    return null;
+                }
+                targetLayer = controller.getAttachedViews(targetComponent)[0];
+                if (targetLayer) {
+                    targetComponent.addDisposer(function () {
+                        return targetLayer = null;
+                    });
+                }
+                return targetLayer;
+            };
+            layer.getBackground = function () {
+                return background;
+            };
+            layer.add(background);
+            return layer;
+        };
+        _mousePointOnEvent = function (layer, e) {
+            var scale;
+            scale = layer.getStage().scale();
+            return {
+                x: Math.round(e.offsetX / scale.x),
+                y: Math.round(e.offsetY / scale.y)
+            };
+        };
+        onresize = function (e) {
+            var background, layer;
+            layer = this.listener;
+            background = layer.getBackground();
+            background.setSize(e.after);
+            return layer.batchDraw();
+        };
+        ondragstart = function (e) {
+            var layer, targetLayer;
+            layer = this.listener;
+            targetLayer = layer.getTargetLayer();
+            if (!targetLayer) {
+                return;
+            }
+            this.targetLayerOffsetOnStart = targetLayer.offset();
+            this.mousePointOnStart = _mousePointOnEvent(layer, e);
+            return e.cancelBubble = true;
+        };
+        ondragmove = function (e) {
+            var controller, layer, mousePointCurrent, moveDelta, targetLayer;
+            controller = this.context;
+            layer = this.listener;
+            targetLayer = layer.getTargetLayer();
+            if (!targetLayer) {
+                return;
+            }
+            mousePointCurrent = _mousePointOnEvent(layer, e);
+            moveDelta = {
+                x: mousePointCurrent.x - this.mousePointOnStart.x,
+                y: mousePointCurrent.y - this.mousePointOnStart.y
+            };
+            controller.offset({
+                x: this.targetLayerOffsetOnStart.x - moveDelta.x,
+                y: this.targetLayerOffsetOnStart.y - moveDelta.y
+            });
+            layer.batchDraw();
+            return e.cancelBubble = true;
+        };
+        ondragend = function (e) {
+            var layer;
+            layer = this.listener;
+            layer.offset({
+                x: 0,
+                y: 0
+            });
+            layer.batchDraw();
+            return e.cancelBubble = true;
+        };
+        onchange = function (component, before, after) {
+            var node;
+            node = component.getViews()[0];
+            node.setAttrs(after);
+            return node.getLayer().batchDraw();
+        };
+        model_event_map = { '(self)': { '(self)': { change: onchange } } };
+        view_event_map = {
+            '(self)': {
+                dragstart: ondragstart,
+                dragmove: ondragmove,
+                dragend: ondragend
+            },
+            '(root)': { resize: onresize }
+        };
+        return {
+            type: 'minimap-layer',
+            name: 'minimap-layer',
+            containable: true,
+            container_type: 'layer',
+            description: 'Minimap Layer Specification',
+            defaults: {
+                visible: true,
+                listening: true
+            },
+            model_event_map: model_event_map,
+            view_event_map: view_event_map,
+            view_factory_fn: view_factory,
+            toolbox_image: 'images/toolbox_minimap_layer.png',
+            exportable: function (appcontext, layer) {
+                appcontext.showMinimap = function () {
+                    return layer.set('visible', true);
+                };
+                return appcontext.hideMinimap = function () {
+                    return layer.set('visible', false);
+                };
+            }
         };
     });
 }.call(this));
@@ -2884,6 +2951,7 @@ define("build/Clipboard",["module","require","exports"],function(module, require
         './SpecGuideLayer',
         './SpecRulerLayer',
         './SpecHandleLayer',
+        './SpecMinimapLayer',
         './SpecGroup',
         './SpecRect',
         './SpecCircle',
@@ -2894,7 +2962,7 @@ define("build/Clipboard",["module","require","exports"],function(module, require
         './SpecStar',
         './SpecBarcode',
         '../handle/HandleChecker'
-    ], function (kin, SpecInfographic, SpecContentEditLayer, SpecGuideLayer, SpecRulerLayer, SpecHandleLayer, SpecGroup, SpecRect, SpecCircle, SpecRing, SpecRuler, SpecImage, SpecText, SpecStar, SpecBarcode, HandleChecker) {
+    ], function (kin, SpecInfographic, SpecContentEditLayer, SpecGuideLayer, SpecRulerLayer, SpecHandleLayer, SpecMinimapLayer, SpecGroup, SpecRect, SpecCircle, SpecRing, SpecRuler, SpecImage, SpecText, SpecStar, SpecBarcode, HandleChecker) {
         'use strict';
         var createView;
         createView = function (attributes) {
@@ -2914,6 +2982,7 @@ define("build/Clipboard",["module","require","exports"],function(module, require
                 'guide-layer': SpecGuideLayer,
                 'ruler-layer': SpecRulerLayer,
                 'handle-layer': SpecHandleLayer,
+                'minimap-layer': SpecMinimapLayer,
                 'group': SpecGroup,
                 'rect': SpecRect,
                 'circle': SpecCircle,
@@ -2948,6 +3017,7 @@ define("build/Clipboard",["module","require","exports"],function(module, require
                 {
                     type: 'guide-layer',
                     attrs: {
+                        'target_layer': 'content-edit-layer',
                         offset: {
                             x: -20,
                             y: -20
@@ -2957,6 +3027,10 @@ define("build/Clipboard",["module","require","exports"],function(module, require
                 {
                     type: 'ruler-layer',
                     attrs: { offset_monitor_target: 'content-edit-layer' }
+                },
+                {
+                    type: 'minimap-layer',
+                    attrs: { target_layer: 'content-edit-layer' }
                 }
             ],
             toolbox_image: 'images/toolbox_painter_app.png'
@@ -2965,57 +3039,56 @@ define("build/Clipboard",["module","require","exports"],function(module, require
 }.call(this));
 (function () {
     define('build/spec/SpecContentViewLayer', [
-        'KineticJS',
-        '../EventTracker',
-        '../ComponentSelector',
-        '../command/CommandPropertyChange'
-    ], function (kin, EventTracker, ComponentSelector, CommandPropertyChange) {
+        'dou',
+        'KineticJS'
+    ], function (dou, kin) {
         'use strict';
-        var createView, model_event_map, onadded, onchange, onchangemodel, onremoved, view_event_map;
-        createView = function (attributes) {
+        var model_event_map, model_initialize, onadded, onchange, onchangemodel, onremoved, view_event_map, view_factory, _mousePointOnEvent;
+        view_factory = function (attributes) {
             return new kin.Layer(attributes);
+        };
+        model_initialize = function () {
         };
         onadded = function (container, component, index, e) {
         };
         onremoved = function (container, component, e) {
         };
-        onchangemodel = function (after, before) {
-            var layer, _i, _len, _ref, _results;
-            _ref = this.findComponent('content-view-layer');
-            _results = [];
-            for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-                layer = _ref[_i];
-                if (before) {
-                    layer.remove(before);
-                }
-                if (after) {
-                    layer.add(after);
-                }
-                _results.push(this.findView('#' + layer.get('id')));
+        onchangemodel = function (after, before, e) {
+            var model;
+            model = e.listener;
+            if (before) {
+                model.remove(before);
+                before.dispose();
             }
-            return _results;
+            if (after) {
+                return model.add(after);
+            }
         };
         onchange = function (component, before, after) {
-            var view;
-            view = this.findViewByComponent(component);
-            view.setAttrs(after);
-            return this.drawView();
+            var node;
+            node = component.getViews()[0];
+            node.setAttrs(after);
+            return node.getLayer().batchDraw();
+        };
+        _mousePointOnEvent = function (layer, e) {
+            var scale;
+            scale = layer.getStage().scale();
+            return {
+                x: Math.round(e.offsetX / scale.x),
+                y: Math.round(e.offsetY / scale.y)
+            };
         };
         model_event_map = {
             '(root)': { '(root)': { 'change-model': onchangemodel } },
             '(self)': {
-                '(all)': { 'change': onchange },
-                '(self)': { 'change': onchange }
+                '(self)': {
+                    'added': onadded,
+                    'removed': onremoved
+                },
+                '(all)': { 'change': onchange }
             }
         };
-        view_event_map = {
-            click: function (e) {
-                var node;
-                node = e.targetNode;
-                return this.selectionManager.select(node);
-            }
-        };
-        return {
+        return view_event_map = {
             type: 'content-view-layer',
             name: 'content-view-layer',
             containable: true,
@@ -3024,7 +3097,8 @@ define("build/Clipboard",["module","require","exports"],function(module, require
             defaults: {},
             model_event_map: model_event_map,
             view_event_map: view_event_map,
-            view_factory_fn: createView,
+            model_initialize_fn: model_initialize,
+            view_factory_fn: view_factory,
             toolbox_image: 'images/toolbox_content_view_layer.png'
         };
     });

@@ -68,10 +68,12 @@
         changes: changes
       }));
     };
-    offset = function(appcontext, component, offset) {
+    offset = function(appcontext, component, position) {
       var layer;
-      layer = component.getAttachedViews()[0];
-      return layer.offset(offset);
+      layer = component.getViews()[0];
+      layer.offset(position);
+      layer.fire('change-offset', layer.offset(), false);
+      return layer.batchDraw();
     };
     return function(appcontext, component) {
       var exportableFunctions, func, name, _results;
@@ -91,8 +93,8 @@
         moveToBack: function() {
           return moveToBack(appcontext, component);
         },
-        offset: function(offset) {
-          return offset(appcontext, component, offset);
+        offset: function(position) {
+          return offset(appcontext, component, position);
         },
         cut: function() {
           return cut(appcontext, component);
@@ -102,12 +104,6 @@
         },
         paste: function() {
           return paste(appcontext, component);
-        },
-        setEditMode: function(mode) {
-          return component.setEditMode(mode);
-        },
-        getEditMode: function() {
-          return component.getEditMode();
         }
       };
       _results = [];

@@ -11,6 +11,7 @@ define [
     './SpecGuideLayer'
     './SpecRulerLayer'
     './SpecHandleLayer'
+    './SpecMinimapLayer'
     './SpecGroup'
     './SpecRect'
     './SpecCircle'
@@ -28,6 +29,7 @@ define [
     SpecGuideLayer
     SpecRulerLayer
     SpecHandleLayer
+    SpecMinimapLayer
     SpecGroup
     SpecRect
     SpecCircle
@@ -61,6 +63,7 @@ define [
             'guide-layer' : SpecGuideLayer
             'ruler-layer' : SpecRulerLayer
             'handle-layer' : SpecHandleLayer
+            'minimap-layer' : SpecMinimapLayer
             'group' : SpecGroup
             'rect' : SpecRect
             'circle' : SpecCircle
@@ -88,6 +91,7 @@ define [
         }, {
             type: 'guide-layer'
             attrs:
+                'target_layer' : 'content-edit-layer'
                 offset :
                     x: -20
                     y: -20
@@ -95,6 +99,10 @@ define [
             type: 'ruler-layer'
             attrs:
                 offset_monitor_target : 'content-edit-layer'
+        }, {
+            type: 'minimap-layer'
+            attrs:
+                target_layer : 'content-edit-layer'
         }]
         toolbox_image: 'images/toolbox_painter_app.png'
     }

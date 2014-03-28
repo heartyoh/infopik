@@ -1,7 +1,7 @@
 (function() {
-  define(['dou', 'KineticJS', '../EventTracker', '../ComponentSelector', '../command/CommandPropertyChange', './SpecContentEditLayerExportable'], function(dou, kin, EventTracker, ComponentSelector, CommandPropertyChange, exportable) {
+  define(['dou', 'KineticJS', '../command/CommandPropertyChange', './SpecContentEditLayerExportable'], function(dou, kin, CommandPropertyChange, exportable) {
     "use strict";
-    var model_event_map, model_initialize, onadded, onchange, onchangeeditmode, onchangemodel, onchangeoffset, onchangeselections, onclick, ondragend, ondragmove, ondragstart, onremoved, onresize, view_event_map, view_factory, _editmodechange, _mousePointOnEvent, _stuckBackgroundPosition;
+    var model_event_map, model_initialize, onadded, onchange, onchangemodel, onchangeoffset, onchangeselections, onclick, ondragend, ondragmove, ondragstart, onremoved, onresize, view_event_map, view_factory, _mousePointOnEvent, _stuckBackgroundPosition;
     view_factory = function(attributes) {
       var background, layer, offset, stage;
       stage = this.getView().getStage();
@@ -31,40 +31,8 @@
       layer.add(background);
       return layer;
     };
-    model_initialize = function() {
-      var editmode;
-      editmode = 'SELECT';
-      this.getEditMode = function() {
-        return editmode;
-      };
-      return this.setEditMode = function(mode) {
-        var old;
-        if (mode === editmode) {
-          return;
-        }
-        old = editmode;
-        editmode = mode;
-        return this.trigger('change-edit-mode', mode, old);
-      };
-    };
-    _editmodechange = function(after, before, layer, model, controller) {
-      switch (after) {
-        case 'MOVE':
-          layer.getBackground().moveToTop();
-          break;
-        case 'SELECT':
-          layer.getBackground().moveToBottom();
-          break;
-      }
-      return layer.batchDraw();
-    };
-    onadded = function(container, component, index, e) {
-      var controller, layer, model;
-      controller = this;
-      model = e.listener;
-      layer = controller.getAttachedViews(model)[0];
-      return _editmodechange(model.getEditMode(), null, layer, model, controller);
-    };
+    model_initialize = function() {};
+    onadded = function(container, component, index, e) {};
     onremoved = function(container, component, e) {};
     onchangemodel = function(after, before, e) {
       var model;
@@ -124,19 +92,13 @@
         x: this.mousePointOnStart.x + this.layerOffsetOnStart.x,
         y: this.mousePointOnStart.y + this.layerOffsetOnStart.y
       };
-      switch (model.getEditMode()) {
-        case 'SELECT':
-          this.selectbox = new kin.Rect({
-            stroke: 'black',
-            strokeWidth: 1,
-            dash: [3, 3]
-          });
-          layer.add(this.selectbox);
-          this.selectbox.setAttrs(offset);
-          break;
-        case 'MOVE':
-          break;
-      }
+      this.selectbox = new kin.Rect({
+        stroke: 'black',
+        strokeWidth: 1,
+        dash: [3, 3]
+      });
+      layer.add(this.selectbox);
+      this.selectbox.setAttrs(offset);
       _stuckBackgroundPosition(layer);
       layer.draw();
       return e.cancelBubble = true;
@@ -156,27 +118,16 @@
         x: mousePointCurrent.x - this.mousePointOnStart.x,
         y: mousePointCurrent.y - this.mousePointOnStart.y
       };
-      switch (model.getEditMode()) {
-        case 'SELECT':
-          this.selectbox.setAttrs({
-            width: moveDelta.x,
-            height: moveDelta.y
-          });
-          break;
-        case 'MOVE':
-          layer.offset({
-            x: this.layerOffsetOnStart.x - moveDelta.x,
-            y: this.layerOffsetOnStart.y - moveDelta.y
-          });
-          layer.fire('change-offset', layer.offset(), false);
-          break;
-      }
+      this.selectbox.setAttrs({
+        width: moveDelta.x,
+        height: moveDelta.y
+      });
       _stuckBackgroundPosition(layer);
       layer.batchDraw();
       return e.cancelBubble = true;
     };
     ondragend = function(e) {
-      var background, cmd, controller, dragmodel, dragview, layer, model, mousePointCurrent, moveDelta;
+      var background, cmd, controller, dragmodel, dragview, layer, model;
       controller = this.context;
       layer = this.listener;
       model = controller.getAttachedModel(layer);
@@ -205,24 +156,8 @@
       if (e.targetNode && e.targetNode !== background) {
         return;
       }
-      mousePointCurrent = _mousePointOnEvent(layer, e);
-      moveDelta = {
-        x: mousePointCurrent.x - this.mousePointOnStart.x,
-        y: mousePointCurrent.y - this.mousePointOnStart.y
-      };
-      switch (model.getEditMode()) {
-        case 'SELECT':
-          this.selectbox.remove();
-          delete this.selectbox;
-          break;
-        case 'MOVE':
-          layer.offset({
-            x: Math.max(this.layerOffsetOnStart.x - moveDelta.x, -20),
-            y: Math.max(this.layerOffsetOnStart.y - moveDelta.y, -20)
-          });
-          layer.fire('change-offset', layer.offset(), false);
-          break;
-      }
+      this.selectbox.remove();
+      delete this.selectbox;
       _stuckBackgroundPosition(layer);
       layer.draw();
       return e.cancelBubble = true;
@@ -239,13 +174,6 @@
       background.setSize(e.after);
       return layer.batchDraw();
     };
-    onchangeeditmode = function(after, before, e) {
-      var controller, layer, model;
-      controller = this;
-      model = e.listener;
-      layer = controller.getAttachedViews(model)[0];
-      return _editmodechange(after, before, layer, model, controller);
-    };
     onchangeoffset = function(e) {
       var layer;
       layer = this.listener;
@@ -261,8 +189,7 @@
       '(self)': {
         '(self)': {
           'added': onadded,
-          'removed': onremoved,
-          'change-edit-mode': onchangeeditmode
+          'removed': onremoved
         },
         '(all)': {
           'change': onchange

@@ -1,5 +1,5 @@
 (function() {
-  define(['KineticJS', './SpecInfographic', './SpecContentEditLayer', './SpecGuideLayer', './SpecRulerLayer', './SpecHandleLayer', './SpecGroup', './SpecRect', './SpecCircle', './SpecRing', './SpecRuler', './SpecImage', './SpecText', './SpecStar', './SpecBarcode', '../handle/HandleChecker'], function(kin, SpecInfographic, SpecContentEditLayer, SpecGuideLayer, SpecRulerLayer, SpecHandleLayer, SpecGroup, SpecRect, SpecCircle, SpecRing, SpecRuler, SpecImage, SpecText, SpecStar, SpecBarcode, HandleChecker) {
+  define(['KineticJS', './SpecInfographic', './SpecContentEditLayer', './SpecGuideLayer', './SpecRulerLayer', './SpecHandleLayer', './SpecMinimapLayer', './SpecGroup', './SpecRect', './SpecCircle', './SpecRing', './SpecRuler', './SpecImage', './SpecText', './SpecStar', './SpecBarcode', '../handle/HandleChecker'], function(kin, SpecInfographic, SpecContentEditLayer, SpecGuideLayer, SpecRulerLayer, SpecHandleLayer, SpecMinimapLayer, SpecGroup, SpecRect, SpecCircle, SpecRing, SpecRuler, SpecImage, SpecText, SpecStar, SpecBarcode, HandleChecker) {
     "use strict";
     var createView;
     createView = function(attributes) {
@@ -19,6 +19,7 @@
         'guide-layer': SpecGuideLayer,
         'ruler-layer': SpecRulerLayer,
         'handle-layer': SpecHandleLayer,
+        'minimap-layer': SpecMinimapLayer,
         'group': SpecGroup,
         'rect': SpecRect,
         'circle': SpecCircle,
@@ -51,6 +52,7 @@
         }, {
           type: 'guide-layer',
           attrs: {
+            'target_layer': 'content-edit-layer',
             offset: {
               x: -20,
               y: -20
@@ -60,6 +62,11 @@
           type: 'ruler-layer',
           attrs: {
             offset_monitor_target: 'content-edit-layer'
+          }
+        }, {
+          type: 'minimap-layer',
+          attrs: {
+            target_layer: 'content-edit-layer'
           }
         }
       ],
