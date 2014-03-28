@@ -140,7 +140,7 @@ define [
             oldOffset = nodeLayer.offset()
 
             # TODO remove implicit dependency to content-edit-layer
-            node.getLayer().offset
+            @context.offset
                 x: if guidePosition.x < 0 and oldOffset.x > -20 then Math.max(oldOffset.x - 10, -20) else oldOffset.x
                 y: if guidePosition.y < 0 and oldOffset.y > -20  then Math.max(oldOffset.y - 10, -20) else oldOffset.y
 

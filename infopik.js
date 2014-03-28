@@ -1942,7 +1942,7 @@ define("build/Clipboard",["module","require","exports"],function(module, require
             if (guidePosition.x < 0 || guidePosition.y < 0) {
                 nodeLayer = node.getLayer();
                 oldOffset = nodeLayer.offset();
-                node.getLayer().offset({
+                this.context.offset({
                     x: guidePosition.x < 0 && oldOffset.x > -20 ? Math.max(oldOffset.x - 10, -20) : oldOffset.x,
                     y: guidePosition.y < 0 && oldOffset.y > -20 ? Math.max(oldOffset.y - 10, -20) : oldOffset.y
                 });
