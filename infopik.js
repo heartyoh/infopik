@@ -1909,7 +1909,7 @@ define("build/Clipboard",["module","require","exports"],function(module, require
             return layer.batchDraw();
         };
         ondragmove = function (e) {
-            var controller, guidePosition, layer, node, nodeLayer, nodePositionCurrent, oldOffset;
+            var autoMovingBottom, autoMovingLeft, autoMovingRight, autoMovingTop, controller, guidePosition, layer, node, nodeLayer, nodePositionCurrent, oldOffset, scale, x, y;
             controller = this.context;
             layer = this.listener;
             node = e.targetNode;
@@ -1940,13 +1940,24 @@ define("build/Clipboard",["module","require","exports"],function(module, require
                 x: Math.max(guidePosition.x, 0) > this.text.width() + 10 ? guidePosition.x - (this.text.width() + 10) : Math.max(guidePosition.x + 10, 10),
                 y: Math.max(guidePosition.y, 0) > this.text.height() + 10 ? guidePosition.y - (this.text.height() + 10) : Math.max(guidePosition.y + 10, 10)
             });
-            if (guidePosition.x < 0 || guidePosition.y < 0) {
+            scale = node.getStage().scale();
+            autoMovingLeft = (node.getStage().width() + layer.offset().x) / scale.x * 1 / 5;
+            autoMovingRight = (node.getStage().width() + layer.offset().x) / scale.x * 4 / 5;
+            autoMovingTop = (node.getStage().height() + layer.offset().y) / scale.y * 1 / 5;
+            autoMovingBottom = (node.getStage().height() + layer.offset().y) / scale.y * 4 / 5;
+            console.log(autoMovingLeft, autoMovingRight, autoMovingTop, autoMovingBottom);
+            if (guidePosition.x < autoMovingLeft || guidePosition.x > autoMovingRight || guidePosition.y < autoMovingTop || guidePosition.y > autoMovingBottom) {
                 nodeLayer = node.getLayer();
                 oldOffset = nodeLayer.offset();
-                controller.offset({
-                    x: guidePosition.x < 0 && oldOffset.x > -20 ? Math.max(oldOffset.x - 10, -20) : oldOffset.x,
-                    y: guidePosition.y < 0 && oldOffset.y > -20 ? Math.max(oldOffset.y - 10, -20) : oldOffset.y
-                });
+                x = guidePosition.x <= autoMovingLeft ? Math.max(oldOffset.x - 10, -20) : guidePosition.x >= autoMovingRight ? oldOffset.x + 10 : oldOffset.x;
+                y = guidePosition.y <= autoMovingTop ? Math.max(oldOffset.y - 10, -20) : guidePosition.y >= autoMovingBottom ? oldOffset.y + 10 : oldOffset.y;
+                console.log(guidePosition, x, y);
+                if (oldOffset.x !== x || oldOffset.y !== y) {
+                    controller.offset({
+                        x: x,
+                        y: y
+                    });
+                }
             }
             return layer.batchDraw();
         };

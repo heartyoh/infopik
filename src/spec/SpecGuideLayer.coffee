@@ -136,14 +136,37 @@ define [
             x: if Math.max(guidePosition.x, 0) > (@text.width() + 10) then guidePosition.x - (@text.width() + 10) else Math.max(guidePosition.x + 10, 10)
             y: if Math.max(guidePosition.y, 0) > (@text.height() + 10) then guidePosition.y - (@text.height() + 10) else Math.max(guidePosition.y + 10, 10)
 
-        if(guidePosition.x < 0 || guidePosition.y < 0)
+        scale = node.getStage().scale()
+        autoMovingLeft   = (node.getStage().width() + layer.offset().x) / scale.x * 1 / 5
+        autoMovingRight  = (node.getStage().width() + layer.offset().x) / scale.x * 4 / 5
+        autoMovingTop    = (node.getStage().height() + layer.offset().y) / scale.y * 1 / 5
+        autoMovingBottom = (node.getStage().height() + layer.offset().y) / scale.y * 4 / 5
+
+        console.log autoMovingLeft, autoMovingRight, autoMovingTop, autoMovingBottom
+
+        if guidePosition.x < autoMovingLeft or guidePosition.x > autoMovingRight or guidePosition.y < autoMovingTop or guidePosition.y > autoMovingBottom
             nodeLayer = node.getLayer()
             oldOffset = nodeLayer.offset()
 
+            x = if guidePosition.x <= autoMovingLeft
+                    Math.max(oldOffset.x - 10, -20) 
+                else if guidePosition.x >= autoMovingRight
+                    oldOffset.x + 10
+                else oldOffset.x
+
+            y = if guidePosition.y <= autoMovingTop
+                    Math.max(oldOffset.y - 10, -20) 
+                else if guidePosition.y >= autoMovingBottom
+                    oldOffset.y + 10
+                else oldOffset.y
+
+            console.log guidePosition, x, y
+
             # TODO remove implicit dependency to content-edit-layer
-            controller.offset
-                x: if guidePosition.x < 0 and oldOffset.x > -20 then Math.max(oldOffset.x - 10, -20) else oldOffset.x
-                y: if guidePosition.y < 0 and oldOffset.y > -20  then Math.max(oldOffset.y - 10, -20) else oldOffset.y
+            if oldOffset.x != x or oldOffset.y != y
+                controller.offset
+                    x: x
+                    y: y
 
         layer.batchDraw()
 

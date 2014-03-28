@@ -58,7 +58,7 @@ define([
 
       // app.setEditMode('MOVE');
 
-      app.showMinimap();
+      // app.showMinimap();
 
       app.setScale(2)
     });
