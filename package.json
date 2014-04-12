@@ -9,7 +9,6 @@
   "dependencies": {
     "dou": ">=0.0.7",
     "bwip": ">=0.6.3",
-    "canvas": ">=1.1.0",
     "KineticJS": "git://github.com/ericdrowell/KineticJS.git",
     "promise": "~3.2.0",
     "amdefine": ">=0.1.0"
