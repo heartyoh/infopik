@@ -66,6 +66,9 @@
     "name": "Hearty, Oh.",
     "email": "heartyoh@gmail.com"
   },
+  "scripts": {
+    "test": "./node_modules/.bin/karma start --single-run --browsers PhantomJS" 
+  },
   "licenses": [
     {
       "type": "MIT"

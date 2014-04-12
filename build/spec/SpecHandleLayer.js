@@ -55,12 +55,12 @@
         id = node.getAttr('id');
         pos = node.getAbsolutePosition();
         handle_comp = this.createComponent({
-          type: 'handle-checker',
+          type: 'handle-rect',
           attrs: {}
         });
         model.add(handle_comp);
         handle_view = controller.getAttachedViews(handle_comp)[0];
-        handle_view.setAbsolutePosition(pos);
+        handle_view.setTarget(node);
         view.handles[id] = handle_view;
       }
       return view.batchDraw();

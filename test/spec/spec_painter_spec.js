@@ -58,9 +58,9 @@ define([
 
       // app.setEditMode('MOVE');
 
-      app.showMinimap();
+      // app.showMinimap();
 
-      app.setScale(2)
+      // app.setScale(2)
     });
 
   });

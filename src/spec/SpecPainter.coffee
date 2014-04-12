@@ -22,6 +22,7 @@ define [
     './SpecStar'
     './SpecBarcode'
     '../handle/HandleChecker'
+    '../handle/HandleRect'
 ], (
     kin
     SpecInfographic
@@ -40,6 +41,7 @@ define [
     SpecStar
     SpecBarcode
     HandleChecker
+    HandleRect
 ) ->
     
     "use strict"
@@ -74,6 +76,7 @@ define [
             'star' : SpecStar
             'barcode' : SpecBarcode
             'handle-checker' : HandleChecker
+            'handle-rect' : HandleRect
         }
         layers : [{
             type: 'content-edit-layer'
