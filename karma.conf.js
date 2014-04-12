@@ -43,7 +43,7 @@ module.exports = function(config) {
       },
       // transforming the filenames
       transformPath: function(path) {
-        return path.replace(/\.coffee$/, '.js');//.replace(/\/src\//, '/build/js/');
+        return path.replace(/\.coffee$/, '.js');
       }
     },
 
