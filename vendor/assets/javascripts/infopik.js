@@ -3531,7 +3531,7 @@ define("build/Clipboard",["module","require","exports"],function(module, require
                 rootComponent = this.application;
                 this.compEventTracker.setSelector({
                     select: function (selector, listener) {
-                        return CompoentSelector.select(selector, rootComponent, listener);
+                        return ComponentSelector.select(selector, rootComponent, listener);
                     }
                 });
                 this.viewEventTracker.setSelector({

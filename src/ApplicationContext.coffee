@@ -46,7 +46,7 @@ define [
     SpecInfographic
     CommandMove
 ) ->
-    
+
     "use strict"
 
     class ApplicationContext
@@ -91,7 +91,7 @@ define [
             # model - Root Container (Application)
             # view - Stage of KineticJS
 
-            attributes = 
+            attributes =
                 id: 'application'
                 container: options.container
                 width: options.width
@@ -106,13 +106,13 @@ define [
             @view = @componentFactory.createView(@application, this)
 
             @eventEngine.setRoot @application
-            
+
             rootView = @view
             rootComponent = @application
-            
+
             @compEventTracker.setSelector
                 select: (selector, listener) ->
-                    CompoentSelector.select(selector, rootComponent, listener)
+                    ComponentSelector.select(selector, rootComponent, listener)
 
             @viewEventTracker.setSelector
                 select: (selector, listener) ->
@@ -226,19 +226,19 @@ define [
             @getView().scale
                 x : scale
                 y : scale
-            
+
             @drawView()
 
         scaleEnlarge: ->
             scale = @getView().scaleX()
-            
+
             @setScale (if (scale + 1 > 8) then 8 else scale + 1)
 
         scaleReduce: ->
             scale = @getView().scaleX()
-            
+
             @setScale (if (scale - 1 < 1) then 1 else scale - 1)
 
     dou.mixin ApplicationContext, MVCMixin.controller
-    
+
     ApplicationContext

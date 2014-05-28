@@ -1,0 +1,479 @@
+# ==========================================
+# Copyright 2014 Hatio, Lab.
+# Licensed under The MIT License
+# http://opensource.org/licenses/MIT
+# ==========================================
+
+# inspired by https://github.com/soloproyectos/jquery.transformtool
+
+define [
+    'dou'
+    'KineticJS'
+], (
+    dou
+    kin
+) ->
+    
+    "use strict"
+
+    LEFT = -1
+    CENTER = 0
+    RIGHT = 1
+    TOP = -1
+    MIDDLE = 0
+    BOTTOM = 1
+
+    # Line class.
+    # 
+    # A line can be defined by a point and a vector.
+    # 
+    # @param {Object} point  Point of the form (x, y)
+    # @param {Object} vector Vector of the form (x, y)
+    # 
+    # @return {Void}
+    class Line
+        constructor: (point, vector) ->
+            @_point = point
+            @_vector = vector
+    
+        # Gets the point.
+        # 
+        # @param {Object} a point of the form (x, y)
+        getPoint: ->
+            return @_point
+
+        # Gets the vector.
+        # 
+        # @param {Object} a vector of the form (x, y)
+        getVector: ->
+            return @_vector
+
+    # Handler class.
+    # 
+    # This class extends the Kinetic.Circle class.
+    # 
+    # @param {Number} hAlign      Horizontal alignment (left: -1, center: 0,
+    #                             right: 1)
+    # @param {Number} vAlign      Vertical alignment (top: -1, middle: 0,
+    #                             bottom: 1)
+    # @param {Number} radius      Handler radius
+    # @param {String} fill        Fill color
+    # @param {String} stroke      Stroke color
+    # @param {Number} strokeWidth Stroke width
+    # 
+    # @return {Void}
+    class Handler
+        constructor: (hAlign, vAlign, radius, fill, stroke, strokeWidth) ->
+            @_align = [hAlign, vAlign];
+            
+            Kinetic.Circle.call @,
+                radius: radius
+                fill: fill
+                stroke: stroke
+                strokeWidth: strokeWidth
+                draggable: true
+
+        # Gets handler alignment.
+        # 
+        # Returns an array of two numbers. The first number is the horizontal alignment
+        # and the second number is the vertical alignment.
+        # 
+        # @return {Array}
+        getAlign: ->
+            @_align
+
+    class RectHandle extends Group
+        constructor: (target, options) ->
+            @_target = target;
+            @_options = dou.util.merge({}, defaultOptions, options);
+            @_rotateHandler = null;
+            @_border = null;
+            @_selectedHandler = null;
+            @_handlers = [];
+            
+            Kinetic.Group.call(this);
+            
+            # makes the group draggable
+            rotateGroup = @_target.getParent();
+            rotateGroup.setDraggable(@_options['allow-move']);
+            
+            @createBorder();
+            
+            # places handlers on the corners of the target
+            @addHandler LEFT, TOP, @_options['allow-scale']
+            @addHandler RIGHT, TOP, @_options['allow-scale']
+            @addHandler LEFT, BOTTOM, @_options['allow-scale']
+            @addHandler RIGHT, BOTTOM, @_options['allow-scale']
+
+            # places handlers on the sides of the target
+            @addHandler CENTER, TOP, @_options['allow-resize']
+            @addHandler LEFT, MIDDLE, @_options['allow-resize']
+            @addHandler RIGHT, MIDDLE, @_options['allow-resize']
+            @addHandler CENTER, BOTTOM, @_options['allow-resize']
+            
+            @createRotateHandler();
+            @update();
+
+        # Adds a handler.
+        # 
+        # @param {Number}  hAlign  Horizontal alignment (left: -1, center: 0, right: 1)
+        # @param {Number}  vAlign  Vertical alignment (top: -1, middle: 0, bottom: 1)
+        # @param {Boolean} visible Is the handler visible?
+        # 
+        # @return {Handler}
+        addHandler: (hAlign, vAlign, visible) ->
+            self = @
+            handler = new Handler(
+                hAlign,
+                vAlign,
+                @_options['handler-radius'],
+                @_options['handler-fill'],
+                @_options['handler-stroke'],
+                @_options['handler-stroke-width']
+            )
+
+            boundaryLine = 
+                point: 
+                    x: 0
+                    y: 0
+                vector: 
+                    x: 0
+                    y: 0
+            
+            handler.setVisible(visible)
+            
+            # the dragging is restricted to the points of the boundary line
+            handler.setDragBoundFunc (pos) ->
+                if @isDragging()
+                    pos = self.getNearestPoint(boundaryLine, pos)
+                
+                return pos
+            
+            # defines the boundary line
+            handler.on 'mousedown', ->
+                p0 = @getAbsolutePosition()
+                p1 = self.getOppositeHandler(this).getAbsolutePosition();
+                v = 
+                    x: p1.x - p0.x
+                    y: p1.y - p0.y
+                
+                self._selectedHandled = this
+                boundaryLine = new Line(p0, v)
+            
+            # no handlers are selected
+            handler.on 'mouseup', ->
+                self._selectedHandled = null
+            
+            # applies the transformation and updates the handler positions
+            handler.on 'dragmove', ->
+                self.apply()
+                self.update()
+            
+            @add(handler)
+            @_handlers.push(handler)
+            
+            return handler
+
+        # Applies a transformation on the target.
+        # 
+        # @return {Void}
+        apply: ->
+            pos = @_selectedHandled.getPosition();
+            align = @_selectedHandled.getAlign();
+            width = align[0] != 0? Math.abs(2 * pos.x) : @_target.getWidth();
+            height = align[1] != 0? Math.abs(2 * pos.y) : @_target.getHeight();
+            
+            @_target.setSize(width, height);
+            @_target.setOffset(width / 2, height / 2);
+
+        getNearestPoint: (line, point) ->
+            a = line.getPoint()
+            v = line.getVector()
+            
+            x = ((point.x - a.x) * v.x + (point.y - a.y) * v.y) / (Math.pow(v.x, 2) + Math.pow(v.y, 2))
+            
+            {
+                x: a.x + v.x * x
+                y: a.y + v.y * x
+            }
+
+        # Gets a handler by alignment.
+        # 
+        # @param {Number} hAlign Horizontal alignment (left: -1, center: 0, right: 1)
+        # @param {Number} vAlign Vertical alignment (top: -1, middle: 0, bottom: 1)
+        # 
+        # @return {Handler}
+        getHandlerByAlign: (hAlign, vAlign) ->
+            ret = null
+            
+            $.each @_handlers, ->
+                align = @getAlign()
+                
+                if (align[0] == hAlign && align[1] == vAlign)
+                    ret = @
+                    return false
+            
+            return ret
+        
+        # Gets the opposite handler.
+        # 
+        # @return {Handler}
+        getOppositeHandler: (handler) ->
+            align = handler.getAlign()
+            
+            return @getHandlerByAlign(-align[0], -align[1])
+        
+        # Gets the counterclockwise angle in radians between the
+        # positive Y axis and a given point.
+        # 
+        # @param {Object} point Point of the form (x, y)
+        # 
+        # @return {Number} a number between Math.PI and -Math.PI
+        getAngle: (point) ->
+            return Math.atan2(point.y, point.x) - Math.PI / 2
+
+        # Creates the border.
+        # 
+        # @return {Void}
+        createBorder: ->
+            @_border = new Kinetic.Line
+                points: [0, 0]
+                stroke: @_options['border-stroke']
+                strokeWidth: @_options['border-stroke-width']
+            
+            @add(@_border)
+        
+        # Creates the rotate handler.
+        # 
+        # @return {Kinetic.Circle}
+        createRotateHandler: ->
+            self = this
+            
+            @_rotateHandler = new Kinetic.Circle
+                radius: @_options['handler-radius']
+                fill: @_options['handler-fill']
+                stroke: @_options['handler-stroke']
+                strokeWidth: @_options['handler-stroke-width']
+                draggable: true
+                dragBoundFunc: (pos) ->
+                    if @isDragging()
+                        rotateGroup = self.getParent()
+                        p = rotateGroup.getAbsolutePosition()
+                        v = 
+                            x: p.x - pos.x
+                            y: p.y - pos.y
+                        angle = self.getAngle(v)
+                        
+                        rotateGroup.setRotation(angle)
+
+                    return pos
+
+            @_rotateHandler.setVisible(@_options['allow-rotate'])
+            @_rotateHandler.on 'dragmove', ->
+                self.update()
+            
+            @add @_rotateHandler
+
+            return @_rotateHandler
+
+        # Applies a transformation on the target.
+        # 
+        # @return {Void}
+        apply: ->
+            pos = @_selectedHandled.getPosition()
+            align = @_selectedHandled.getAlign()
+            width = if align[0] != 0 then Math.abs(2 * pos.x) else @_target.getWidth()
+            height = if align[1] != 0 then Math.abs(2 * pos.y) else @_target.getHeight()
+            
+            @_target.setSize(width, height)
+            @_target.setOffset(width / 2, height / 2)
+
+        # Gets a handler by alignment.
+        # 
+        # @param {Number} hAlign Horizontal alignment (left: -1, center: 0, right: 1)
+        # @param {Number} vAlign Vertical alignment (top: -1, middle: 0, bottom: 1)
+        # 
+        # @return {Handler}
+        getHandlerByAlign: (hAlign, vAlign) ->
+            ret = null
+            
+            $.each @_handlers, ->
+                align = @getAlign()
+                
+                if (align[0] == hAlign && align[1] == vAlign)
+                    ret = @
+                    return false
+            
+            return ret
+        
+        # Gets the opposite handler.
+        # 
+        # @return {Handler}
+        getOppositeHandler: (handler) ->
+            align = handler.getAlign()
+            
+            return @getHandlerByAlign(-align[0], -align[1])
+
+        # Updates handler positions.
+        #
+        # @return {Void}
+        update: ->
+            # target properties
+            targetX = @_target.getX() - @_target.getOffsetX()
+            targetY = @_target.getY() - @_target.getOffsetY()
+            targetWidth = @_target.getWidth()
+            targetHeight = @_target.getHeight()
+            
+            # positions
+            rotate =
+                x: targetX + targetWidth / 2
+                y: targetY - @_options['rotate-distance']
+
+            leftTop = {x: targetX, y: targetY}
+            rightTop = {x: targetX + targetWidth, y: targetY}
+            leftBottom = {x: targetX, y: targetY + targetHeight}
+            rightBottom = {x: targetX + targetWidth, y: targetY + targetHeight}
+            centerTop = {x: targetX + targetWidth / 2, y: targetY}
+            leftMiddle = {x: targetX, y: targetY + targetHeight / 2}
+            rightMiddle = {x: targetX + targetWidth, y: targetY + targetHeight / 2}
+            centerBottom = {x: targetX + targetWidth / 2, y: targetY + targetHeight}
+            
+            # adds points to the border
+            points = [
+                centerTop
+                leftTop
+                leftBottom
+                rightBottom
+                rightTop
+                centerTop
+            ]
+            if (@_options['allow-rotate'])
+                points.unshift(rotate)
+
+            @_border.setPoints(points)
+            
+            
+            # sets rotate handler position
+            @_rotateHandler.setPosition(rotate)
+            
+            # sets left-top handler position
+            @getHandlerByAlign(
+                LEFT,
+                TOP
+            ).setPosition(leftTop)
+            
+            # sets right-top handler position
+            @getHandlerByAlign(
+                RIGHT,
+                TOP
+            ).setPosition(rightTop)
+            
+            # sets left-bottom handler position
+            @getHandlerByAlign(
+                LEFT,
+                BOTTOM
+            ).setPosition(leftBottom)
+            
+            # sets right-bottom handler position
+            @getHandlerByAlign(
+                RIGHT,
+                BOTTOM
+            ).setPosition(rightBottom)
+            
+            # sets center-top handler position
+            @getHandlerByAlign(
+                CENTER,
+                TOP
+            ).setPosition(centerTop)
+            
+            # sets left-middle handler position
+            @getHandlerByAlign(
+                LEFT,
+                MIDDLE
+            ).setPosition(leftMiddle)
+            
+            # sets right-middle handler position
+            @getHandlerByAlign(
+                RIGHT,
+                MIDDLE
+            ).setPosition(rightMiddle)
+            
+            # sets center-bottom handler position
+            @getHandlerByAlign(
+                CENTER,
+                BOTTOM
+            ).setPosition(centerBottom)
+
+    view_factory = (attributes) ->
+        group = new kin.Group
+            width: 300
+            height: 150
+            stroke: 'black'
+            strokeWidth: 1
+
+        return group
+
+    # Creates the transform tool.
+    # 
+    # @param {Kinetic.Shape} target  The target
+    # @param {Object}        options Custom options
+    # 
+    # @return {Void}
+    createTransformTool = (target, options) ->
+        parent = target.getParent()
+        
+        # creates a new rotation group centered in the target
+        rotateGroup = new Kinetic.Group
+            x: target.getX() + target.getWidth() / 2
+            y: target.getY() + target.getHeight() / 2
+        parent.add(rotateGroup)
+        
+        # the rotation group is the new parent of the target
+        target.remove()
+        rotateGroup.add(target)
+        
+        # places the target at the center of the rotation group
+        # when the rotation group rotates, the target rotates also around its center
+        target.setPosition(0, 0)
+        target.setOffset
+            x: target.getWidth() / 2
+            y: target.getHeight() / 2
+        
+        # creates a new transform tool group
+        tool = new RectHandle(target, options)
+        rotateGroup.add(tool)
+        
+        # saves the tool in the target
+        # we will obtain the tool later using getRectHandle()
+        setRectHandle(target, tool)
+        
+        # update the parent
+        parent.draw()
+        
+        return tool
+
+    {
+        type: 'handle-rect'
+        name: 'handle-rect'
+        description: 'Rectangle Shaped Handle Specification'
+        defaults: {
+            width: 10
+            height: 10
+            fill: 'red'
+            stroke: 'black'
+            strokeWidth: 2
+            'handler-radius': 5
+            'handler-fill': 'white'
+            'handler-stroke': 'black'
+            'handler-stroke-width': 2
+            'border-stroke': 'black'
+            'border-stroke-width': 2
+            'rotate-distance': 35
+            'allow-rotate': true
+            'allow-scale': true
+            'allow-resize': true
+            'allow-move': true
+        }
+        view_factory_fn: view_factory
+        toolbox_image: 'images/toolbox_handle_rect.png'
+    }
