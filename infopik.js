@@ -1,4 +1,4 @@
-/*! Infopik v0.0.0 | (c) Hatio, Lab. | MIT License */
+/*! Infopik v0.0.1 | (c) Hatio, Lab. | MIT License */
 (function(context) {
   var factories = {
     dou: [[], function() { return context.dou; }],
@@ -3677,12 +3677,12 @@ define("build/Clipboard",["module","require","exports"],function(module, require
 }.call(this));
 (function () {
     var __indexOf = [].indexOf || function (item) {
-            for (var i = 0, l = this.length; i < l; i++) {
-                if (i in this && this[i] === item)
-                    return i;
-            }
-            return -1;
-        };
+        for (var i = 0, l = this.length; i < l; i++) {
+            if (i in this && this[i] === item)
+                return i;
+        }
+        return -1;
+    };
     define('build/Module', [], function () {
         var Module, moduleKeywords;
         moduleKeywords = [

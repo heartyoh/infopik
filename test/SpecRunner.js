@@ -23,15 +23,15 @@ require.config({
   },
   urlArgs: 'bust=' + (new Date()).getTime()
 });
- 
+
 require(['require', 'chai', 'mocha'], function(require, chai){
- 
+
   this.assert = chai.assert;
   this.expect = chai.expect;
   var should = chai.should();
 
   mocha.setup('bdd');
- 
+
   require([
     'infographic/sample_01.js',
     // 'application_context_spec.js',
@@ -58,5 +58,5 @@ require(['require', 'chai', 'mocha'], function(require, chai){
   }), function(require) {
     mocha.run();
   });
- 
+
 });

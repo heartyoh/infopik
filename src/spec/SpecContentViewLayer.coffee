@@ -25,7 +25,7 @@ define [
 
     onchangemodel = (after, before, e) ->
         model = e.listener
-        
+
         if before
             model.remove before
             before.dispose()
